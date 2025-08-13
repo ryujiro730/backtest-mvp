@@ -1,0 +1,14 @@
+{
+  "pair": "EURUSD",
+  "timeframe": "H1",
+  "date_range": { "from": "2023-01-01", "to": "2025-01-01", "tz": "UTC" },
+  "direction": "long",
+  "entry": [
+    { "type": "ema_cross", "fast": 20, "slow": 50, "cross": "above" }
+  ],
+  "filters": {
+    "days": ["Mon","Tue","Wed","Thu","Fri"],
+    "session": { "start": "09:00", "end": "18:00" }
+  },
+  "exit": { "sl_atr": { "n": 14, "k": 1.5 }, "tp_rr": 2.0, "time_stop_bars": 120, "trailing": "breakeven" }
+}
