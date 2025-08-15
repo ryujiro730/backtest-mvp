@@ -9,14 +9,18 @@ services:
       POSTGRES_USER: fx
       POSTGRES_PASSWORD: fxpass
       POSTGRES_DB: fxdb
-    ports: ["5432:5432"]
-    volumes: [ "pg_data:/var/lib/postgresql/data" ]
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
 
   redis:
     image: redis:7
     container_name: redis
     restart: unless-stopped
-    ports: ["6379:6379"]
+    # 内部通信だけでOKなら公開しない
+    # ports:
+    #   - "6379:6379"
 
   minio:
     image: quay.io/minio/minio:RELEASE.2024-09-22T00-33-43Z

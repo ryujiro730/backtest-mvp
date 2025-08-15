@@ -1,6 +1,7 @@
 from pathlib import Path
 from dotenv import load_dotenv
-# ルート（api/ の 1つ上）にある .env を明示指定
+from fastapi import FastAPI, Header, HTTPException  # Header を確実に import# ルート（api/ の 1つ上）にある .env を明示指定
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(PROJECT_ROOT / ".env", override=True)
 import os
@@ -58,12 +59,23 @@ def _resolve_dataset_hash(pair: str, timeframe: str, date_from: str, date_to: st
     return DATASET_DEFAULT_HASH
 
 @app.post("/api/run", status_code=202)
-def enqueue_run(strategy: StrategyMvp0):
-    # JSON化（alias使用で "from" を維持）
+def enqueue_run(
+    strategy: StrategyMvp0,
+    idem_key: str = Header(..., alias="Idempotency-Key")  # ★ 必須ヘッダ
+):
+    # 既存: strat_dict/sid作成はそのまま
     strat_dict = strategy.model_dump(by_alias=True, exclude_none=True)
     sid = _strategy_sid(strat_dict)
 
-    # 戦略を MinIO に保存（worker が strategies/{sid}.json を読む）
+    # ★ 既存キーがあれば再利用（同じrun_idを返す）
+    with psycopg.connect(POSTGRES_URL) as conn, conn.cursor() as cur:
+        cur.execute("select run_id, status from runs where idem_key=%s limit 1", (idem_key,))
+        row = cur.fetchone()
+        if row:
+            run_id, status = row
+            return {"run_id": run_id, "status": status}
+
+    # 戦略をMinIOへ保存（既存のまま）
     s3.put_object(
         Bucket=BKT_STRAT,
         Key=f"strategies/{sid}.json",
@@ -71,24 +83,64 @@ def enqueue_run(strategy: StrategyMvp0):
         ContentType="application/json",
     )
 
-    # データセット解決（MVPは固定 or 環境変数）
     dr = strat_dict["date_range"]
     dataset_hash = _resolve_dataset_hash(strat_dict["pair"], strat_dict["timeframe"], dr["from"], dr["to"])
 
     run_id = str(uuid.uuid4())
     with psycopg.connect(POSTGRES_URL) as conn, conn.cursor() as cur:
+        # ★ idem_key を保存
         cur.execute("""
-            insert into runs(run_id, sid, seed, code_hash, dataset_hash, status, started_at)
-            values (%s, %s, %s, %s, %s, 'queued', now())
-        """, (run_id, sid, 42, "mvp-0", dataset_hash))
+            insert into runs(run_id, sid, seed, code_hash, dataset_hash, status, started_at, idem_key)
+            values (%s, %s, %s, %s, %s, 'queued', now(), %s)
+        """, (run_id, sid, 42, "mvp-0", dataset_hash, idem_key))
         conn.commit()
 
-    # 既存の worker タスクシグネチャに合わせて投げる
     celery.send_task("tasks.run_backtest",
         args=[run_id, sid, 42, "mvp-0", dataset_hash, "anon"])
 
     return {"run_id": run_id, "status": "queued"}
 
+@app.post("/api/run", status_code=202)
+def enqueue_run(
+    strategy: StrategyMvp0,
+    idem_key: str = Header(..., alias="Idempotency-Key")  # ★ 必須ヘッダ
+):
+    # 既存: strat_dict/sid作成はそのまま
+    strat_dict = strategy.model_dump(by_alias=True, exclude_none=True)
+    sid = _strategy_sid(strat_dict)
+
+    # ★ 既存キーがあれば再利用（同じrun_idを返す）
+    with psycopg.connect(POSTGRES_URL) as conn, conn.cursor() as cur:
+        cur.execute("select run_id, status from runs where idem_key=%s limit 1", (idem_key,))
+        row = cur.fetchone()
+        if row:
+            run_id, status = row
+            return {"run_id": run_id, "status": status}
+
+    # 戦略をMinIOへ保存（既存のまま）
+    s3.put_object(
+        Bucket=BKT_STRAT,
+        Key=f"strategies/{sid}.json",
+        Body=json.dumps(strat_dict).encode("utf-8"),
+        ContentType="application/json",
+    )
+
+    dr = strat_dict["date_range"]
+    dataset_hash = _resolve_dataset_hash(strat_dict["pair"], strat_dict["timeframe"], dr["from"], dr["to"])
+
+    run_id = str(uuid.uuid4())
+    with psycopg.connect(POSTGRES_URL) as conn, conn.cursor() as cur:
+        # ★ idem_key を保存
+        cur.execute("""
+            insert into runs(run_id, sid, seed, code_hash, dataset_hash, status, started_at, idem_key)
+            values (%s, %s, %s, %s, %s, 'queued', now(), %s)
+        """, (run_id, sid, 42, "mvp-0", dataset_hash, idem_key))
+        conn.commit()
+
+    celery.send_task("tasks.run_backtest",
+        args=[run_id, sid, 42, "mvp-0", dataset_hash, "anon"])
+
+    return {"run_id": run_id, "status": "queued"}
 @app.get("/api/runs/{run_id}")
 def get_run(run_id: str):
     with psycopg.connect(POSTGRES_URL) as conn, conn.cursor() as cur:

@@ -1,4 +1,4 @@
-# schemas.py  —  StrategyMvp0 の型定義（Pydantic）
+# scihemas.py  —  StrategyMvp0 の型定義（Pydantic）
 from __future__ import annotations
 from typing import List, Literal, Optional, Union
 from pydantic import BaseModel, Field
@@ -20,11 +20,20 @@ class Filters(BaseModel):
     days: Optional[List[Literal["Mon","Tue","Wed","Thu","Fri"]]] = None
     session: Optional[Session] = None
 
+class SmaCross(BaseModel):
+    type: Literal["sma_cross"]
+    short: int = Field(ge=1)
+    long: int = Field(ge=1)
+    fee_bps: Optional[float] = Field(default=None, ge=0)         # ★追加（任意）
+    slippage_bps: Optional[float] = Field(default=None, ge=0)    # ★追加（任意）
+
 class EmaCross(BaseModel):
     type: Literal["ema_cross"]
     fast: int
     slow: int
     cross: Literal["above","below"]
+    fee_bps: Optional[float] = Field(default=None, ge=0)         # ★追加（任意）
+    slippage_bps: Optional[float] = Field(default=None, ge=0)    # ★追加（任意）
 
 class RsiThreshold(BaseModel):
     type: Literal["rsi_threshold"]
@@ -37,7 +46,7 @@ class Breakout(BaseModel):
     lookback: int
     side: Literal["high","low"]
 
-Entry = Union[EmaCross, RsiThreshold, Breakout]
+Entry = Union[EmaCross, SmaCross, RsiThreshold, Breakout]
 
 class Exit(BaseModel):
     sl_atr: Optional[dict] = None   # {"n": int, "k": float}
@@ -46,11 +55,9 @@ class Exit(BaseModel):
     trailing: Optional[Literal["none","breakeven","atr"]] = None
 
 class StrategyMvp0(BaseModel):
-    pair: Pair
-    timeframe: Timeframe
-    date_range: DateRange
-    direction: Direction
-    entry: List[Entry] = Field(..., max_items=3)
-    filters: Optional[Filters] = None
-    exit: Exit
-
+    pair: str
+    timeframe: str
+    date_range: dict
+    direction: Literal["long", "short"]
+    entry: List[Entry]
+    exit: dict = {}
