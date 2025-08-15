@@ -61,6 +61,25 @@ s3 = boto3.client(
 celery = Celery("api", broker=REDIS_URL, backend=REDIS_URL)
 app = FastAPI()
 
+from fastapi.middleware.cors import CORSMiddleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 開発中は * でOK。公開時はフロントのOriginに絞る
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/api/runs/recent")
+def recent_runs(limit: int = 20):
+    with psycopg.connect(POSTGRES_URL) as conn, conn.cursor() as cur:
+        cur.execute("""
+          select run_id, status, pf, winrate, maxdd, trades, started_at, finished_at
+            from runs order by started_at desc nulls last limit %s
+        """, (limit,))
+        cols = [c[0] for c in cur.description]
+        return [dict(zip(cols, r)) for r in cur.fetchall()]
+
+
 @app.get("/api/reports/{run_id}")
 def get_report(
     run_id: str,

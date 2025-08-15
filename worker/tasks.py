@@ -574,39 +574,22 @@ def run_backtest(run_id, sid, seed, code_hash, dataset_hash, user_id):
 
         # ★ 成果物を S3 に保存（結果は run_id ごとに分離）
         prefix = f"results/{run_id}/"
-        metrics = {
-            "run_id": run_id,
-            "sid": sid,
-            "dataset_hash": dataset_hash,
-            "code_hash": code_hash,
-            "summary": summary,
-        }
-        s3.put_object(
-            Bucket=BKT_RESULTS,
-            Key=f"{prefix}metrics.json",
-            Body=json.dumps(metrics, ensure_ascii=False).encode("utf-8"),
-            ContentType="application/json",
-        )
-        equity_thin = _thin_equity(out["equity"], max_points=800)
-        s3.put_object(
-            Bucket=BKT_RESULTS,
-            Key=f"{prefix}equity.json",
-            Body=json.dumps({"run_id": run_id, "equity": equity_thin}).encode("utf-8"),
-            ContentType="application/json",
-        )
+        s3.put_object(Bucket=BKT_RESULTS, Key=f"{prefix}metrics.json", Body=..., ContentType="application/json")
+        s3.put_object(Bucket=BKT_RESULTS, Key=f"{prefix}equity.json",  Body=..., ContentType="application/json")
 
         with psycopg.connect(POSTGRES_URL) as conn, conn.cursor() as cur:
-            cur.execute("""insert into artifacts(run_id,kind,path)
-                           values(%s,%s,%s)
-                           on conflict (run_id,kind) do update set path=excluded.path""",
-                        (run_id, "metrics", f"{prefix}metrics.json"))
-            cur.execute("""insert into artifacts(run_id,kind,path)
-                           values(%s,%s,%s)
-                           on conflict (run_id,kind) do update set path=excluded.path""",
-                        (run_id, "equity",  f"{prefix}equity.json"))
+            cur.execute(... upsert metrics ...)
+            cur.execute(... upsert equity  ...)
             conn.commit()
 
-
+# 3) 最後に runs を done に更新
+        with psycopg.connect(POSTGRES_URL) as conn, conn.cursor() as cur:
+            cur.execute("""
+              update runs set status='done', finished_at=now(),
+                pf=%s, winrate=%s, maxdd=%s, trades=%s, error=null
+              where run_id=%s
+            """, (..., run_id))
+            conn.commit()
         # （必要になったら trades も保存できる）
         # s3.put_object(Bucket=BKT_RESULTS, Key=f"{prefix}trades.json",
         #               Body=json.dumps({"run_id": run_id, "trades": out["trades"]}).encode("utf-8"),
