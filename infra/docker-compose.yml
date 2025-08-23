@@ -1,9 +1,6 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgres:16
-    container_name: pg
     restart: unless-stopped
     environment:
       POSTGRES_USER: fx
@@ -15,36 +12,28 @@ services:
       - pg_data:/var/lib/postgresql/data
 
   redis:
-    image: redis:7
-    container_name: redis
+    image: redis:7-alpine
     restart: unless-stopped
-    # 内部通信だけでOKなら公開しない
-    # ports:
-    #   - "6379:6379"
+
 
   minio:
-    image: quay.io/minio/minio:RELEASE.2024-09-22T00-33-43Z
-    container_name: minio
-    restart: unless-stopped
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin123
-    command: server /data --console-address ":9001"
     ports:
       - "9000:9000"
       - "9001:9001"
     volumes:
       - minio_data:/data
 
-  backend:
+  api:
     build:
       context: ..
-      dockerfile: infra/backend.Dockerfile
-    container_name: backend
+      dockerfile: ./infra/backend.Dockerfile
     working_dir: /app
-    command: bash -lc "export PYTHONPATH=/app && uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload"
-    volumes:
-      - ..:/app
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000
     environment:
       POSTGRES_URL: postgresql://fx:fxpass@postgres:5432/fxdb
       REDIS_URL: redis://redis:6379/0
@@ -55,24 +44,23 @@ services:
       S3_BUCKET_DATA: backtest-data
       S3_BUCKET_STRATEGIES: strategies
       S3_BUCKET_RESULTS: results
-      DATASET_HASH_DEFAULT: 38d09ca9e276c463
-      DATASET_DEFAULT_HASH: 38d09ca9e276c463
+      # 必ず fetch_demo_dataset.py の出力で置き換える
+      DATASET_HASH_DEFAULT: 676f732694a3c0a1
+    ports:
+      - "8000:8000"
     depends_on:
       - postgres
       - redis
       - minio
-    ports:
-      - "8000:8000"
+    volumes:
+      - ..:/app
 
   worker:
     build:
       context: ..
-      dockerfile: infra/backend.Dockerfile
-    container_name: worker
+      dockerfile: ./infra/backend.Dockerfile
     working_dir: /app
-    command: bash -lc "export PYTHONPATH=/app && celery -A worker.tasks worker --loglevel=info"
-    volumes:
-      - ..:/app
+    command: celery -A worker.tasks worker -l info
     environment:
       POSTGRES_URL: postgresql://fx:fxpass@postgres:5432/fxdb
       REDIS_URL: redis://redis:6379/0
@@ -83,14 +71,14 @@ services:
       S3_BUCKET_DATA: backtest-data
       S3_BUCKET_STRATEGIES: strategies
       S3_BUCKET_RESULTS: results
-      DATASET_HASH_DEFAULT: 38d09ca9e276c463
-      DATASET_DEFAULT_HASH: 38d09ca9e276c463
+      DATASET_HASH_DEFAULT: 676f732694a3c0a1
     depends_on:
       - postgres
       - redis
       - minio
+    volumes:
+      - ..:/app
 
 volumes:
   pg_data:
   minio_data:
-
