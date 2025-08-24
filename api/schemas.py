@@ -57,7 +57,10 @@ class Exit(BaseModel):
 class StrategyMvp0(BaseModel):
     pair: str
     timeframe: str
-    date_range: dict
-    direction: Literal["long", "short"]
-    entry: List[Entry]
-    exit: dict = {}
+    direction: Literal["long","short"] = "long"
+    entry: List[dict]
+    exit: Optional[dict] = None
+    fee_bps: Optional[float] = 5.0
+    slippage_bps: Optional[float] = 0.5
+    # これを任意に（存在しなくてもOK）
+    date_range: Optional[dict] = None

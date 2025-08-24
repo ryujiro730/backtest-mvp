@@ -38,4 +38,6 @@ pandas
 pyarrow
 boto3
 psycopg[binary]
+requests
+tqdm
 

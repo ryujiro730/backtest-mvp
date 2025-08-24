@@ -47,7 +47,12 @@ celery = Celery("mvp", broker=REDIS_URL, backend=REDIS_URL)
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -105,25 +110,40 @@ def _list_dataset_indexes() -> List[Dict[str, Any]]:
             break
     return out
 
-def _catalog() -> Dict[str, Any]:
+def _catalog():
     metas = _list_dataset_indexes()
-    items: List[Dict[str, Any]] = []
-    pairs, tfs = set(), set()
+    items, pairs, tfs = [], set(), set()
     for m in metas:
-        p = _pair_meta_to_ui(m["pair"])
-        tf = _tf_meta_to_ui(m["interval"])
-        items.append({"pair": p, "timeframe": tf, "dataset_hash": m["dataset_hash"]})
+        h = m["dataset_hash"]
+        try:
+            s3.head_object(Bucket=S3_BUCKET_DATA, Key=f"data/{h}.parquet")
+        except Exception:
+            continue  # 実体なしは無視
+        p = _pair_meta_to_ui(m["pair"]); tf = _tf_meta_to_ui(m["interval"])
+        items.append({"pair": p, "timeframe": tf, "dataset_hash": h})
         pairs.add(p); tfs.add(tf)
     return {"items": items, "pairs": sorted(pairs), "timeframes": sorted(tfs)}
 
-def _resolve_dataset_hash(pair_ui: str, timeframe_ui: str) -> str:
+
+def _resolve_dataset_hash(pair: str, timeframe: str) -> str:
+    # 受け取った UI 値（EURUSD, H1 等）でそのまま照合
+    pair_ui = pair.upper()
+    timeframe_ui = timeframe.upper()
+
     cat = _catalog()
     for it in cat["items"]:
-        if it["pair"].upper() == pair_ui.upper() and it["timeframe"].upper() == timeframe_ui.upper():
-            return it["dataset_hash"]
-    if DATASET_HASH_DEFAULT:
-        return DATASET_HASH_DEFAULT
-    raise HTTPException(status_code=422, detail=f"dataset_not_found: {pair_ui} {timeframe_ui}")
+        if it["pair"].upper() == pair_ui and it["timeframe"].upper() == timeframe_ui:
+            h = it["dataset_hash"]
+            # 実体チェック（parquet が無ければ 422）
+            try:
+                s3.head_object(Bucket=S3_BUCKET_DATA, Key=f"data/{h}.parquet")
+            except Exception:
+                raise HTTPException(status_code=422, detail=f"dataset_parquet_missing:{h}")
+            return h
+    raise HTTPException(status_code=422, detail=f"dataset_not_found:{pair_ui} {timeframe_ui}")
+
+
+
 
 def _thin_equity(points: List[Dict[str, Any]], max_points: int = 1500) -> List[Dict[str, Any]]:
     n = len(points)

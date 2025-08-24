@@ -1,4 +1,4 @@
-#!/home/tsujiryujiro/backtest-mvp/.venv/bin/python3
+#!/home/tsujiryujiro/Documents/backtest-mvp/.venv/bin/python
 import sys
 from numpy._configtool import main
 if __name__ == '__main__':

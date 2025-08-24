@@ -32,7 +32,7 @@ services:
     build:
       context: ..
       dockerfile: ./infra/backend.Dockerfile
-    working_dir: /app
+    working_dir: /backtest-mvp
     command: uvicorn api.main:app --host 0.0.0.0 --port 8000
     environment:
       POSTGRES_URL: postgresql://fx:fxpass@postgres:5432/fxdb
@@ -53,13 +53,13 @@ services:
       - redis
       - minio
     volumes:
-      - ..:/app
+      - ..:/backtest-mvp
 
   worker:
     build:
       context: ..
       dockerfile: ./infra/backend.Dockerfile
-    working_dir: /app
+    working_dir: /backtest-mvp
     command: celery -A worker.tasks worker -l info
     environment:
       POSTGRES_URL: postgresql://fx:fxpass@postgres:5432/fxdb
@@ -77,7 +77,7 @@ services:
       - redis
       - minio
     volumes:
-      - ..:/app
+      - ..:/backtest-mvp
 
 volumes:
   pg_data:
