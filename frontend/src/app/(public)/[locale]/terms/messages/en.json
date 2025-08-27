@@ -1,0 +1,24 @@
+{
+  "terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last Updated: 2025-08-27",
+    "sections": [
+      { "h": "1. Scope", "p": "These Terms govern the use of the Delver backtesting tool (the \"Service\"). The Privacy Policy and any guidelines form part of these Terms." },
+      { "h": "2. Account", "p": "You must keep your registration information accurate and secure your credentials. You are responsible for activities under your account." },
+      { "h": "3. Fees & Payment (Stripe Subscriptions)", "p": "Prices are as posted on our site. Subscriptions renew automatically at the start of each billing cycle and are charged via Stripe. You may cancel before renewal; access remains until the current period ends. Refunds are not provided except where required by law. After repeated payment failures we may suspend access and charge reasonable fees for chargebacks. Taxes and FX fees are your responsibility." },
+      { "h": "4. License", "p": "We grant a non-exclusive, non-transferable, non-sublicensable license to use the Service. All IP rights remain with us and our licensors." },
+      { "h": "5. Data", "p": "You retain rights to your uploaded data (price data, strategy settings, etc.). We process logs/metadata to operate, secure, and improve the Service. See our Privacy Policy." },
+      { "h": "6. Prohibited Use", "p": "No unlawful activity; no reverse engineering; no scraping or abusive automation; no third-party rights infringement; no account sharing/impersonation; no use primarily to build a competing product; no unauthorized access or vulnerability scanning; no fee evasion or chargeback abuse." },
+      { "h": "7. Market Risk & Disclaimer (Important)", "p": "Outputs (backtest results, metrics, etc.) are informational only and not investment advice. Past performance does not guarantee future results. Data issues, costs, slippage, and execution may materially change outcomes. To the fullest extent permitted by law, we are not liable for indirect damages or lost profits." },
+      { "h": "8. Availability & Changes", "p": "We may modify or suspend the Service for maintenance, security, or operational needs. No uptime guarantee." },
+      { "h": "9. Support", "p": "Support channels and hours are as posted on our site. Technical specifications may change." },
+      { "h": "10. Term & Termination", "p": "You may cancel at any time. We may suspend/terminate for breaches." },
+      { "h": "11. No Warranties", "p": "The Service is provided \"as is\" without any warranties, express or implied." },
+      { "h": "12. Liability Cap", "p": "Our aggregate liability is limited to the fees you paid to us in the last 12 months (excluding liability that cannot be limited under applicable law)." },
+      { "h": "13. Governing Law & Venue", "p": "These Terms are governed by the laws of Japan. Exclusive jurisdiction lies with the courts at our principal place of business." },
+      { "h": "14. Changes", "p": "We may update these Terms. Material changes will be notified reasonably; continued use constitutes acceptance." },
+      { "h": "15. Contact", "p": "Please contact us via the support channel listed on our site." }
+    ]
+  }
+}
+

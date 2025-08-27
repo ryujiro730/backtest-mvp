@@ -1,0 +1,44 @@
+{
+  "site": { "brand": "Delver" },
+
+  "hero": {
+    "badgeLeft": "Beta",
+    "badgeRight": "FX Backtest",
+    "title": "バックテストを4倍速に。毎週、戦略を前進させよう。",
+    "subtitle": "超低レイテンシ実行・並列処理・非公開保存。検証サイクルを最短化し、意思決定を加速します。"
+  },
+
+  "cta": {
+    "primary": "はじめる",
+    "secondary": "機能を見る"
+  },
+
+  "features": {
+    "title": "Why Delver",
+    "speed": { "title": "爆速実行", "desc": "軽量ワーカーとキューでタスクを分散。待ち時間を最小化。" },
+    "parallel": { "title": "並列バックテスト", "desc": "複数パラメータを同時に実行、比較と学習を一気に。" },
+    "paywall": { "title": "安全な非公開保存", "desc": "有料プランでは結果や設定をプライベートに保存。Stripeで簡単決済。" }
+  },
+
+  "how": {
+    "title": "使い方（90秒）",
+    "step1": { "before": "公開レポから", "after": "でフォーク" },
+    "step2": { "before": "条件を入力して", "after": "で実行" },
+    "step3": "結果を共有、または非公開で保存（有料）"
+  },
+
+  "pricing": {
+    "title": "料金プラン",
+    "free": { "name": "Free", "price": "¥0/月", "feature1": "基本的なバックテスト", "feature2": "公開レポの閲覧", "feature3": "制限付き実行回数" },
+    "pro": { "name": "Pro", "price": "¥2,480/月", "feature1": "並列実行・高速キュー", "feature2": "非公開保存・履歴管理", "feature3": "優先サポート", "cta": "今すぐ申し込む" },
+    "elite": { "name": "Elite", "price": "お問い合わせ", "feature1": "大規模並列・専用リソース", "feature2": "チーム共有・権限管理", "feature3": "専任サポート" }
+  },
+
+  "social": { "proof": "プロトレーダーと研究者が愛用しています" },
+
+  "footer": {
+    "tagline": "検証から学習まで、戦略づくりを最速に。",
+    "nav": { "features": "機能", "pricing": "料金", "terms": "利用規約" },
+    "newsletter": "最新情報をメールで受け取る"
+  }
+}

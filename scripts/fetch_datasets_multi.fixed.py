@@ -107,19 +107,19 @@ def download_one(sym: str, tf: str, start: dt.date, end: dt.date) -> pd.DataFram
                 time.sleep(1.0 * (attempt + 1))
     if not frames:
         return pd.DataFrame(columns=["timestamp","open","high","low","close","volume","symbol"])
-    out = pd.concat(frames, ignore_index=True)
+    out = pd.concat(frames, ignore_index=True).drop_duplicates(subset=["timestamp"])
     if "timestamp" not in out.columns:
-        if out.index.name:  # インデックスに時刻が残っているケース
-            out = out.reset_index().rename(columns={out.index.name: "timestamp"})
-        elif "index" in out.columns:
-            out = out.rename(columns={"index": "timestamp"})
-        else:
-            # 最後の手段: 日時っぽい列名を拾う
-            for c in out.columns:
-                lc = str(c).lower()
-                if "date" in lc or "time" in lc:
-                    out = out.rename(columns={c: "timestamp"})
-                    break
+    if out.index.name:  # インデックスに時刻が残っているケース
+        out = out.reset_index().rename(columns={out.index.name: "timestamp"})
+    elif "index" in out.columns:
+        out = out.rename(columns={"index": "timestamp"})
+    else:
+        # 最後の手段: 日時っぽい列名を拾う
+        for c in out.columns:
+            lc = str(c).lower()
+            if "date" in lc or "time" in lc:
+                out = out.rename(columns={c: "timestamp"})
+                break
     out.sort_values("timestamp", inplace=True)
     out.reset_index(drop=True, inplace=True)
     return out

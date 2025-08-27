@@ -1,12 +1,17 @@
 from __future__ import annotations
 import os, json, uuid, hashlib
 from typing import Any, Dict, List
+from dotenv import load_dotenv
+load_dotenv()  # api/.env を読み込む
+
 
 import boto3
 from botocore.config import Config
 import psycopg
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from .routers import checkout     # ← 相対インポート
+
 
 # ---- Try both import paths to match user's project layout ----
 try:
@@ -51,12 +56,13 @@ app.add_middleware(
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:3000",
+        "https://delvertrade.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+app.include_router(checkout.router) 
 # ===== Helpers =====
 def _strategy_sid(payload: Dict[str, Any]) -> str:
     blob = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")

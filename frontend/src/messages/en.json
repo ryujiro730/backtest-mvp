@@ -1,0 +1,44 @@
+{
+  "site": { "brand": "Delver" },
+
+  "hero": {
+    "badgeLeft": "Beta",
+    "badgeRight": "FX Backtest",
+    "title": "Backtest 4x faster. Ship strategies weekly.",
+    "subtitle": "Ultra-low latency runs, parallel execution, and private saves. Shorten your validation cycle and accelerate decision-making."
+  },
+
+  "cta": {
+    "primary": "Get Started",
+    "secondary": "See Features"
+  },
+
+  "features": {
+    "title": "Why Delver",
+    "speed": { "title": "Blazing Fast", "desc": "Lightweight workers and queues distribute tasks and minimize wait time." },
+    "parallel": { "title": "Parallel Backtests", "desc": "Run multiple parameter sets at once for instant comparison." },
+    "paywall": { "title": "Private Results", "desc": "Paid plans let you store results and configs privately. Pay with Stripe." }
+  },
+
+  "how": {
+    "title": "How it works (90s)",
+    "step1": { "before": "Open a public report and press", "after": "to fork" },
+    "step2": { "before": "Type your conditions then press", "after": "to run" },
+    "step3": "Share results or save them privately (paid)"
+  },
+
+  "pricing": {
+    "title": "Pricing",
+    "free": { "name": "Free", "price": "$0/mo", "feature1": "Basic backtests", "feature2": "View public reports", "feature3": "Limited runs" },
+    "pro": { "name": "Pro", "price": "$19/mo", "feature1": "Parallel runs & fast queue", "feature2": "Private saves & history", "feature3": "Priority support", "cta": "Subscribe Now" },
+    "elite": { "name": "Elite", "price": "Contact us", "feature1": "Massive parallelism", "feature2": "Team sharing & roles", "feature3": "Dedicated support" }
+  },
+
+  "social": { "proof": "Trusted by traders and researchers" },
+
+  "footer": {
+    "tagline": "From testing to learning—build strategies at top speed.",
+    "nav": { "features": "Features", "pricing": "Pricing", "terms": "Terms" },
+    "newsletter": "Get updates by email"
+  }
+}

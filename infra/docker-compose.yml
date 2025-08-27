@@ -33,6 +33,8 @@ services:
       context: ..
       dockerfile: ./infra/backend.Dockerfile
     working_dir: /backtest-mvp
+
+
     command: uvicorn api.main:app --host 0.0.0.0 --port 8000
     environment:
       POSTGRES_URL: postgresql://fx:fxpass@postgres:5432/fxdb
@@ -46,6 +48,8 @@ services:
       S3_BUCKET_RESULTS: results
       # 必ず fetch_demo_dataset.py の出力で置き換える
       DATASET_HASH_DEFAULT: 676f732694a3c0a1
+      STRIPE_SECRET_KEY: sk_test_51S0D6wBz9IqvJgd8fOqxrlJu2jp3BTtlEELV8VKP7RxJzD3HmFAKJbcS42J0gylsVN4aAZKuIZn0FXPHe89EWyVW00j3NJp4lA
+      STRIPE_PRICE_ID: price_1S0DBTBz9IqvJgd8lXUUlVOj
     ports:
       - "8000:8000"
     depends_on:
