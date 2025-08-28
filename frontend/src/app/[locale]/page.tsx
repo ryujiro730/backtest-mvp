@@ -1,6 +1,6 @@
 'use client';
 
-import {useTranslations} from 'next-intl';
+import {useLocale, useTranslations} from 'next-intl';
 import Link from 'next/link';
 import CTA from '../(public)/components/CTA';
 
@@ -18,14 +18,15 @@ function Check({ children }: { children: React.ReactNode }) {
 }
 
 export default function Page() {
-  const t = useTranslations();
+  const locale = useLocale();
+  const t = useTranslations('lp');
 
   return (
     <main className="relative isolate">
       {/* ===== Hero ===== */}
       <section className="relative overflow-hidden">
-        <div aria-hidden className="pointer-events-none absolute inset-0 hero-gradient" />
-        <div className="container mx-auto max-w-6xl px-6 py-24 md:py-28">
+        <div aria-hidden className="pointer-events-none absolute inset-0 hero-gradient -z-10" />
+        <div className="container mx-auto max-w-6xl px-6 py-24 md:py-28 relative z-10">
           <div className="mx-auto max-w-3xl text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70 backdrop-blur">
               <span>{t('hero.badgeLeft')}</span>
@@ -34,7 +35,7 @@ export default function Page() {
             </div>
 
             <h1 className="mt-6 text-4xl font-black tracking-tight text-white md:text-6xl">
-              <span className="bg-gradient-to-r from-white via-white to-white/70 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-white via-white to-white/70 bg-clip-text  tracking-normal text-transparent">
                 {t('hero.title')}
               </span>
             </h1>
@@ -59,10 +60,126 @@ export default function Page() {
           <div className="mx-auto mt-12 max-w-5xl">
             <div className="card relative overflow-hidden">
               <div aria-hidden className="absolute -inset-20 glow" />
-              <div className="aspect-[16/9] w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
+              <div className=" w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
+                <img src="http://localhost:9000/public-uploads/LpHeroPhoto.png" className="w-full h-auto rounded-xl border border-white/10"/>
             </div>
           </div>
         </div>
+      </section>
+
+      {/* SettingsPhoto */}
+      <section className='mx-auto max-w-full max-h-full mt-4 px-8'>
+        <div className='grid grid-cols-1 md:grid-cols-2 items-center gap-10'>
+          <div className='space-y-4 px-48'>
+            <h3 className='text-8xl font-semibold'>Define entry Conditions</h3>
+            <p className='text-zinc-300 text-6xl'>エントリールールは資金管理から複数インジケータまで網羅</p>
+          </div>
+
+      <div className="mt-12 mr-48 my-48">
+        <div className='card relative overflow-hidden'>
+          <div aria-hidden className='absolute -inset-20 glow' />
+          <div className='w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black' />
+            <img src="http://localhost:9000/public-uploads/LpSettingsPhoto.png" className="w-full h-auto rounded-xl border border-white/10"/>
+        </div>
+      </div>
+      </div>
+
+      </section>
+
+
+      {/* SettingsPhoto */}
+      <section className='mx-auto max-w-full max-h-full mt-4 px-8'>
+        <div className='grid grid-cols-1 md:grid-cols-2 items-center gap-10 '>
+          <div className='space-y-16 px-48 md:order-2'>
+            <h3 className='text-8xl font-semibold'>Time Zone</h3>
+            <p className='text-zinc-300 text-6xl'>あらゆるタイムゾーン、曜日で厳密にバックテストを実行し最適なタイミングを抽出</p>
+          </div>
+
+      <div className="mt-12 mr-48 my-48 md:order-1">
+        <div className='card relative overflow-hidden'>
+          <div aria-hidden className='absolute -inset-20 glow' />
+          <div className='w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black' />
+            <img src="http://localhost:9000/public-uploads/LpSettingsPhoto2.png" className="w-full h-auto rounded-xl border border-white/10"/>
+        </div>
+      </div>
+      </div>
+
+      </section>
+
+            <section className='mx-auto max-w-full max-h-full mt-4 px-8'>
+        <div className='grid grid-cols-1 md:grid-cols-2 items-center gap-10 '>
+          <div className='space-y-16 px-48'>
+            <h3 className='text-8xl font-semibold'>Indicator Threshold</h3>
+            <p className='text-zinc-300 text-6xl'>あらゆるタイムゾーン、曜日で厳密にバックテストを実行し最適なタイミングを抽出</p>
+          </div>
+
+      <div className="mt-12 mr-48 my-48">
+        <div className='card relative overflow-hidden'>
+          <div aria-hidden className='absolute -inset-20 glow' />
+          <div className='w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black' />
+            <img src="http://localhost:9000/public-uploads/LpSettingsPhoto4.png" className="w-full h-auto rounded-xl border border-white/10"/>
+        </div>
+      </div>
+      </div>
+
+      </section>
+
+
+      {/* SettingsPhoto */}
+      <section className='mx-auto max-w-full max-h-full mt-4 px-8'>
+        <div className='grid grid-cols-1 md:grid-cols-2 items-center gap-10'>
+          <div className='space-y-4 px-48 '>
+            <h3 className='text-2xl font-semibold text-8xl'>Exit</h3>
+            <p className='text-zinc-300 text-6xl'>こんなふうにいい感じやねん</p>
+          </div>
+
+      <div className="mt-12 mr-48 my-48">
+        <div className='card relative overflow-hidden'>
+          <div aria-hidden className='absolute -inset-20 glow' />
+          <div className='w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black' />
+            <img src="http://localhost:9000/public-uploads/LpSettingsPhoto5.png" className="w-full h-auto rounded-xl border border-white/10"/>
+        </div>
+      </div>
+      </div>
+
+      </section>
+
+            {/* SettingsPhoto */}
+      <section className='mx-auto max-w-full max-h-full mt-4 px-8'>
+        <div className='grid grid-cols-1 md:grid-cols-2 items-center gap-10'>
+          <div className='space-y-4 px-48 '>
+            <h3 className='text-2xl font-semibold text-8xl'>Exit</h3>
+            <p className='text-zinc-300 text-6xl'>こんなふうにいい感じやねん</p>
+          </div>
+
+      <div className="mt-12 mr-48 my-48">
+        <div className='card relative overflow-hidden'>
+          <div aria-hidden className='absolute -inset-20 glow' />
+          <div className='w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black' />
+            <img src="http://localhost:9000/public-uploads/LpSettingsPhoto6.png" className="w-full h-auto rounded-xl border border-white/10"/>
+        </div>
+      </div>
+      </div>
+
+      </section>
+
+      {/* SettingsPhoto */}
+      <section className='mx-auto max-w-full max-h-full mt-4 px-8'>
+        <div className='grid grid-cols-1 md:grid-cols-2 items-center gap-10'>
+          <div className='space-y-4 px-48 '>
+            <h3 className='text-2xl font-semibold text-8xl'>Exit</h3>
+            <p className='text-zinc-300 text-6xl'>こんなふうにいい感じやねん</p>
+          </div>
+
+      <div className="mt-12 mr-48 my-48">
+        <div className='card relative overflow-hidden'>
+          <div aria-hidden className='absolute -inset-20 glow' />
+          <div className='w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black' />
+            <img src="http://localhost:9000/public-uploads/LpSettingsPhoto3.png" className="w-full h-auto rounded-xl border border-white/10"/>
+        </div>
+      </div>
+      </div>
+
       </section>
 
       {/* ===== Features ===== */}

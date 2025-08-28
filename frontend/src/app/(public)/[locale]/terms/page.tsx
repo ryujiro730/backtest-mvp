@@ -1,53 +1,55 @@
-import type { Metadata } from "next";
+// src/app/(public)/[locale]/terms/page.tsx
+import fs from "node:fs/promises";
+import path from "node:path";
+import matter from "gray-matter";
+import {MDXRemote} from "next-mdx-remote/rsc";
+import remarkGfm from "remark-gfm";
+import remarkSlug from "remark-slug";
+import remarkAutolinkHeadings from "remark-autolink-headings";
+import rehypePrettyCode from "rehype-pretty-code";
 
-// 動的に messages を読み込む（next-intl なしの軽量方式）
-async function getMessages(locale: string) {
-  switch (locale) {
-    case "ja":
-      return (await import("./messages/ja.json")).default as any;
-    default:
-      return (await import("./messages/en.json")).default as any;
-  }
+type Params = { locale: "ja" | "en" };
+
+export async function generateStaticParams() {
+  return [{locale: "ja"}, {locale: "en"}]; // 事前生成
 }
 
-type TermsSection = { h: string; p: string };
+export default async function TermsPage({params}: {params: Params}) {
+  const file = path.join(process.cwd(), "src/content/terms", `${params.locale}.md`);
+  const raw = await fs.readFile(file, "utf-8");
+  const {content, data} = matter(raw); // frontmatter抽出
 
-export const metadata: Metadata = {
-  title: "Terms of Service | Delver",
-  description:
-    "Delver (FX backtest tool) Terms of Service. Stripe subscription billing, disclaimers, cancellation, and more.",
-};
-
-export default async function TermsPage({
-  params,
-}: {
-  params: { locale: string };
-}) {
-  const { locale } = params;
-  const dict = await getMessages(locale);
-
-  const title: string = dict?.terms?.title ?? "Terms of Service";
-  const lastUpdated: string = dict?.terms?.lastUpdated ?? "";
-  const sections: TermsSection[] = dict?.terms?.sections ?? [];
+  const title = (data.title as string) ?? (params.locale === "ja" ? "利用規約" : "Terms of Service");
+  const lastUpdated = data.lastUpdated as string | undefined;
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
       <header className="mb-8">
         <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
         {lastUpdated && (
-          <p className="mt-2 text-sm text-gray-500">{lastUpdated}</p>
+          <p className="mt-2 text-sm text-zinc-400">
+            {params.locale === "ja" ? "最終更新日:" : "Last Updated:"} {lastUpdated}
+          </p>
         )}
       </header>
 
-      <article className="prose prose-neutral max-w-none">
-        {sections.map((s, i) => (
-          <section key={i} className="mb-6">
-            <h2 className="text-xl font-semibold">{s.h}</h2>
-            <p className="mt-2 leading-7">{s.p}</p>
-          </section>
-        ))}
+      <article className="prose prose-invert max-w-none">
+        <MDXRemote
+          source={content}
+          options={{
+            mdxOptions: {
+              remarkPlugins: [
+                remarkGfm,
+                remarkSlug,
+                [remarkAutolinkHeadings, {behavior: "wrap"}],
+              ],
+              rehypePlugins: [
+                [rehypePrettyCode, {theme: "one-dark-pro"}],
+              ],
+            },
+          }}
+        />
       </article>
     </main>
   );
 }
-
