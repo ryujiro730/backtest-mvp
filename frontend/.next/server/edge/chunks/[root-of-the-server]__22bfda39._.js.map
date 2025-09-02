@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 16, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/Documents/backtest-mvp/frontend/src/middleware.ts"],"sourcesContent":["import createMiddleware from 'next-intl/middleware';\n\nexport default createMiddleware({\n  locales: ['en', 'ja'],\n  defaultLocale: 'ja',\n  localePrefix: 'always',\n  localeDetection: true\n});\n\n// ← ここがポイント。必ず '/' を含める\nexport const config = {\n  matcher: [  '/((?!api|_next|_vercel|favicon.ico|robots.txt|sitemap.xml|assets|media|images|fonts|.*\\\\..*).*)']\n};\n"],"names":[],"mappings":";;;;;;AAAA;;uCAEe,IAAA,qPAAgB,EAAC;IAC9B,SAAS;QAAC;QAAM;KAAK;IACrB,eAAe;IACf,cAAc;IACd,iBAAiB;AACnB;AAGO,MAAM,SAAS;IACpB,SAAS;QAAG;KAAkG;AAChH"}}]
+}
