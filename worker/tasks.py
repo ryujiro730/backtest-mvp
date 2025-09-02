@@ -12,16 +12,25 @@ from botocore.config import Config
 
 # ---- env
 load_dotenv()
-REDIS_URL    = os.getenv("REDIS_URL", "redis://redis:6379/0")
-POSTGRES_URL = os.getenv("POSTGRES_URL")
+
+def req(name):
+    v = os.getenv(name)
+    if not v:
+        raise RuntimeError(f"Missing env var: {name}")
+    return v
+
+REDIS_URL    = req("REDIS_URL")
+POSTGRES_URL = req("POSTGRES_URL")
+
 S3_ENDPOINT  = os.getenv("S3_ENDPOINT", "http://minio:9000")
-S3_ACCESS_KEY= os.getenv("S3_ACCESS_KEY", "minioadmin")
-S3_SECRET_KEY= os.getenv("S3_SECRET_KEY", "minioadmin123")
 S3_REGION    = os.getenv("S3_REGION", "us-east-1")
 
 BKT_DATA     = os.getenv("S3_BUCKET_DATA", "backtest-data")
-BKT_STRAT    = os.getenv("S3_BUCKET_STRATEGIES", "strategies")
+BKT_STRAT    = os.getenv("S3_BUCKET_STRATEGIES", "strategies")   # ← これ
 BKT_RESULTS  = os.getenv("S3_BUCKET_RESULTS", "results")
+
+S3_ACCESS_KEY = req("S3_ACCESS_KEY")
+S3_SECRET_KEY = req("S3_SECRET_KEY")
 
 celery = Celery("worker", broker=REDIS_URL, backend=REDIS_URL)
 

@@ -3,14 +3,15 @@ import os, json, uuid, hashlib
 from typing import Any, Dict, List
 from dotenv import load_dotenv
 load_dotenv()  # api/.env を読み込む
+from .routes import catalog 
 
-
+from celery import Celery
 import boto3
 from botocore.config import Config
 import psycopg
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import checkout     # ← 相対インポート
+from .routes import checkout     # ← 相対インポート
 
 
 # ---- Try both import paths to match user's project layout ----
@@ -20,20 +21,25 @@ except Exception:  # pragma: no cover
     from api.schemas import StrategyMvp0  # working_dir=/app
 
 # ===== Env =====
-S3_ENDPOINT = os.getenv("S3_ENDPOINT", "http://localhost:9000")
-S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY", "minioadmin")
-S3_SECRET_KEY = os.getenv("S3_SECRET_KEY", "minioadmin123")
-S3_REGION = os.getenv("S3_REGION", "us-east-1")
+def _req(name):
+    v = os.getenv(name)
+    if not v:
+        raise RuntimeError(f"Missing required env var: {name}")
+    return v
 
-S3_BUCKET_DATA = os.getenv("S3_BUCKET_DATA", "backtest-data")
+S3_ENDPOINT     = os.getenv("S3_ENDPOINT", "http://minio:9000")  # 既定も minio 推奨
+S3_ACCESS_KEY   = _req("S3_ACCESS_KEY")
+S3_SECRET_KEY   = _req("S3_SECRET_KEY")
+S3_REGION       = os.getenv("S3_REGION", "us-east-1")
+S3_BUCKET_DATA  = os.getenv("S3_BUCKET_DATA", "backtest-data")
 S3_BUCKET_STRATEGIES = os.getenv("S3_BUCKET_STRATEGIES", "strategies")
-S3_BUCKET_RESULTS = os.getenv("S3_BUCKET_RESULTS", "results")
-
-POSTGRES_URL = os.getenv("POSTGRES_URL", "postgresql://fx:fxpass@postgres:5432/fxdb")
-REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
-
-# —— If you want to allow fallback, set this; otherwise we raise 422 when not found
+S3_BUCKET_RESULTS    = os.getenv("S3_BUCKET_RESULTS", "results")
 DATASET_HASH_DEFAULT = os.getenv("DATASET_HASH_DEFAULT", "")
+
+
+REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")  # 既定値はcomposeと合わせる
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", REDIS_URL)
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", REDIS_URL)
 
 # ===== AWS S3 client (MinIO OK) =====
 s3 = boto3.client(
@@ -46,15 +52,16 @@ s3 = boto3.client(
 )
 
 # ===== Celery (worker is launched with `-A tasks`) =====
-from celery import Celery
+
 celery = Celery("mvp", broker=REDIS_URL, backend=REDIS_URL)
 
 app = FastAPI()
+app.include_router(catalog.router)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
+        "http://192.168.11.2:3000",
         "http://localhost:3000",
         "https://delvertrade.com",
     ],
@@ -116,18 +123,34 @@ def _list_dataset_indexes() -> List[Dict[str, Any]]:
             break
     return out
 
+# 置き換え: 直接 S3 を走査して pairs/timeframes を作る
 def _catalog():
-    metas = _list_dataset_indexes()
-    items, pairs, tfs = [], set(), set()
-    for m in metas:
-        h = m["dataset_hash"]
-        try:
-            s3.head_object(Bucket=S3_BUCKET_DATA, Key=f"data/{h}.parquet")
-        except Exception:
-            continue  # 実体なしは無視
-        p = _pair_meta_to_ui(m["pair"]); tf = _tf_meta_to_ui(m["interval"])
-        items.append({"pair": p, "timeframe": tf, "dataset_hash": h})
-        pairs.add(p); tfs.add(tf)
+    BUCKET = S3_BUCKET_DATA
+    PREFIX = "data/"  # 直下にあるので固定（envでもOK）
+
+    pairs, tfs, items = set(), set(), []
+    token = None
+    while True:
+        kw = {"Bucket": BUCKET, "Prefix": PREFIX}
+        if token: kw["ContinuationToken"] = token
+        r = s3.list_objects_v2(**kw)
+
+        for o in r.get("Contents", []):
+            key = o["Key"]                        # e.g. data/EURUSD_M15.parquet
+            if not key.endswith(".parquet"):
+                continue
+            name = key.rsplit("/", 1)[-1]         # EURUSD_M15.parquet
+            base = name[:-8]                      # EURUSD_M15
+            parts = base.split("_")
+            if len(parts) != 2:
+                continue
+            pair, tf = parts[0].upper(), parts[1].upper()
+            pairs.add(pair); tfs.add(tf)
+            items.append({"pair": pair, "timeframe": tf, "dataset_hash": base})
+
+        if not r.get("IsTruncated"): break
+        token = r.get("NextContinuationToken")
+
     return {"items": items, "pairs": sorted(pairs), "timeframes": sorted(tfs)}
 
 

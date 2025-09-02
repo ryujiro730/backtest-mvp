@@ -9,5 +9,5 @@ export default createMiddleware({
 
 // ← ここがポイント。必ず '/' を含める
 export const config = {
-  matcher: ['/', '/((?!_next|.*\\..*).*)']
+  matcher: [  '/((?!api|_next|_vercel|favicon.ico|robots.txt|sitemap.xml|assets|media|images|fonts|.*\\..*).*)']
 };

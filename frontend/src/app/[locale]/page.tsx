@@ -1,8 +1,8 @@
 'use client';
-
-import {useLocale, useTranslations} from 'next-intl';
+import {useLocale, useTranslations,} from 'next-intl';
 import Link from 'next/link';
-import CTA from '../(public)/components/CTA';
+import CTA from '../(public)/components/Newsletter';
+import Newsletter from '../(public)/components/Newsletter';
 
 function Kbd({children}:{children:React.ReactNode}) {
   return <span className="kbd">{children}</span>;
@@ -26,7 +26,7 @@ export default function Page() {
       {/* ===== Hero ===== */}
       <section className="relative overflow-hidden">
         <div aria-hidden className="pointer-events-none absolute inset-0 hero-gradient -z-10" />
-        <div className="container mx-auto max-w-6xl px-6 py-24 md:py-28 relative z-10">
+        <div className="w-full mx-auto px-4 sm:px-6 lg:px-12 py-12 md:py-20 lg:py-24 relative z-10 max-w-7xl">
           <div className="mx-auto max-w-3xl text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70 backdrop-blur">
               <span>{t('hero.badgeLeft')}</span>
@@ -34,159 +34,215 @@ export default function Page() {
               <span>{t('hero.badgeRight')}</span>
             </div>
 
-            <h1 className="mt-6 text-4xl font-black tracking-tight text-white md:text-6xl">
-              <span className="bg-gradient-to-r from-white via-white to-white/70 bg-clip-text  tracking-normal text-transparent">
+            <h1 className="mt-6 font-black tracking-tight text-white
+                           text-[clamp(28px,6vw,64px)] leading-tight">
+              <span className="bg-gradient-to-r from-white via-white to-white/70 bg-clip-text tracking-normal text-transparent">
                 {t('hero.title')}
               </span>
             </h1>
 
-            <p className="mx-auto mt-5 max-w-2xl text-lg text-zinc-300">
+            <p className="mx-auto mt-5 max-w-2xl text-zinc-300
+                          text-base sm:text-lg md:text-xl leading-relaxed">
               {t('hero.subtitle')}
             </p>
 
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <a href="#pricing" className="btn w-full justify-center sm:w-auto">
+              <a href="app" className="btn w-full justify-center sm:w-auto">
                 {t('cta.primary')}
               </a>
-              <Link href="/features" className="btn-ghost w-full justify-center sm:w-auto">
-                {t('cta.secondary')}
-              </Link>
             </div>
 
             <p className="mt-6 text-sm text-white/60">{t('social.proof')}</p>
           </div>
 
           {/* mock screenshot */}
-          <div className="mx-auto mt-12 max-w-5xl">
+          <div className="mx-auto mt-10 md:mt-12 w-full max-w-5xl">
             <div className="card relative overflow-hidden">
               <div aria-hidden className="absolute -inset-20 glow" />
-              <div className=" w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
-                <img src="http://localhost:9000/public-uploads/LpHeroPhoto.png" className="w-full h-auto rounded-xl border border-white/10"/>
+              <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
+              <img
+                src="/media/public-uploads/LpHeroPhoto.png"
+                className="w-full h-auto rounded-xl border border-white/10"
+                alt=""
+              />
             </div>
           </div>
         </div>
       </section>
 
-      {/* SettingsPhoto */}
-      <section className='mx-auto max-w-full max-h-full mt-4 px-8'>
-        <div className='grid grid-cols-1 md:grid-cols-2 items-center gap-10'>
-          <div className='space-y-4 px-48'>
-            <h3 className='text-8xl font-semibold'>Define entry Conditions</h3>
-            <p className='text-zinc-300 text-6xl'>エントリールールは資金管理から複数インジケータまで網羅</p>
+      {/* ===== Section: Define entry Conditions ===== */}
+      <section className="mt-6 w-full px-4 sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-2 items-center gap-[clamp(16px,3vw,40px)]">
+          <div className="space-y-3 md:space-y-4">
+            <h3 className="font-semibold leading-tight break-words
+                           text-[clamp(24px,5vw,48px)]">
+              {t('Define.title')}
+            </h3>
+            <p className="text-zinc-300 leading-snug
+                          text-[clamp(14px,1.6vw,20px)]">
+              {t('Define.subtitle')}
+            </p>
           </div>
 
-      <div className="mt-12 mr-48 my-48">
-        <div className='card relative overflow-hidden'>
-          <div aria-hidden className='absolute -inset-20 glow' />
-          <div className='w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black' />
-            <img src="http://localhost:9000/public-uploads/LpSettingsPhoto.png" className="w-full h-auto rounded-xl border border-white/10"/>
+          <div className="mt-8 md:mt-0 flex justify-center">
+            <div className="card relative overflow-hidden w-full max-w-[min(720px,90vw)]">
+              <div aria-hidden className="absolute -inset-20 glow" />
+              <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
+              <img
+                src="/media/public-uploads/LpSettingsPhoto.png"
+                className="w-full h-auto rounded-xl border border-white/10"
+                alt=""
+              />
+            </div>
+          </div>
         </div>
-      </div>
-      </div>
-
       </section>
 
-
-      {/* SettingsPhoto */}
-      <section className='mx-auto max-w-full max-h-full mt-4 px-8'>
-        <div className='grid grid-cols-1 md:grid-cols-2 items-center gap-10 '>
-          <div className='space-y-16 px-48 md:order-2'>
-            <h3 className='text-8xl font-semibold'>Time Zone</h3>
-            <p className='text-zinc-300 text-6xl'>あらゆるタイムゾーン、曜日で厳密にバックテストを実行し最適なタイミングを抽出</p>
+      {/* ===== Section: TimeZone ===== */}
+      <section className="mt-10 w-full px-4 sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-2 items-center gap-[clamp(16px,3vw,40px)]">
+          <div className="order-1 md:order-1 space-y-4 md:space-y-6">
+            <h3 className="font-semibold leading-tight
+                           text-[clamp(24px,5vw,48px)]">
+              {t('TimeZone.title')}
+            </h3>
+            <p className="text-zinc-300 leading-snug
+                          text-[clamp(14px,1.6vw,20px)]">
+              {t('TimeZone.subtitle')}
+            </p>
           </div>
 
-      <div className="mt-12 mr-48 my-48 md:order-1">
-        <div className='card relative overflow-hidden'>
-          <div aria-hidden className='absolute -inset-20 glow' />
-          <div className='w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black' />
-            <img src="http://localhost:9000/public-uploads/LpSettingsPhoto2.png" className="w-full h-auto rounded-xl border border-white/10"/>
+          <div className="order-2 md:order-2 flex justify-center">
+            <div className="card relative overflow-hidden w-full max-w-[min(720px,90vw)]">
+              <div aria-hidden className="absolute -inset-20 glow" />
+              <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
+              <img
+                src="/media/public-uploads/LpSettingsPhoto2.png"
+                className="w-full h-auto rounded-xl border border-white/10"
+                alt=""
+              />
+            </div>
+          </div>
         </div>
-      </div>
-      </div>
-
       </section>
 
-            <section className='mx-auto max-w-full max-h-full mt-4 px-8'>
-        <div className='grid grid-cols-1 md:grid-cols-2 items-center gap-10 '>
-          <div className='space-y-16 px-48'>
-            <h3 className='text-8xl font-semibold'>Indicator Threshold</h3>
-            <p className='text-zinc-300 text-6xl'>あらゆるタイムゾーン、曜日で厳密にバックテストを実行し最適なタイミングを抽出</p>
+      {/* ===== Section: Indicator ===== */}
+      <section className="mt-10 w-full px-4 sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-2 items-center gap-[clamp(16px,3vw,40px)]">
+          <div className="space-y-4 md:space-y-6">
+            <h3 className="font-semibold leading-tight
+                           text-[clamp(24px,5vw,48px)]">
+              {t('Indicator.title')}
+            </h3>
+            <p className="text-zinc-300 leading-snug
+                          text-[clamp(14px,1.6vw,20px)]">
+              {t('Indicator.subtitle')}
+            </p>
           </div>
 
-      <div className="mt-12 mr-48 my-48">
-        <div className='card relative overflow-hidden'>
-          <div aria-hidden className='absolute -inset-20 glow' />
-          <div className='w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black' />
-            <img src="http://localhost:9000/public-uploads/LpSettingsPhoto4.png" className="w-full h-auto rounded-xl border border-white/10"/>
+          <div className="flex justify-center">
+            <div className="card relative overflow-hidden w-full max-w-[min(720px,90vw)]">
+              <div aria-hidden className="absolute -inset-20 glow" />
+              <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
+              <img
+                src="/media/public-uploads/LpSettingsPhoto4.png"
+                className="w-full h-auto rounded-xl border border-white/10"
+                alt=""
+              />
+            </div>
+          </div>
         </div>
-      </div>
-      </div>
-
       </section>
 
-
-      {/* SettingsPhoto */}
-      <section className='mx-auto max-w-full max-h-full mt-4 px-8'>
-        <div className='grid grid-cols-1 md:grid-cols-2 items-center gap-10'>
-          <div className='space-y-4 px-48 '>
-            <h3 className='text-2xl font-semibold text-8xl'>Exit</h3>
-            <p className='text-zinc-300 text-6xl'>こんなふうにいい感じやねん</p>
+      {/* ===== Section: PriceAction ===== */}
+      <section className="mt-10 w-full px-4 sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-2 items-center gap-[clamp(16px,3vw,40px)]">
+          <div className="space-y-4 md:space-y-6">
+            <h3 className="font-semibold leading-tight
+                           text-[clamp(24px,5vw,48px)]">
+              {t('PriceAction.title')}
+            </h3>
+            <p className="text-zinc-300 leading-snug
+                          text-[clamp(14px,1.6vw,20px)]">
+              {t('PriceAction.subtitle')}
+            </p>
           </div>
 
-      <div className="mt-12 mr-48 my-48">
-        <div className='card relative overflow-hidden'>
-          <div aria-hidden className='absolute -inset-20 glow' />
-          <div className='w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black' />
-            <img src="http://localhost:9000/public-uploads/LpSettingsPhoto5.png" className="w-full h-auto rounded-xl border border-white/10"/>
+          <div className="flex justify-center">
+            <div className="card relative overflow-hidden w-full max-w-[min(720px,90vw)]">
+              <div aria-hidden className="absolute -inset-20 glow" />
+              <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
+              <img
+                src="/media/public-uploads/LpSettingsPhoto5.png"
+                className="w-full h-auto rounded-xl border border-white/10"
+                alt=""
+              />
+            </div>
+          </div>
         </div>
-      </div>
-      </div>
-
       </section>
 
-            {/* SettingsPhoto */}
-      <section className='mx-auto max-w-full max-h-full mt-4 px-8'>
-        <div className='grid grid-cols-1 md:grid-cols-2 items-center gap-10'>
-          <div className='space-y-4 px-48 '>
-            <h3 className='text-2xl font-semibold text-8xl'>Exit</h3>
-            <p className='text-zinc-300 text-6xl'>こんなふうにいい感じやねん</p>
+      {/* ===== Section: ChartPattern ===== */}
+      <section className="mt-10 w-full px-4 sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-2 items-center gap-[clamp(16px,3vw,40px)]">
+          <div className="space-y-4 md:space-y-6">
+            <h3 className="font-semibold leading-tight
+                           text-[clamp(24px,5vw,48px)]">
+              {t('ChartPattern.title')}
+            </h3>
+            <p className="text-zinc-300 leading-snug
+                          text-[clamp(14px,1.6vw,20px)]">
+              {t('ChartPattern.subtitle')}
+            </p>
           </div>
 
-      <div className="mt-12 mr-48 my-48">
-        <div className='card relative overflow-hidden'>
-          <div aria-hidden className='absolute -inset-20 glow' />
-          <div className='w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black' />
-            <img src="http://localhost:9000/public-uploads/LpSettingsPhoto6.png" className="w-full h-auto rounded-xl border border-white/10"/>
+          <div className="flex justify-center">
+            <div className="card relative overflow-hidden w-full max-w-[min(720px,90vw)]">
+              <div aria-hidden className="absolute -inset-20 glow" />
+              <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
+              <img
+                src="/media/public-uploads/LpSettingsPhoto6.png"
+                className="w-full h-auto rounded-xl border border-white/10"
+                alt=""
+              />
+            </div>
+          </div>
         </div>
-      </div>
-      </div>
-
       </section>
 
-      {/* SettingsPhoto */}
-      <section className='mx-auto max-w-full max-h-full mt-4 px-8'>
-        <div className='grid grid-cols-1 md:grid-cols-2 items-center gap-10'>
-          <div className='space-y-4 px-48 '>
-            <h3 className='text-2xl font-semibold text-8xl'>Exit</h3>
-            <p className='text-zinc-300 text-6xl'>こんなふうにいい感じやねん</p>
+      {/* ===== Section: Exit ===== */}
+      <section className="mt-10 w-full px-4 sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-2 items-center gap-[clamp(16px,3vw,40px)]">
+          <div className="space-y-4 md:space-y-6">
+            <h3 className="font-semibold leading-tight
+                           text-[clamp(24px,5vw,48px)]">
+              {t('Exit.title')}
+            </h3>
+            <p className="text-zinc-300 leading-snug
+                          text-[clamp(14px,1.6vw,20px)]">
+              {t('Exit.subtitle')}
+            </p>
           </div>
 
-      <div className="mt-12 mr-48 my-48">
-        <div className='card relative overflow-hidden'>
-          <div aria-hidden className='absolute -inset-20 glow' />
-          <div className='w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black' />
-            <img src="http://localhost:9000/public-uploads/LpSettingsPhoto3.png" className="w-full h-auto rounded-xl border border-white/10"/>
+          <div className="flex justify-center">
+            <div className="card relative overflow-hidden w-full max-w-[min(720px,90vw)]">
+              <div aria-hidden className="absolute -inset-20 glow" />
+              <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
+              <img
+                src="/media/public-uploads/LpSettingsPhoto3.png"
+                className="w-full h-auto rounded-xl border border-white/10"
+                alt=""
+              />
+            </div>
+          </div>
         </div>
-      </div>
-      </div>
-
       </section>
 
       {/* ===== Features ===== */}
       <section id="features" className="section">
-        <div className="container mx-auto max-w-6xl px-6">
+        <div className="container mx-auto max-w-6xl px-4 sm:px-6">
           <h2 className="h2">{t('features.title')}</h2>
-          <div className="mt-8 grid gap-6 md:grid-cols-3">
+          <div className="mt-8 grid gap-[clamp(12px,2vw,24px)] sm:grid-cols-2 md:grid-cols-3">
             <div className="card">
               <div className="text-sm text-zinc-400">{t('features.speed.title')}</div>
               <p className="mt-2 text-zinc-300">{t('features.speed.desc')}</p>
@@ -205,14 +261,14 @@ export default function Page() {
 
       {/* ===== How it works ===== */}
       <section className="section">
-        <div className="container mx-auto max-w-5xl px-6">
+        <div className="container mx-auto max-w-5xl px-4 sm:px-6">
           <h2 className="h2">{t('how.title')}</h2>
-          <div className="mt-6 space-y-6">
+          <div className="mt-6 space-y-[clamp(8px,1.5vw,16px)]">
             <Check>
-              <p>{t('how.step1.before')} <Kbd>F</Kbd> {t('how.step1.after')}</p>
+              <p>{t('how.step1.before')} {t('how.step1.after')}</p>
             </Check>
             <Check>
-              <p>{t('how.step2.before')} <Kbd>⌘↵</Kbd> {t('how.step2.after')}</p>
+              <p>{t('how.step2.before')} <Kbd>Run</Kbd> {t('how.step2.after')}</p>
             </Check>
             <Check>
               <p>{t('how.step3')}</p>
@@ -223,9 +279,9 @@ export default function Page() {
 
       {/* ===== Pricing teaser ===== */}
       <section id="pricing" className="section">
-        <div className="container mx-auto max-w-6xl px-6">
+        <div className="container mx-auto max-w-6xl px-4 sm:px-6">
           <h2 className="h2">{t('pricing.title')}</h2>
-          <div className="mt-8 grid gap-6 md:grid-cols-3">
+          <div className="mt-8 grid gap-[clamp(12px,2vw,24px)] sm:grid-cols-2 md:grid-cols-3">
             <div className="card">
               <div className="text-sm text-zinc-400">{t('pricing.free.name')}</div>
               <div className="mt-2 text-3xl font-extrabold">{t('pricing.free.price')}</div>
@@ -260,20 +316,20 @@ export default function Page() {
 
       {/* ===== Footer ===== */}
       <footer className="section pt-10">
-        <div className="container mx-auto max-w-6xl px-6">
-          <div className="grid gap-6 md:grid-cols-3">
+        <div className="container mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="grid gap-[clamp(12px,2vw,20px)] md:grid-cols-3">
             <div>
               <div className="font-bold">{t('site.brand')}</div>
               <p className="mt-2 text-sm text-zinc-400">{t('footer.tagline')}</p>
             </div>
             <nav className="space-y-2 text-sm text-zinc-400">
-              <Link href="/features" className="block hover:text-zinc-200">{t('footer.nav.features')}</Link>
-              <Link href="/pricing" className="block hover:text-zinc-200">{t('footer.nav.pricing')}</Link>
+              <Link href="/blog" className="block hover:text-zinc-200">{t('footer.nav.features')}</Link>
+              <Link href="/contact" className="block hover:text-zinc-200">{t('footer.nav.pricing')}</Link>
               <Link href="/terms" className="block hover:text-zinc-200">{t('footer.nav.terms')}</Link>
             </nav>
             <div>
               <div className="text-sm text-zinc-400">{t('footer.newsletter')}</div>
-              <CTA />
+              <Newsletter />
             </div>
           </div>
           <div className="mt-10 border-t border-zinc-800 pt-6 text-xs text-zinc-500">

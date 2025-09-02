@@ -4,7 +4,7 @@
   "hero": {
     "badgeLeft": "Beta",
     "badgeRight": "FX Backtest",
-    "title": "チャートの上でアドリブの派手なダンスを踊る必要はありません。",
+    "title": "石橋を叩いて渡るよりも、叩き壊してRC造の橋を架けて安全に渡りましょう",
     "subtitle": "非エンジニアでもGUIによる設定入力で超低レイテンシ実行・並列処理・非公開保存。検証サイクルを最短化し、意思決定を加速します。"
   },
 
@@ -12,6 +12,38 @@
     "primary": "はじめる",
     "secondary": "機能を見る"
   },
+  
+
+  "Define":{
+    "title":"Define entry Conditions",
+    "subtitle":"エントリールールは資金管理から複数インジケータまで網羅"
+  },
+
+  "TimeZone":{
+    "title":"Time Zone",
+    "subtitle":"あらゆるタイムゾーン、曜日で厳密にバックテストを実行し最適なタイミングを抽出"
+  },
+  
+  "Indicator":{
+    "title":"Indicator Threshold",
+    "subtitle":"あらゆるタイムゾーン、曜日で厳密にバックテストを実行し最適なタイミングを抽出"
+  },
+
+  "PriceAction":{
+    "title":"Price Action",
+    "subtitle":"既存のバックテストでは難しいプライスアクションでの自動バックテストを可能に"
+  },
+
+  "ChartPattern":{
+    "title":"Chart Pattern",
+    "subtitle":"人間の目では認識が難しいチャートパターンもキャッチしあらゆる状況に対応する条件設定"
+  },
+
+  "Exit":{
+    "title":"Exit",
+    "subtitle":"業界最大級のエグジットパターンを用い、信頼性の高いバックテストで検証"
+  },
+
 
   "features": {
     "title": "Why Delver",
@@ -22,23 +54,23 @@
 
   "how": {
     "title": "使い方（90秒）",
-    "step1": { "before": "公開レポから", "after": "でフォーク" },
+    "step1": { "before": "はじめるボタンへ", "after": "移動" },
     "step2": { "before": "条件を入力して", "after": "で実行" },
-    "step3": "結果を共有、または非公開で保存（有料）"
+    "step3": "結果を共有"
   },
 
   "pricing": {
     "title": "料金プラン",
     "free": { "name": "Free", "price": "¥0/月", "feature1": "基本的なバックテスト", "feature2": "公開レポの閲覧", "feature3": "制限付き実行回数" },
-    "pro": { "name": "Pro", "price": "¥2,480/月", "feature1": "並列実行・高速キュー", "feature2": "非公開保存・履歴管理", "feature3": "優先サポート", "cta": "今すぐ申し込む" },
+    "pro": { "name": "Pro", "price": "¥4,980/月", "feature1": "並列実行・高速キュー", "feature2": "非公開保存・履歴管理", "feature3": "優先サポート", "cta": "今すぐ申し込む" },
     "elite": { "name": "Elite", "price": "お問い合わせ", "feature1": "大規模並列・専用リソース", "feature2": "チーム共有・権限管理", "feature3": "専任サポート" }
   },
 
-  "social": { "proof": "プロトレーダーと研究者が愛用しています" },
+  "social": { "proof": "画面は開発中のモックです。実際のUIは異なる場合があります。現在はMVP版をご利用いただけます。" },
 
   "footer": {
     "tagline": "検証から学習まで、戦略づくりを最速に。",
-    "nav": { "features": "機能", "pricing": "料金", "terms": "利用規約" },
+    "nav": { "features": "Blog", "pricing": "Contact Us", "terms": "利用規約" },
     "newsletter": "最新情報をメールで受け取る"
   }
 }

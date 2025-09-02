@@ -42,3 +42,4 @@ requests
 tqdm
 stripe
 python-dotenv
+duka
