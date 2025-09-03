@@ -44,7 +44,7 @@ services:
       S3_SECRET_KEY: ${S3_SECRET_KEY}
       S3_REGION: us-east-1
       S3_BUCKET_DATA: backtest-data
-      S3_PREFIX: ""                 
+      S3_PREFIX: "data/"                 
       S3_BUCKET_STRATEGIES: strategies
       S3_BUCKET_RESULTS: results
       # 必ず fetch_demo_dataset.py の出力で置き換える
@@ -74,6 +74,7 @@ services:
       S3_SECRET_KEY: ${S3_SECRET_KEY}
       S3_REGION: us-east-1
       S3_BUCKET_DATA: backtest-data
+      S3_PREFIX: "data/"
       S3_BUCKET_STRATEGIES: strategies
       S3_BUCKET_RESULTS: results
       DATASET_HASH_DEFAULT: 676f732694a3c0a1
