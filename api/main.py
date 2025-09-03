@@ -9,7 +9,7 @@ from celery import Celery
 import boto3
 from botocore.config import Config
 import psycopg
-from fastapi import FastAPI, Header, HTTPException
++ from fastapi import FastAPI, Header, Response, HTTPException, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from .routes import checkout     # ← 相対インポート
 
@@ -19,6 +19,10 @@ try:
     from schemas import StrategyMvp0  # api/ runs as working_dir=/app/api
 except Exception:  # pragma: no cover
     from api.schemas import StrategyMvp0  # working_dir=/app
+
+app = FastAPI()
+
+router = APIRouter(prefix="/api") 
 
 # ===== Env =====
 def _req(name):
@@ -30,6 +34,7 @@ def _req(name):
 S3_ENDPOINT     = os.getenv("S3_ENDPOINT", "http://minio:9000")  # 既定も minio 推奨
 S3_ACCESS_KEY   = _req("S3_ACCESS_KEY")
 S3_SECRET_KEY   = _req("S3_SECRET_KEY")
+PUBLIC_BUCKET = "public-uploads" 
 S3_REGION       = os.getenv("S3_REGION", "us-east-1")
 S3_BUCKET_DATA  = os.getenv("S3_BUCKET_DATA", "backtest-data")
 S3_BUCKET_STRATEGIES = os.getenv("S3_BUCKET_STRATEGIES", "strategies")
@@ -40,6 +45,26 @@ DATASET_HASH_DEFAULT = os.getenv("DATASET_HASH_DEFAULT", "")
 REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")  # 既定値はcomposeと合わせる
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", REDIS_URL)
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", REDIS_URL)
+
+
+@router.get("/public-uploads/{key:path}")
+def serve_public_uploads(key: str):
+    # MinIO(S3) からオブジェクトを取ってそのまま返す
+    try:
+        obj = s3.get_object(Bucket=PUBLIC_BUCKET, Key=key)
+    except Exception:
+        raise HTTPException(status_code=404, detail="not found")
+
+    body = obj["Body"].read()
+    headers = {}
+    if "ContentType" in obj:
+        headers["Content-Type"] = obj["ContentType"]
+    headers.setdefault(
+        "Cache-Control",
+        "public, max-age=600, s-maxage=3600, stale-while-revalidate=86400",
+    )
+    return Response(content=body, headers=headers)
+
 
 # ===== AWS S3 client (MinIO OK) =====
 s3 = boto3.client(
@@ -55,7 +80,7 @@ s3 = boto3.client(
 
 celery = Celery("mvp", broker=REDIS_URL, backend=REDIS_URL)
 
-app = FastAPI()
+
 app.include_router(catalog.router)
 
 app.add_middleware(
@@ -71,6 +96,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(checkout.router) 
+
 # ===== Helpers =====
 def _strategy_sid(payload: Dict[str, Any]) -> str:
     blob = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -246,3 +272,5 @@ def api_reports(run_id: str):
         equity = []
 
     return {"run_id": run_id, "status": "done", "summary": metrics.get("summary", {}), "equity": equity}
+
+app.include_router(router)

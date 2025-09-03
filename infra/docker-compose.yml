@@ -33,7 +33,11 @@ services:
       context: ..
       dockerfile: ./infra/backend.Dockerfile
     working_dir: /backtest-mvp
-
+    image: infra-api
+    container_name: infra-api-1
+    expose:
+      - "8000"
+    networks: [appnet]
 
     command: uvicorn api.main:app --host 0.0.0.0 --port 8000
     environment:
@@ -88,3 +92,6 @@ services:
 volumes:
   pg_data:
   minio_data:
+
+networks:
+  appnet: {}     # ← これが無いと今回のエラーになる

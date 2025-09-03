@@ -1,32 +1,5 @@
 {
   "pages": {
-    "/[locale]/app/page": [
-      "static/chunks/Documents_backtest-mvp_frontend_src_app_globals_93ef0b33.css",
-      "static/chunks/1ed79_next_dist_b638ed23._.js",
-      "static/chunks/Documents_backtest-mvp_frontend_src_app_layout_tsx_abc921e1._.js",
-      "static/chunks/1ed79_next_dist_client_components_builtin_global-error_f850fa2c.js",
-      "static/chunks/7fa8d__pnpm_2dc6320b._.js",
-      "static/chunks/Documents_backtest-mvp_frontend_src_app_[locale]_layout_tsx_f850fa2c._.js",
-      "static/chunks/91afa_recharts_es6_util_cbaaa5c2._.js",
-      "static/chunks/91afa_recharts_es6_component_69d5f74f._.js",
-      "static/chunks/91afa_recharts_es6_state_8372d69d._.js",
-      "static/chunks/91afa_recharts_es6_cartesian_9bee3fda._.js",
-      "static/chunks/91afa_recharts_es6_ca2bb5f4._.js",
-      "static/chunks/dbc6a_mixpanel-browser_dist_mixpanel_module_19e1c31f.js",
-      "static/chunks/7fa8d__pnpm_d7a68013._.js",
-      "static/chunks/Documents_backtest-mvp_frontend_src_app_[locale]_app_page_tsx_778977ae._.js",
-      "static/chunks/Documents_backtest-mvp_frontend_src_app_[locale]_app_polish_5417e49a.css",
-      "static/chunks/Documents_backtest-mvp_frontend_src_app_[locale]_app_page_tsx_770007e1._.js",
-      "static/chunks/[turbopack]_browser_dev_hmr-client_hmr-client_ts_0b22f1f9._.js",
-      "static/chunks/1ed79_next_dist_compiled_react-dom_7a320306._.js",
-      "static/chunks/1ed79_next_dist_compiled_next-devtools_index_420d07f5.js",
-      "static/chunks/1ed79_next_dist_compiled_4bb2e948._.js",
-      "static/chunks/1ed79_next_dist_client_38ac3490._.js",
-      "static/chunks/1ed79_next_dist_590eb96c._.js",
-      "static/chunks/1fb21_@swc_helpers_cjs_15173594._.js",
-      "static/chunks/Documents_backtest-mvp_frontend_a0ff3932._.js",
-      "static/chunks/turbopack-Documents_backtest-mvp_frontend_1e7a841a._.js"
-    ],
     "/[locale]/page": [
       "static/chunks/Documents_backtest-mvp_frontend_src_app_globals_93ef0b33.css",
       "static/chunks/1ed79_next_dist_b638ed23._.js",

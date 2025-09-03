@@ -25,9 +25,7 @@ const nextConfig = {
 
   // /media/* → MinIO へプロキシ（使わないなら丸ごと削除してOK）
   async rewrites() {
-    return [
-      { source: '/media/:path*', destination: `${MINIO_ORIGIN}/:path*` },
-    ];
+    return [{ source: '/media/:path*', destination: 'https://api.delvertrade.com/api/:path*' }];
   },
 
   // （任意）/media/* にキャッシュ

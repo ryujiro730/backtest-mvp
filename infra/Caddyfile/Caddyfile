@@ -1,0 +1,33 @@
+# api.delvertrade.com のHTTPS
+api.delvertrade.com {
+  encode zstd gzip
+
+  # ===== CORS: /api/* にだけ付ける =====
+  @api path /api/*
+  header @api Access-Control-Allow-Origin "https://delvertrade.com"
+  header @api Vary "Origin"
+  header @api Access-Control-Allow-Credentials "true"
+  header @api Access-Control-Allow-Methods "GET, POST, OPTIONS"
+  header @api Access-Control-Allow-Headers "Content-Type, Authorization"
+  @preflight method OPTIONS
+  respond @preflight 204
+
+  # ===== API を backend に中継 =====
+  handle_path /api/* {
+    reverse_proxy api:8000
+  }
+
+  # ===== ここがポイント: MinIO の公開プレフィックス =====
+  # 画像などを /public-uploads/* で配る
+  handle_path /public-uploads/* {
+    # MinIO の「同名パス」にプロキシ。コンテナ名 minio を使う
+    reverse_proxy minio:9000
+    header {
+      # S3のcontent-typeをそのまま通す
+      Cache-Control "public, max-age=600, s-maxage=3600, stale-while-revalidate=86400"
+    }
+  }
+
+  # それ以外は404
+  respond "Not found" 404
+}
