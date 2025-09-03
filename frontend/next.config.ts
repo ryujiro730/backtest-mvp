@@ -13,15 +13,15 @@ const nextConfig = {
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
 
-  images: {
-    remotePatterns: [
-      { protocol: 'https', hostname: 'cdn.delvertrade.com', pathname: '/public-uploads/**' },
-      { protocol: 'http',  hostname: 'localhost', port: '9000', pathname: '/public-uploads/**' },
-      { protocol: 'http',  hostname: '192.168.11.2', port: '9000', pathname: '/public-uploads/**' },
-    ],
-    // 切り分け用: 出ない時だけ一時的に true
-    // unoptimized: true,
-  }, // ← ← ← ここで images を閉じるのがポイント
+images: {
+  remotePatterns: [
+    { protocol: 'https', hostname: 'cdn.delvertrade.com', pathname: '/public-uploads/**' },
+    { protocol: 'https', hostname: 'api.delvertrade.com', pathname: '/api/public-uploads/**' },
+    { protocol: 'http',  hostname: 'localhost', port: '9000', pathname: '/public-uploads/**' },
+    { protocol: 'http',  hostname: '192.168.11.2', port: '9000', pathname: '/public-uploads/**' },
+  ],
+},
+
 
   // /media/* → MinIO へプロキシ（使わないなら丸ごと削除してOK）
   async rewrites() {
