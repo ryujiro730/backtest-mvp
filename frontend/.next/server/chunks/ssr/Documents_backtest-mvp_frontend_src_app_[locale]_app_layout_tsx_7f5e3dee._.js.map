@@ -2,5 +2,5 @@
   "version": 3,
   "sources": [],
   "sections": [
-    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///home/tsujiryujiro/Documents/backtest-mvp/frontend/src/app/%5Blocale%5D/app/layout.tsx"],"sourcesContent":["// app/(product)/layout.tsx\nexport default function ProductLayout({ children }: { children: React.ReactNode }) {\n  return (\n    <div className=\"min-h-screen bg-white text-black\">\n      {children}\n    </div>\n  );\n}\n"],"names":[],"mappings":"AAAA,2BAA2B;;;;;;;AACZ,SAAS,cAAc,EAAE,QAAQ,EAAiC;IAC/E,qBACE,0RAAC;QAAI,WAAU;kBACZ;;;;;;AAGP","debugId":null}}]
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///home/tsujiryujiro/Documents/backtest-mvp/frontend/src/app/%5Blocale%5D/app/layout.tsx"],"sourcesContent":["// app/(product)/layout.tsx\nexport default function ProductLayout({ children }: { children: React.ReactNode }) {\n  return (\n    <div className=\"min-h-screen bg-white text-black\">\n      {children}\n    </div>\n  );\n}\n"],"names":[],"mappings":"AAAA,2BAA2B;;;;;;;AACZ,SAAS,cAAc,EAAE,QAAQ,EAAiC;IAC/E,qBACE,yZAAC;QAAI,WAAU;kBACZ;;;;;;AAGP","debugId":null}}]
 }

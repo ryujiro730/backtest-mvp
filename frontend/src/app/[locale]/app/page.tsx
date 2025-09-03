@@ -6,7 +6,7 @@ import {
   CartesianGrid, XAxis, YAxis, Tooltip, Legend, Brush, ReferenceLine
 } from "recharts";
 import "./polish.css";
-const API = process.env.NEXT_PUBLIC_API_BASE ?? "";
+const API = process.env.NEXT_PUBLIC_API_BASE!;
 import mixpanel from "mixpanel-browser";
 type Direction = "long" | "short";
 type EntryType = "ema_cross" | "breakout" | "rsi_threshold";
@@ -68,7 +68,7 @@ export default function App() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`${API}/api/catalog`);
+        const res = await fetch(`${API}/api/catalog`, { cache: 'no-store' });
         if (!res.ok) throw new Error(`GET /api/catalog ${res.status}`);
         const data = await res.json();
         if (!cancelled) setCatalog({

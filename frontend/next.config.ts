@@ -2,23 +2,35 @@
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
-const MINIO_ORIGIN = process.env.MINIO_ORIGIN ?? 'http://127.0.0.1:8000'; 
+
+// 本番は https の公開オリジンを使う
+const MINIO_ORIGIN = process.env.MINIO_ORIGIN ?? 'https://cdn.delvertrade.com';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   compiler: { styledComponents: true },
-  eslint: { ignoreDuringBuilds: true },      // ← Lintで失敗させない
-  typescript: { ignoreBuildErrors: true },   // ← 必要なら一時的に
+  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: true },
 
-  // /media/* → MinIO へプロキシ
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: 'cdn.delvertrade.com', pathname: '/public-uploads/**' },
+      { protocol: 'http',  hostname: 'localhost', port: '9000', pathname: '/public-uploads/**' },
+      { protocol: 'http',  hostname: '192.168.11.2', port: '9000', pathname: '/public-uploads/**' },
+    ],
+    // 切り分け用: 出ない時だけ一時的に true
+    // unoptimized: true,
+  }, // ← ← ← ここで images を閉じるのがポイント
+
+  // /media/* → MinIO へプロキシ（使わないなら丸ごと削除してOK）
   async rewrites() {
     return [
       { source: '/media/:path*', destination: `${MINIO_ORIGIN}/:path*` },
     ];
   },
 
-  // （任意）/media/* に軽いキャッシュヘッダ
+  // （任意）/media/* にキャッシュ
   async headers() {
     return [
       {

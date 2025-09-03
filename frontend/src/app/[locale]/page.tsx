@@ -1,8 +1,9 @@
 'use client';
 import {useLocale, useTranslations,} from 'next-intl';
+import { CDN } from '@/config/env';
 import Link from 'next/link';
-import CTA from '../(public)/components/Newsletter';
 import Newsletter from '../(public)/components/Newsletter';
+import Image from "next/image";
 
 function Kbd({children}:{children:React.ReactNode}) {
   return <span className="kbd">{children}</span>;
@@ -60,8 +61,10 @@ export default function Page() {
             <div className="card relative overflow-hidden">
               <div aria-hidden className="absolute -inset-20 glow" />
               <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
-              <img
-                src="/media/public-uploads/LpHeroPhoto.png"
+              <Image
+                src={`${CDN}/public-uploads/LpHeroPhoto.png`}
+                width={1600}
+                height={900}
                 className="w-full h-auto rounded-xl border border-white/10"
                 alt=""
               />
@@ -88,8 +91,10 @@ export default function Page() {
             <div className="card relative overflow-hidden w-full max-w-[min(720px,90vw)]">
               <div aria-hidden className="absolute -inset-20 glow" />
               <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
-              <img
-                src="/media/public-uploads/LpSettingsPhoto.png"
+              <Image
+                src={`${CDN}/public-uploads/LpSettingsPhoto.png`}
+                width={1600}
+                height={900}
                 className="w-full h-auto rounded-xl border border-white/10"
                 alt=""
               />
@@ -116,8 +121,10 @@ export default function Page() {
             <div className="card relative overflow-hidden w-full max-w-[min(720px,90vw)]">
               <div aria-hidden className="absolute -inset-20 glow" />
               <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
-              <img
-                src="/media/public-uploads/LpSettingsPhoto2.png"
+              <Image
+                src={`${CDN}/public-uploads/LpSettingsPhoto2.png`}
+                width={1600}
+                height={900}
                 className="w-full h-auto rounded-xl border border-white/10"
                 alt=""
               />
@@ -144,8 +151,10 @@ export default function Page() {
             <div className="card relative overflow-hidden w-full max-w-[min(720px,90vw)]">
               <div aria-hidden className="absolute -inset-20 glow" />
               <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
-              <img
-                src="/media/public-uploads/LpSettingsPhoto4.png"
+              <Image
+                src={`${CDN}/public-uploads/LpSettingsPhoto4.png`}
+                width={1600}
+                height={900}
                 className="w-full h-auto rounded-xl border border-white/10"
                 alt=""
               />
@@ -172,8 +181,10 @@ export default function Page() {
             <div className="card relative overflow-hidden w-full max-w-[min(720px,90vw)]">
               <div aria-hidden className="absolute -inset-20 glow" />
               <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
-              <img
-                src="/media/public-uploads/LpSettingsPhoto5.png"
+              <Image
+                src={`${CDN}/public-uploads/LpSettingsPhoto5.png`}
+                width={1600}
+                height={900}
                 className="w-full h-auto rounded-xl border border-white/10"
                 alt=""
               />
@@ -200,8 +211,10 @@ export default function Page() {
             <div className="card relative overflow-hidden w-full max-w-[min(720px,90vw)]">
               <div aria-hidden className="absolute -inset-20 glow" />
               <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
-              <img
-                src="/media/public-uploads/LpSettingsPhoto6.png"
+              <Image
+                src={`${CDN}/public-uploads/LpSettingsPhoto6.png`}
+                width={1600}
+                height={900}
                 className="w-full h-auto rounded-xl border border-white/10"
                 alt=""
               />
@@ -228,8 +241,10 @@ export default function Page() {
             <div className="card relative overflow-hidden w-full max-w-[min(720px,90vw)]">
               <div aria-hidden className="absolute -inset-20 glow" />
               <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
-              <img
-                src="/media/public-uploads/LpSettingsPhoto3.png"
+              <Image
+                src={`${CDN}/public-uploads/LpSettingsPhoto3.png`}
+                width={1600}
+                height={900}
                 className="w-full h-auto rounded-xl border border-white/10"
                 alt=""
               />
