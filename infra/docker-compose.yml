@@ -10,10 +10,12 @@ services:
       - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
+    networks: [appnet]
 
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    networks: [appnet]
 
 
   minio:
@@ -27,6 +29,8 @@ services:
       - "9001:9001"
     volumes:
       - minio_data:/data
+
+    networks: [appnet]
 
   api:
     build:
@@ -65,6 +69,7 @@ services:
       - ..:/backtest-mvp
 
   worker:
+    networks: [appnet]
     build:
       context: ..
       dockerfile: ./infra/backend.Dockerfile
@@ -88,6 +93,7 @@ services:
       - minio
     volumes:
       - ..:/backtest-mvp
+      
 
 volumes:
   pg_data:

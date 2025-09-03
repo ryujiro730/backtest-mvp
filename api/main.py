@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 from dotenv import load_dotenv
 load_dotenv()  # api/.env を読み込む
 from .routes import catalog 
-
+from botocore.exceptions import ClientError
 from celery import Celery
 import boto3
 from botocore.config import Config
@@ -49,20 +49,18 @@ CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", REDIS_URL)
 
 @router.get("/public-uploads/{key:path}")
 def serve_public_uploads(key: str):
-    # MinIO(S3) からオブジェクトを取ってそのまま返す
     try:
         obj = s3.get_object(Bucket=PUBLIC_BUCKET, Key=key)
-    except Exception:
-        raise HTTPException(status_code=404, detail="not found")
-
+    except ClientError as e:
+        code = e.response.get("Error", {}).get("Code", "")
+        if code in ("NoSuchKey", "404"):
+            raise HTTPException(status_code=404, detail=f"no_such_key:{key}")
+        if code == "AccessDenied":
+            raise HTTPException(status_code=403, detail="access_denied")
+        raise
     body = obj["Body"].read()
-    headers = {}
-    if "ContentType" in obj:
-        headers["Content-Type"] = obj["ContentType"]
-    headers.setdefault(
-        "Cache-Control",
-        "public, max-age=600, s-maxage=3600, stale-while-revalidate=86400",
-    )
+    headers = {"Cache-Control": "public, max-age=600, s-maxage=3600, stale-while-revalidate=86400"}
+    if "ContentType" in obj: headers["Content-Type"] = obj["ContentType"]
     return Response(content=body, headers=headers)
 
 

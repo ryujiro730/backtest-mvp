@@ -25,11 +25,11 @@ def get_catalog():
         if token: kw["ContinuationToken"] = token
         r = s3.list_objects_v2(**kw)
 
-+        for o in r.get("Contents", []):
-+            key = o["Key"]
-+            name = key.split("/")[-1]
-+            if not name.endswith(".parquet"):
-+                continue  
+        for o in r.get("Contents", []):
+            key = o["Key"]
+            name = key.split("/")[-1]
+            if not name.endswith(".parquet"):
+                continue  
             base = name[:-8]                      # drop ".parquet"
             parts = base.split("_")
             if len(parts) != 2:
