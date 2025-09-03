@@ -1,6 +1,6 @@
 # api.delvertrade.com のHTTPS
 api.delvertrade.com {
-  encode zstd gzip
+  reverse_proxy infra-api-1:8000
 
   # ===== CORS: /api/* にだけ付ける =====
   @api path /api/*

@@ -9,7 +9,7 @@ from celery import Celery
 import boto3
 from botocore.config import Config
 import psycopg
-+ from fastapi import FastAPI, Header, Response, HTTPException, APIRouter
+from fastapi import FastAPI, Header, Response, HTTPException, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from .routes import checkout     # ← 相対インポート
 
