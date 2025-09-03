@@ -1,0 +1,76 @@
+{
+  "site": { "brand": "Delver" },
+
+  "hero": {
+    "badgeLeft": "Beta",
+    "badgeRight": "FX Backtest",
+    "title": "Instead of cautiously testing a stone bridge, break it down and build a reinforced concrete bridge to cross safely.",
+    "subtitle": "Even non-engineers can run ultra-low latency executions, parallel processing, and private storage with simple GUI inputs. Shorten your backtesting cycle and accelerate decision-making."
+  },
+
+  "cta": {
+    "primary": "Get Started",
+    "secondary": "See Features"
+  },
+  
+  "Define": {
+    "title": "Define Entry Conditions",
+    "subtitle": "From risk management to multiple indicators — cover every aspect of your entry strategy."
+  },
+
+  "TimeZone": {
+    "title": "Time Zone",
+    "subtitle": "Run strict backtests across all time zones and weekdays to extract the optimal timing."
+  },
+
+  "Indicator": {
+    "title": "Indicator Threshold",
+    "subtitle": "Set precise indicator thresholds to identify profitable conditions across diverse markets."
+  },
+
+  "PriceAction": {
+    "title": "Price Action",
+    "subtitle": "Automated backtesting on price action, previously difficult with conventional tools."
+  },
+
+  "ChartPattern": {
+    "title": "Chart Patterns",
+    "subtitle": "Detect complex chart patterns beyond human recognition to cover every market scenario."
+  },
+
+  "Exit": {
+    "title": "Exit Strategies",
+    "subtitle": "Leverage one of the industry’s largest exit pattern libraries for reliable backtesting results."
+  },
+
+  "features": {
+    "title": "Why Choose Delver",
+    "speed": { "title": "Blazing Fast Execution", "desc": "Lightweight workers and queues distribute tasks, minimizing wait times." },
+    "parallel": { "title": "Parallel Backtesting", "desc": "Run multiple parameter sets simultaneously for instant comparison and faster learning." },
+    "paywall": { "title": "Secure Private Storage", "desc": "Paid plans let you save strategies and results privately. Simple Stripe integration." }
+  },
+
+  "how": {
+    "title": "How It Works (90 Seconds)",
+    "step1": { "before": "Click the", "after": "button" },
+    "step2": { "before": "Enter your strategy conditions and run with", "after": "" },
+    "step3": "Share your results instantly"
+  },
+
+  "pricing": {
+    "title": "Pricing Plans",
+    "free": { "name": "Free", "price": "$0/month", "feature1": "Basic backtesting", "feature2": "View public reports", "feature3": "Limited executions" },
+    "pro": { "name": "Pro", "price": "$49.80/month", "feature1": "Parallel execution & fast queues", "feature2": "Private storage & history tracking", "feature3": "Priority support", "cta": "Subscribe Now" },
+    "elite": { "name": "Elite", "price": "Contact Us", "feature1": "Massive parallel runs & dedicated resources", "feature2": "Team sharing & role management", "feature3": "Dedicated support" }
+  },
+
+  "social": { 
+    "proof": "Screenshots are development mockups. The actual UI may differ. You are currently accessing the MVP version." 
+  },
+
+  "footer": {
+    "tagline": "Accelerating strategy building from backtesting to learning.",
+    "nav": { "features": "Blog", "pricing": "Contact Us", "terms": "Terms of Service" },
+    "newsletter": "Get the latest updates by email"
+  }
+}

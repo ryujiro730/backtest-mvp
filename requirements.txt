@@ -40,4 +40,6 @@ boto3
 psycopg[binary]
 requests
 tqdm
-
+stripe
+python-dotenv
+duka

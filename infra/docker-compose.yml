@@ -20,8 +20,8 @@ services:
     image: minio/minio:latest
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin123
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -33,19 +33,24 @@ services:
       context: ..
       dockerfile: ./infra/backend.Dockerfile
     working_dir: /backtest-mvp
+
+
     command: uvicorn api.main:app --host 0.0.0.0 --port 8000
     environment:
       POSTGRES_URL: postgresql://fx:fxpass@postgres:5432/fxdb
       REDIS_URL: redis://redis:6379/0
       S3_ENDPOINT: http://minio:9000
-      S3_ACCESS_KEY: minioadmin
-      S3_SECRET_KEY: minioadmin123
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
       S3_REGION: us-east-1
       S3_BUCKET_DATA: backtest-data
+      S3_PREFIX: ""                 
       S3_BUCKET_STRATEGIES: strategies
       S3_BUCKET_RESULTS: results
       # 必ず fetch_demo_dataset.py の出力で置き換える
       DATASET_HASH_DEFAULT: 676f732694a3c0a1
+      STRIPE_SECRET_KEY: sk_test_51S0D6wBz9IqvJgd8fOqxrlJu2jp3BTtlEELV8VKP7RxJzD3HmFAKJbcS42J0gylsVN4aAZKuIZn0FXPHe89EWyVW00j3NJp4lA
+      STRIPE_PRICE_ID: price_1S0DBTBz9IqvJgd8lXUUlVOj
     ports:
       - "8000:8000"
     depends_on:
@@ -65,8 +70,8 @@ services:
       POSTGRES_URL: postgresql://fx:fxpass@postgres:5432/fxdb
       REDIS_URL: redis://redis:6379/0
       S3_ENDPOINT: http://minio:9000
-      S3_ACCESS_KEY: minioadmin
-      S3_SECRET_KEY: minioadmin123
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
       S3_REGION: us-east-1
       S3_BUCKET_DATA: backtest-data
       S3_BUCKET_STRATEGIES: strategies
