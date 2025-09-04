@@ -8,15 +8,19 @@ api.delvertrade.com {
       header Cache-Control "public, max-age=600, s-maxage=3600, stale-while-revalidate=86400"
     }
 
-    # 2) API: /api/* だけ、/api を剥いで 8000 へ
+    # 2) API: /api/* だけ
     @api path /api/*
+
+    # 許可する Origin（delvertrade.com と *.vercel.app）
+    @allowed_origin header_regexp Origin ^https://(delvertrade\.com|.*\.vercel\.app)$
+
     handle @api {
-      header X-Route "api"
-      header Access-Control-Allow-Origin "https://delvertrade.com"
+      header @allowed_origin Access-Control-Allow-Origin "{http.request.header.Origin}"
       header Vary "Origin"
       header Access-Control-Allow-Credentials "true"
       header Access-Control-Allow-Methods "GET, POST, OPTIONS"
       header Access-Control-Allow-Headers "Content-Type, Authorization"
+
       uri strip_prefix /api
       reverse_proxy http://127.0.0.1:8000
     }
@@ -25,10 +29,11 @@ api.delvertrade.com {
     respond "Not found" 404
   }
 
-  # OPTIONS は早期返却（どのパスでも）
+  # OPTIONS はどの Origin でも 204
   @preflight method OPTIONS
   handle @preflight {
-    header Access-Control-Allow-Origin "https://delvertrade.com"
+    header Access-Control-Allow-Origin "{http.request.header.Origin}"
+    header Vary "Origin"
     header Access-Control-Allow-Credentials "true"
     header Access-Control-Allow-Methods "GET, POST, OPTIONS"
     header Access-Control-Allow-Headers "Content-Type, Authorization"
