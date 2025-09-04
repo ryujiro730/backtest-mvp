@@ -1,33 +1,37 @@
-# api.delvertrade.com のHTTPS
 api.delvertrade.com {
-  reverse_proxy infra-api-1:8000
-
-  # ===== CORS: /api/* にだけ付ける =====
-  @api path /api/*
-  header @api Access-Control-Allow-Origin "https://delvertrade.com"
-  header @api Vary "Origin"
-  header @api Access-Control-Allow-Credentials "true"
-  header @api Access-Control-Allow-Methods "GET, POST, OPTIONS"
-  header @api Access-Control-Allow-Headers "Content-Type, Authorization"
-  @preflight method OPTIONS
-  respond @preflight 204
-
-  # ===== API を backend に中継 =====
-  handle_path /api/* {
-    reverse_proxy api:8000
-  }
-
-  # ===== ここがポイント: MinIO の公開プレフィックス =====
-  # 画像などを /public-uploads/* で配る
-  handle_path /public-uploads/* {
-    # MinIO の「同名パス」にプロキシ。コンテナ名 minio を使う
-    reverse_proxy minio:9000
-    header {
-      # S3のcontent-typeをそのまま通す
-      Cache-Control "public, max-age=600, s-maxage=3600, stale-while-revalidate=86400"
+  route {
+    # 1) 画像: 最優先で MinIO へ
+    @uploads path /public-uploads/*
+    handle @uploads {
+      header X-Route "uploads"
+      reverse_proxy http://127.0.0.1:9000
+      header Cache-Control "public, max-age=600, s-maxage=3600, stale-while-revalidate=86400"
     }
+
+    # 2) API: /api/* だけ、/api を剥いで 8000 へ
+    @api path /api/*
+    handle @api {
+      header X-Route "api"
+      header Access-Control-Allow-Origin "https://delvertrade.com"
+      header Vary "Origin"
+      header Access-Control-Allow-Credentials "true"
+      header Access-Control-Allow-Methods "GET, POST, OPTIONS"
+      header Access-Control-Allow-Headers "Content-Type, Authorization"
+      uri strip_prefix /api
+      reverse_proxy http://127.0.0.1:8000
+    }
+
+    # 3) その他は 404
+    respond "Not found" 404
   }
 
-  # それ以外は404
-  respond "Not found" 404
+  # OPTIONS は早期返却（どのパスでも）
+  @preflight method OPTIONS
+  handle @preflight {
+    header Access-Control-Allow-Origin "https://delvertrade.com"
+    header Access-Control-Allow-Credentials "true"
+    header Access-Control-Allow-Methods "GET, POST, OPTIONS"
+    header Access-Control-Allow-Headers "Content-Type, Authorization"
+    respond 204
+  }
 }
