@@ -62,7 +62,7 @@ export default function Page() {
               <div aria-hidden className="absolute -inset-20 glow" />
               <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
               <Image
-                src={`${process.env.NEXT_PUBLIC_MINIO_ORIGIN}/public-uploads/LpHeroPhoto.png`}
+                src={`${process.env.NEXT_PUBLIC_MINIO_ORIGIN ?? 'https://api.delvertrade.com'}/public-uploads/LpHeroPhoto.png`}
                 width={1600}
                 height={900}
                 className="w-full h-auto rounded-xl border border-white/10"
@@ -92,7 +92,7 @@ export default function Page() {
               <div aria-hidden className="absolute -inset-20 glow" />
               <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
               <Image
-                src={`${process.env.NEXT_PUBLIC_MINIO_ORIGIN}/public-uploads/LpSettingsPhoto.png`}
+                src={`${process.env.NEXT_PUBLIC_MINIO_ORIGIN ?? 'https://api.delvertrade.com'}/public-uploads/LpSettingsPhoto.png`}
                 width={1600}
                 height={900}
                 className="w-full h-auto rounded-xl border border-white/10"
@@ -122,7 +122,7 @@ export default function Page() {
               <div aria-hidden className="absolute -inset-20 glow" />
               <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
               <Image
-                src={`${process.env.NEXT_PUBLIC_MINIO_ORIGIN}/public-uploads/LpSettingsPhoto2.png`}
+                src={`${process.env.NEXT_PUBLIC_MINIO_ORIGIN ?? 'https://api.delvertrade.com'}/public-uploads/LpSettingsPhoto2.png`}
                 width={1600}
                 height={900}
                 className="w-full h-auto rounded-xl border border-white/10"
@@ -152,7 +152,7 @@ export default function Page() {
               <div aria-hidden className="absolute -inset-20 glow" />
               <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
               <Image
-                src={`${process.env.NEXT_PUBLIC_MINIO_ORIGIN}/public-uploads/LpSettingsPhoto4.png`}
+                src={`${process.env.NEXT_PUBLIC_MINIO_ORIGIN ?? 'https://api.delvertrade.com'}/public-uploads/LpSettingsPhoto4.png`}
                 width={1600}
                 height={900}
                 className="w-full h-auto rounded-xl border border-white/10"
@@ -182,7 +182,7 @@ export default function Page() {
               <div aria-hidden className="absolute -inset-20 glow" />
               <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
               <Image
-                src={`${process.env.NEXT_PUBLIC_MINIO_ORIGIN}/public-uploads/LpSettingsPhoto5.png`}
+                src={`${process.env.NEXT_PUBLIC_MINIO_ORIGIN ?? 'https://api.delvertrade.com'}/public-uploads/LpSettingsPhoto5.png`}
                 width={1600}
                 height={900}
                 className="w-full h-auto rounded-xl border border-white/10"
@@ -212,7 +212,7 @@ export default function Page() {
               <div aria-hidden className="absolute -inset-20 glow" />
               <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
               <Image
-                src={`${process.env.NEXT_PUBLIC_MINIO_ORIGIN}/public-uploads/LpSettingsPhoto6.png`}
+                src={`${process.env.NEXT_PUBLIC_MINIO_ORIGIN ?? 'https://api.delvertrade.com'}/public-uploads/LpSettingsPhoto6.png`}
                 width={1600}
                 height={900}
                 className="w-full h-auto rounded-xl border border-white/10"
@@ -242,7 +242,7 @@ export default function Page() {
               <div aria-hidden className="absolute -inset-20 glow" />
               <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-black" />
               <Image
-                src={`${process.env.NEXT_PUBLIC_MINIO_ORIGIN}/public-uploads/LpSettingsPhoto3.png`}
+                src={`${process.env.NEXT_PUBLIC_MINIO_ORIGIN ?? 'https://api.delvertrade.com'}/public-uploads/LpSettingsPhoto3.png`}
                 width={1600}
                 height={900}
                 className="w-full h-auto rounded-xl border border-white/10"

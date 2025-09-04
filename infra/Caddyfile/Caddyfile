@@ -8,13 +8,17 @@ api.delvertrade.com {
       header Cache-Control "public, max-age=600, s-maxage=3600, stale-while-revalidate=86400"
     }
 
-    # 2) API: /api/* だけ
     @api path /api/*
-
-    # 許可する Origin（delvertrade.com と *.vercel.app）
     @allowed_origin header_regexp Origin ^https://(delvertrade\.com|.*\.vercel\.app)$
 
     handle @api {
+      # ← まず upstream(uvicorn)が付けたCORSヘッダを剥がす
+      header -Access-Control-Allow-Origin
+      header -Access-Control-Allow-Credentials
+      header -Access-Control-Allow-Methods
+      header -Access-Control-Allow-Headers
+
+      # 許可リストにマッチした Origin をそのまま反映
       header @allowed_origin Access-Control-Allow-Origin "{http.request.header.Origin}"
       header Vary "Origin"
       header Access-Control-Allow-Credentials "true"
@@ -23,6 +27,7 @@ api.delvertrade.com {
 
       uri strip_prefix /api
       reverse_proxy http://127.0.0.1:8000
+      header X-Route "api"
     }
 
     # 3) その他は 404
