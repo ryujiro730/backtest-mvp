@@ -14,6 +14,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from .routes import checkout     # ← 相対インポート
 
 
+
+
 # ---- Try both import paths to match user's project layout ----
 try:
     from schemas import StrategyMvp0  # api/ runs as working_dir=/app/api
@@ -41,7 +43,7 @@ S3_BUCKET_STRATEGIES = os.getenv("S3_BUCKET_STRATEGIES", "strategies")
 S3_BUCKET_RESULTS    = os.getenv("S3_BUCKET_RESULTS", "results")
 DATASET_HASH_DEFAULT = os.getenv("DATASET_HASH_DEFAULT", "")
 
-
+POSTGRES_URL = _req("POSTGRES_URL")
 REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")  # 既定値はcomposeと合わせる
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", REDIS_URL)
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", REDIS_URL)
@@ -84,14 +86,14 @@ app.include_router(catalog.router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://192.168.11.2:3000",
-        "http://localhost:3000",
         "https://delvertrade.com",
+        "http://localhost:3000",
+        "http://192.168.11.2:3000",
     ],
     allow_origin_regex=r"^https://.*\.vercel\.app$",
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["Content-Type", "Authorization", "Idempotency-Key"],
 )
 app.include_router(checkout.router) 
 
@@ -207,6 +209,17 @@ def _thin_equity(points: List[Dict[str, Any]], max_points: int = 1500) -> List[D
     return points[::step]
 
 # ===== Routes =====
+# --- ここから下を置き換え推奨（/api/run 以降の末尾） ---
+
+SQL_INSERT_RUN = """
+INSERT INTO runs
+    (run_id, sid, seed, code_hash, dataset_hash, status, started_at, idem_key)
+VALUES
+    (%(run_id)s, %(sid)s, %(seed)s, %(code_hash)s, %(dataset_hash)s,
+     %(status)s, NOW(), %(idem_key)s)
+ON CONFLICT (run_id) DO NOTHING;
+""".strip()
+
 @app.get("/health")
 def health():
     return {"ok": True}
@@ -217,15 +230,11 @@ def api_catalog():
 
 @app.post("/api/run", status_code=202)
 def api_run(strategy: StrategyMvp0, idem_key: str = Header(..., alias="Idempotency-Key")):
-    # json payload (keep aliases so date_range.from remains 'from')
     payload = strategy.model_dump(by_alias=True, exclude_none=True)
-
-    # resolve dataset hash strictly
     dataset_hash = _resolve_dataset_hash(payload["pair"], payload["timeframe"])
-
     sid = _strategy_sid(payload)
 
-    # store strategy (optional)
+    # store strategy
     s3.put_object(
         Bucket=S3_BUCKET_STRATEGIES,
         Key=f"strategies/{sid}.json",
@@ -234,17 +243,22 @@ def api_run(strategy: StrategyMvp0, idem_key: str = Header(..., alias="Idempoten
     )
 
     run_id = str(uuid.uuid4())
-    with psycopg.connect(POSTGRES_URL) as conn, conn.cursor() as cur:
-        cur.execute(
-            """
-            insert into runs(run_id, sid, seed, code_hash, dataset_hash, status, started_at, idem_key)
-            values (%s, %s, %s, %s, %s, 'queued', now(), %s)
-            """,
-            (run_id, sid, 42, "mvp-0", dataset_hash, idem_key),
-        )
+    with psycopg.connect(POSTGRES_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                SQL_INSERT_RUN,
+                {
+                    "run_id": run_id,
+                    "sid": sid,
+                    "seed": 42,
+                    "code_hash": "mvp-0",
+                    "dataset_hash": dataset_hash,
+                    "status": "queued",
+                    "idem_key": idem_key,
+                },
+            )
         conn.commit()
 
-    # enqueue celery task
     celery.send_task("tasks.run_backtest", args=[run_id, sid, 42, "mvp-0", dataset_hash, "web"])
     return {"run_id": run_id, "status": "queued"}
 
@@ -271,4 +285,8 @@ def api_reports(run_id: str):
 
     return {"run_id": run_id, "status": "done", "summary": metrics.get("summary", {}), "equity": equity}
 
+# ルーター登録（順不同でOK。ここは“関数の外”・左端で）
+app.include_router(catalog.router)
+app.include_router(checkout.router)
 app.include_router(router)
+# --- ここまで ---

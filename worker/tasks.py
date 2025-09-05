@@ -55,27 +55,60 @@ def _load_strategy_json(sid: str) -> dict:
     obj = s3.get_object(Bucket=BKT_STRAT, Key=f"strategies/{sid}.json")
     return json.loads(obj["Body"].read().decode("utf-8"))
 
+# ===== 1) S3からどのデータを読んだかを必ず記録 =====
 def _load_prices(dataset_hash: str) -> pd.DataFrame:
     last_err = None
     for ext, reader in (("parquet", pd.read_parquet), ("csv", pd.read_csv)):
         key = f"data/{dataset_hash}.{ext}"
         try:
+            # ← ここを追加
+            print(f"[DATA] trying s3://{BKT_DATA}/{key}", flush=True)
+
             obj = s3.get_object(Bucket=BKT_DATA, Key=key)
             buf = io.BytesIO(obj["Body"].read())
             df = reader(buf)
             need = {"timestamp","open","high","low","close"}
             if not need.issubset(df.columns):
                 raise ValueError(f"columns missing: need={need}, got={set(df.columns)}")
+
             ts = pd.to_datetime(df["timestamp"], utc=True, errors="raise")
             df["timestamp"] = ts.dt.tz_convert(None)
             for c in ["open","high","low","close"]:
                 df[c] = pd.to_numeric(df[c], errors="raise").astype("float64")
             df = df.sort_values("timestamp").reset_index(drop=True)
+
+            # ← ここを追加：サイズと先頭を出す
+            print(f"[DATA] loaded {len(df)} rows from {key}. "
+                  f"range={df['timestamp'].iloc[0]}→{df['timestamp'].iloc[-1]}", flush=True)
+            print("[DATA] head:\n", df.head().to_string(index=False), flush=True)
+
             return df[["timestamp","open","high","low","close"]]
         except Exception as e:
             last_err = e
             continue
     raise FileNotFoundError(f"data/{dataset_hash}.parquet or .csv not found / invalid: {last_err}")
+
+    # 余計な列を捨てて型を揃える（timeframe等が来ても無視）
+    need = ["timestamp","open","high","low","close","volume"]
+    df = df[[c for c in need if c in df.columns]].copy()
+
+    df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True, errors="raise").dt.tz_convert(None)
+    for c in ["open","high","low","close","volume"]:
+        if c in df:
+            df[c] = pd.to_numeric(df[c], errors="raise").astype("float64")
+
+    # close が全ゼロなら暫定フォールバック（検証用）
+    if "close" in df and (df["close"] == 0).all() and {"open","high","low"} <= set(df.columns):
+        print("[DATA][WARN] close all zeros; filling from OHL mean (temporary)", flush=True)
+        df["close"] = df[["open","high","low"]].mean(axis=1)
+
+    # 指紋ログ
+    print(
+        f"[DATA] cols={list(df.columns)} nonzero_close={(df['close']!=0).sum()} "
+        f"range={df['timestamp'].iloc[0]}→{df['timestamp'].iloc[-1]}",
+        flush=True
+    )
+    return df
 
 def _max_drawdown(equity: pd.Series) -> float:
     peak = equity.cummax()
@@ -103,16 +136,31 @@ def atr(df: pd.DataFrame, n: int = 14) -> pd.Series:
     return tr.rolling(int(n), min_periods=int(n)).mean().ffill()
 
 # ========= entries =========
-def entry_ema_cross(df: pd.DataFrame, cfg: dict, direction: str) -> pd.Series:
-    fast = int(cfg.get("fast", 20)); slow = int(cfg.get("slow", 50))
-    cross = str(cfg.get("cross", "above")).lower()  # above/below
-    f = ema(df["close"], fast); s = ema(df["close"], slow)
-    if direction == "short":
-        cond = (f < s) if cross == "above" else (f > s)
+def entry_ema_cross(df, e, direction):
+    fast = int(e.get("fast", 12))
+    slow = int(e.get("slow", 26))
+    cross = str(e.get("cross", "above")).lower()
+
+    px = pd.to_numeric(df["close"], errors="raise").astype("float64")
+    ema_f = px.ewm(span=fast, adjust=False, min_periods=fast).mean()
+    ema_s = px.ewm(span=slow, adjust=False, min_periods=slow).mean()
+
+    above = ema_f > ema_s
+    cross_up   = (~above.shift(1, fill_value=False)) &  above
+    cross_down = ( above.shift(1, fill_value=False)) & ~above
+
+    if cross in ("above","up","cross_up"):
+        m = cross_up
+    elif cross in ("below","down","cross_down"):
+        m = cross_down
     else:
-        cond = (f > s) if cross == "above" else (f < s)
-    cond.iloc[: max(fast, slow)] = False
-    return cond
+        m = above  # デフォルト
+
+    print(f"[EMA] fast={fast} slow={slow} above={int(above.sum())} "
+          f"cross_up={int(cross_up.sum())} cross_down={int(cross_down.sum())}",
+          flush=True)
+    return m.astype(bool)
+
 
 def entry_rsi_threshold(df: pd.DataFrame, cfg: dict, direction: str) -> pd.Series:
     period = int(cfg.get("period", 14)); level = float(cfg.get("level", 50))
@@ -133,31 +181,44 @@ def entry_breakout(df: pd.DataFrame, cfg: dict, direction: str) -> pd.Series:
     cond.iloc[: lookback + 1] = False
     return cond
 
+# ===== 2) エントリー条件の実際の真偽数を記録 =====
 def build_entry_mask(df: pd.DataFrame, entries: list, direction: str) -> pd.Series:
     masks = []
-    for e in entries:
+    for i, e in enumerate(entries):
         typ = str(e.get("type", "")).lower()
         if typ == "ema_cross":
-            masks.append(entry_ema_cross(df, e, direction))
+            m = entry_ema_cross(df, e, direction)
         elif typ == "rsi_threshold":
             period = int(e.get("period", e.get("length", 14)))
             level  = float(e.get("level", 50))
             ev = str(e.get("event", e.get("mode", "above"))).lower()
             mode = "above" if ev in ("cross_up", "above", "gt", ">", ">=") else "below"
-            masks.append(entry_rsi_threshold(df, {"period": period, "level": level, "mode": mode}, direction))
+            m = entry_rsi_threshold(df, {"period": period, "level": level, "mode": mode}, direction)
         elif typ == "breakout":
-            masks.append(entry_breakout(df, e, direction))
+            m = entry_breakout(df, e, direction)
         elif typ == "sma_cross":
             e2 = {"type": "ema_cross", "fast": e.get("short", 20), "slow": e.get("long", 50), "cross": "above"}
-            masks.append(entry_ema_cross(df, e2, direction))
+            m = entry_ema_cross(df, e2, direction)
         else:
             raise RuntimeError(f"Unsupported entry type: {typ}")
+
+        # ← ここを追加：各条件のTrue件数を出す
+        print(f"[ENTRY] cond#{i+1} type={typ} true={int(m.sum())}", flush=True)
+        masks.append(m)
+
     if not masks:
         return pd.Series(False, index=df.index)
     m = masks[0].copy()
     for k in masks[1:]:
         m = m & k
+
+    # ← ここを追加：合成後の1→0/0→1遷移数を出す
+    trans_in  = ((~m.shift(1).fillna(False)) & m).sum()
+    trans_out = (( m.shift(1).fillna(False)) & ~m).sum()
+    print(f"[ENTRY] final mask: true={int(m.sum())}, entries={int(trans_in)}, exits={int(trans_out)}",
+          flush=True)
     return m.astype(int)
+
 
 # ========= engine =========
 def run_engine(df: pd.DataFrame, cfg: dict) -> dict:
@@ -262,6 +323,9 @@ def run_backtest(run_id, sid, seed, code_hash, dataset_hash, user_id):
 
     try:
         raw = _load_strategy_json(sid)
+        print(f"[STRAT] sid={sid} entries={json.dumps(raw.get('entry', []))} "
+              f"direction={raw.get('direction','long')} fee_bps={raw.get('fee_bps')} "
+              f"slip_bps={raw.get('slippage_bps')}", flush=True)
         if raw.get("pair") == "__FAIL__":
             raise RuntimeError("forced failure for test")
 

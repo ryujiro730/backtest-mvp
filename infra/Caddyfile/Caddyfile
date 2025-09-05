@@ -1,28 +1,16 @@
 api.delvertrade.com {
   encode zstd gzip
 
-  # ---- MinIO: /public-uploads/* ----
-  handle_path /public-uploads/* {
+  # MinIO はそのまま
+  handle /public-uploads/* {
     reverse_proxy http://127.0.0.1:9000
     header Cache-Control "public, max-age=600, s-maxage=3600, stale-while-revalidate=86400"
   }
 
-  # ---- API: /api/* を backend:8000 へ ----
-  handle_path /api/* {
-    uri strip_prefix /api
+  # ← ここを handle に。handle_path は使わない
+  handle /api/* {
     reverse_proxy http://127.0.0.1:8000
   }
 
-  # ---- /run も API に中継 ----
-  handle_path /run* {
-    reverse_proxy http://127.0.0.1:8000
-  }
-
-  # 既定
   respond "Not found" 404
-}
-
-delvertrade.com {
-  encode zstd gzip
-  reverse_proxy http://127.0.0.1:3000
 }

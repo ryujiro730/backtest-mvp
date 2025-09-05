@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 WORKDIR /app
-COPY requirements.txt .
+COPY requirements.txt requirements.txt          # ルートのやつ
 RUN pip install --no-cache-dir -r requirements.txt
-COPY infra/DataPicker.py .
-CMD ["python", "DataPicker.py"]
+COPY infra/DataPicker.py /app/infra/format_and_resample.py
+CMD ["python", "infra/format_and_resample.py"]
