@@ -1,47 +1,28 @@
 api.delvertrade.com {
-  route {
-    # 1) 画像: 最優先で MinIO へ
-    @uploads path /public-uploads/*
-    handle @uploads {
-      header X-Route "uploads"
-      reverse_proxy http://127.0.0.1:9000
-      header Cache-Control "public, max-age=600, s-maxage=3600, stale-while-revalidate=86400"
-    }
+  encode zstd gzip
 
-    @api path /api/*
-    @allowed_origin header_regexp Origin ^https://(delvertrade\.com|.*\.vercel\.app)$
-
-    handle @api {
-      # ← まず upstream(uvicorn)が付けたCORSヘッダを剥がす
-      header -Access-Control-Allow-Origin
-      header -Access-Control-Allow-Credentials
-      header -Access-Control-Allow-Methods
-      header -Access-Control-Allow-Headers
-
-      # 許可リストにマッチした Origin をそのまま反映
-      header @allowed_origin Access-Control-Allow-Origin "{http.request.header.Origin}"
-      header Vary "Origin"
-      header Access-Control-Allow-Credentials "true"
-      header Access-Control-Allow-Methods "GET, POST, OPTIONS"
-      header Access-Control-Allow-Headers "Content-Type, Authorization"
-
-      uri strip_prefix /api
-      reverse_proxy http://127.0.0.1:8000
-      header X-Route "api"
-    }
-
-    # 3) その他は 404
-    respond "Not found" 404
+  # ---- MinIO: /public-uploads/* ----
+  handle_path /public-uploads/* {
+    reverse_proxy http://127.0.0.1:9000
+    header Cache-Control "public, max-age=600, s-maxage=3600, stale-while-revalidate=86400"
   }
 
-  # OPTIONS はどの Origin でも 204
-  @preflight method OPTIONS
-  handle @preflight {
-    header Access-Control-Allow-Origin "{http.request.header.Origin}"
-    header Vary "Origin"
-    header Access-Control-Allow-Credentials "true"
-    header Access-Control-Allow-Methods "GET, POST, OPTIONS"
-    header Access-Control-Allow-Headers "Content-Type, Authorization"
-    respond 204
+  # ---- API: /api/* を backend:8000 へ ----
+  handle_path /api/* {
+    uri strip_prefix /api
+    reverse_proxy http://127.0.0.1:8000
   }
+
+  # ---- /run も API に中継 ----
+  handle_path /run* {
+    reverse_proxy http://127.0.0.1:8000
+  }
+
+  # 既定
+  respond "Not found" 404
+}
+
+delvertrade.com {
+  encode zstd gzip
+  reverse_proxy http://127.0.0.1:3000
 }
