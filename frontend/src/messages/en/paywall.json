@@ -1,0 +1,43 @@
+{
+  "title": "Purchase a subscription",
+  "close": "Close",
+  "subtitle": "Upgrade to unlock faster backtests and unlimited runs.",
+  "freeUsage": "Free quota this month: {used}/{limit}",
+  "signin": "Sign in to continue",
+  "contact": "Enterprise and team plans now available ↗",
+  "yearly": "Yearly",
+  "monthly": "Monthly",
+  "yearlyBadge": "–20% Yearly",
+  "footerLeft": "Need help with your subscription? Contact",
+  "footerRight": "Secure checkout by Stripe",
+  "cta": {
+    "current": "Current Plan",
+    "upgrade": "Upgrade Plan",
+    "processing": "Processing…"
+  },
+  "plans": {
+    "free": {
+      "name": "Free",
+      "features": [
+        "Limited runs per month",
+        "Basic features"
+      ],
+      "active": "Active"
+    },
+    "starter": {
+      "name": "Starter",
+      "features": [
+        "Up to 30 runs per day",
+        "Priority support"
+      ]
+    },
+    "pro": {
+      "name": "Pro",
+      "features": [
+        "Unlimited runs",
+        "Advanced metrics",
+        "Priority support"
+      ]
+    }
+  }
+}

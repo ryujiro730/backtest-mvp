@@ -3084,7 +3084,7 @@ class Container extends _react.default.Component {
         // - if it is a client-side skeleton (fallback render)
         // - if middleware matches the current page (may have rewrite params)
         // - if rewrites in next.config.js match (may have rewrite params)
-        if (router.isSsr && (initialData.isFallback || initialData.nextExport && ((0, _isdynamic.isDynamicRoute)(router.pathname) || location.search || ("TURBOPACK compile-time value", true) || initialMatchesMiddleware) || initialData.props && initialData.props.__N_SSG && (location.search || ("TURBOPACK compile-time value", true) || initialMatchesMiddleware))) {
+        if (router.isSsr && (initialData.isFallback || initialData.nextExport && ((0, _isdynamic.isDynamicRoute)(router.pathname) || location.search || ("TURBOPACK compile-time value", false) || initialMatchesMiddleware) || initialData.props && initialData.props.__N_SSG && (location.search || ("TURBOPACK compile-time value", false) || initialMatchesMiddleware))) {
             // update query on mount for exported pages
             router.replace(router.pathname + '?' + String((0, _querystring.assign)((0, _querystring.urlQueryToSearchParams)(router.query), new URLSearchParams(location.search))), asPath, {
                 // @ts-ignore
@@ -3235,7 +3235,10 @@ function AppContainer(param) {
                                         "loader": ("TURBOPACK compile-time value", "default"),
                                         "dangerouslyAllowSVG": ("TURBOPACK compile-time value", false),
                                         "unoptimized": ("TURBOPACK compile-time value", false),
-                                        "domains": ("TURBOPACK compile-time value", []),
+                                        "domains": ("TURBOPACK compile-time value", [
+                                            ("TURBOPACK compile-time value", "api.delvertrade.com"),
+                                            ("TURBOPACK compile-time value", "cdn.delvertrade.com")
+                                        ]),
                                         "remotePatterns": ("TURBOPACK compile-time value", [])
                                     }),
                                     children: children

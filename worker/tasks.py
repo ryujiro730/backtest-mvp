@@ -97,11 +97,6 @@ def _load_prices(dataset_hash: str) -> pd.DataFrame:
         if c in df:
             df[c] = pd.to_numeric(df[c], errors="raise").astype("float64")
 
-    # close が全ゼロなら暫定フォールバック（検証用）
-    if "close" in df and (df["close"] == 0).all() and {"open","high","low"} <= set(df.columns):
-        print("[DATA][WARN] close all zeros; filling from OHL mean (temporary)", flush=True)
-        df["close"] = df[["open","high","low"]].mean(axis=1)
-
     # 指紋ログ
     print(
         f"[DATA] cols={list(df.columns)} nonzero_close={(df['close']!=0).sum()} "

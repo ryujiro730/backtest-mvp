@@ -59,6 +59,12 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   handler satisfies AppPageConfig<"/[locale]/app">
 }
 
+// Validate ../../src/app/[locale]/auth/callback/page.tsx
+{
+  const handler = {} as typeof import("../../src/app/[locale]/auth/callback/page.js")
+  handler satisfies AppPageConfig<"/[locale]/auth/callback">
+}
+
 // Validate ../../src/app/[locale]/blog/[slug]/page.tsx
 {
   const handler = {} as typeof import("../../src/app/[locale]/blog/[slug]/page.js")
@@ -77,16 +83,76 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   handler satisfies AppPageConfig<"/[locale]/contact">
 }
 
+// Validate ../../src/app/[locale]/login/email/page.tsx
+{
+  const handler = {} as typeof import("../../src/app/[locale]/login/email/page.js")
+  handler satisfies AppPageConfig<"/[locale]/login/email">
+}
+
+// Validate ../../src/app/[locale]/login/page.tsx
+{
+  const handler = {} as typeof import("../../src/app/[locale]/login/page.js")
+  handler satisfies AppPageConfig<"/[locale]/login">
+}
+
 // Validate ../../src/app/[locale]/page.tsx
 {
   const handler = {} as typeof import("../../src/app/[locale]/page.js")
   handler satisfies AppPageConfig<"/[locale]">
 }
 
+// Validate ../../src/app/[locale]/signup/page.tsx
+{
+  const handler = {} as typeof import("../../src/app/[locale]/signup/page.js")
+  handler satisfies AppPageConfig<"/[locale]/signup">
+}
+
 // Validate ../../src/app/page.tsx
 {
   const handler = {} as typeof import("../../src/app/page.js")
   handler satisfies AppPageConfig<"/">
+}
+
+// Validate ../../src/app/api/auth/me/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/auth/me/route.js")
+  handler satisfies RouteHandlerConfig<"/api/auth/me">
+}
+
+// Validate ../../src/app/api/billing/portal/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/billing/portal/route.js")
+  handler satisfies RouteHandlerConfig<"/api/billing/portal">
+}
+
+// Validate ../../src/app/api/entitlement/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/entitlement/route.js")
+  handler satisfies RouteHandlerConfig<"/api/entitlement">
+}
+
+// Validate ../../src/app/api/run/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/run/route.js")
+  handler satisfies RouteHandlerConfig<"/api/run">
+}
+
+// Validate ../../src/app/api/stripe/checkout/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/stripe/checkout/route.js")
+  handler satisfies RouteHandlerConfig<"/api/stripe/checkout">
+}
+
+// Validate ../../src/app/api/stripe/portal/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/stripe/portal/route.js")
+  handler satisfies RouteHandlerConfig<"/api/stripe/portal">
+}
+
+// Validate ../../src/app/api/stripe/webhook/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/stripe/webhook/route.js")
+  handler satisfies RouteHandlerConfig<"/api/stripe/webhook">
 }
 
 // Validate ../../src/app/api/subscribe/route.ts

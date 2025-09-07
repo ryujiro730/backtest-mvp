@@ -10,16 +10,29 @@ const loaders = {
     en: () => import('./messages/en/lp.json').then(m => m.default),
     ja: () => import('./messages/ja/lp.json').then(m => m.default),
   },
+  paywall: {
+    en: () => import('./messages/en/paywall.json').then(m => m.default),
+    ja: () => import('./messages/ja/paywall.json').then(m => m.default),
+  },
+  // ここに account, app など増やしてOK
 } as const;
 
 export default getRequestConfig(async ({locale}) => {
-  const l: Locale = (locales as readonly string[]).includes(locale ?? '') ? (locale as Locale) : defaultLocale;
+  const l: Locale =
+    (locales as readonly string[]).includes(locale ?? '')
+      ? (locale as Locale)
+      : defaultLocale;
 
-  // ★ ここで実際にどっちを読んだかと代表キーの値を出す
-  const lp = await loaders.lp[l]();
-  console.log('[i18n] resolved locale =', l);
-  console.log('[i18n] lp.hero.title =', lp?.hero?.title);
+  // すべてのローダーを走らせて {lp, paywall, ...} 形にまとめる
+  const entries = await Promise.all(
+    Object.entries(loaders).map(async ([ns, byLocale]) => {
+      // @ts-expect-error — byLocale のキーは 'en' | 'ja'
+      const data = await byLocale[l]();
+      return [ns, data] as const;
+    })
+  );
 
-  const messages = { lp };
+  const messages = Object.fromEntries(entries);
+
   return { locale: l, messages };
 });

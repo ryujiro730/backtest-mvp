@@ -1,3 +1,12 @@
 {
-  "/[locale]/page": "app/[locale]/page.js"
+  "/[locale]/app/page": "app/[locale]/app/page.js",
+  "/[locale]/auth/callback/page": "app/[locale]/auth/callback/page.js",
+  "/[locale]/contact/page": "app/[locale]/contact/page.js",
+  "/[locale]/login/email/page": "app/[locale]/login/email/page.js",
+  "/[locale]/login/page": "app/[locale]/login/page.js",
+  "/[locale]/page": "app/[locale]/page.js",
+  "/[locale]/signup/page": "app/[locale]/signup/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/auth/me/route": "app/api/auth/me/route.js",
+  "/api/entitlement/route": "app/api/entitlement/route.js"
 }

@@ -1,10 +1,12 @@
 'use client';
 import {useLocale, useTranslations,} from 'next-intl';
+import {useState} from 'react';
 import { CDN } from '@/config/env';
 import Link from 'next/link';
 import Newsletter from '../(public)/components/Newsletter';
+import PricingCtaClient from './PricingCtaClient';
 import Image from "next/image";
-
+import HeaderAuthButtons from '@/components/button/HeaderAuthButtons';
 function Kbd({children}:{children:React.ReactNode}) {
   return <span className="kbd">{children}</span>;
 }
@@ -18,12 +20,32 @@ function Check({ children }: { children: React.ReactNode }) {
   );
 }
 
+
 export default function Page() {
   const locale = useLocale();
   const t = useTranslations('lp');
 
   return (
     <main className="relative isolate">
+
+<header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-black/60 backdrop-blur">
+  <div className="flex h-14 w-full items-center px-4 sm:px-6 lg:px-12">
+    {/* 左：ロゴ */}
+    <Link href="/" className="text-3xl font-bold text-white">
+      Delver
+    </Link>
+
+    {/* 真ん中スペーサー */}
+    <div className="flex-1" />
+
+    {/* 右：ログイン/サインアップ */}
+    <HeaderAuthButtons />
+  </div>
+</header>
+
+
+
+
       {/* ===== Hero ===== */}
       <section className="relative overflow-hidden">
         <div aria-hidden className="pointer-events-none absolute inset-0 hero-gradient -z-10" />
@@ -292,42 +314,49 @@ export default function Page() {
         </div>
       </section>
 
-      {/* ===== Pricing teaser ===== */}
-      <section id="pricing" className="section">
-        <div className="container mx-auto max-w-6xl px-4 sm:px-6">
-          <h2 className="h2">{t('pricing.title')}</h2>
-          <div className="mt-8 grid gap-[clamp(12px,2vw,24px)] sm:grid-cols-2 md:grid-cols-3">
-            <div className="card">
-              <div className="text-sm text-zinc-400">{t('pricing.free.name')}</div>
-              <div className="mt-2 text-3xl font-extrabold">{t('pricing.free.price')}</div>
-              <ul className="mt-4 space-y-2 text-sm text-zinc-400">
-                <li>{t('pricing.free.feature1')}</li>
-                <li>{t('pricing.free.feature2')}</li>
-                <li>{t('pricing.free.feature3')}</li>
-              </ul>
-            </div>
-            <div className="card ring-1 ring-brand-500/40">
-              <div className="text-sm text-zinc-400">{t('pricing.pro.name')}</div>
-              <div className="mt-2 text-3xl font-extrabold">{t('pricing.pro.price')}</div>
-              <ul className="mt-4 space-y-2 text-sm text-zinc-400">
-                <li>{t('pricing.pro.feature1')}</li>
-                <li>{t('pricing.pro.feature2')}</li>
-                <li>{t('pricing.pro.feature3')}</li>
-              </ul>
-              <a href="#" className="btn mt-6 w-full justify-center">{t('pricing.pro.cta')}</a>
-            </div>
-            <div className="card">
-              <div className="text-sm text-zinc-400">{t('pricing.elite.name')}</div>
-              <div className="mt-2 text-3xl font-extrabold">{t('pricing.elite.price')}</div>
-              <ul className="mt-4 space-y-2 text-sm text-zinc-400">
-                <li>{t('pricing.elite.feature1')}</li>
-                <li>{t('pricing.elite.feature2')}</li>
-                <li>{t('pricing.elite.feature3')}</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
+{/* ===== Pricing teaser ===== */}
+<section id="pricing" className="section">
+  <div className="container mx-auto max-w-6xl px-4 sm:px-6">
+    <h2 className="h2">{t('pricing.title')}</h2>
+    <div className="mt-8 grid gap-[clamp(12px,2vw,24px)] sm:grid-cols-2 md:grid-cols-3">
+      {/* Free */}
+      <div className="card">
+        <div className="text-sm text-zinc-400">{t('pricing.free.name')}</div>
+        <div className="mt-2 text-3xl font-extrabold">{t('pricing.free.price')}</div>
+        <ul className="mt-4 space-y-2 text-sm text-zinc-400">
+          <li>{t('pricing.free.feature1')}</li>
+          <li>{t('pricing.free.feature2')}</li>
+          <li>{t('pricing.free.feature3')}</li>
+        </ul>
+      </div>
+
+      {/* Pro */}
+      <div className="card ring-1 ring-brand-500/40">
+        <div className="text-sm text-zinc-400">{t('pricing.pro.name')}</div>
+        <div className="mt-2 text-3xl font-extrabold">{t('pricing.pro.price')}</div>
+        <ul className="mt-4 space-y-2 text-sm text-zinc-400">
+          <li>{t('pricing.pro.feature1')}</li>
+          <li>{t('pricing.pro.feature2')}</li>
+          <li>{t('pricing.pro.feature3')}</li>
+        </ul>
+
+        {/* ここだけでOK（ボタン+モーダルを内包） */}
+        <PricingCtaClient />
+      </div>
+
+      {/* Elite */}
+      <div className="card">
+        <div className="text-sm text-zinc-400">{t('pricing.elite.name')}</div>
+        <div className="mt-2 text-3xl font-extrabold">{t('pricing.elite.price')}</div>
+        <ul className="mt-4 space-y-2 text-sm text-zinc-400">
+          <li>{t('pricing.elite.feature1')}</li>
+          <li>{t('pricing.elite.feature2')}</li>
+          <li>{t('pricing.elite.feature3')}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* ===== Footer ===== */}
       <footer className="section pt-10">

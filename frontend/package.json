@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.879.0",
+    "@supabase/ssr": "^0.7.0",
+    "@supabase/supabase-js": "^2.57.2",
     "gray-matter": "^4.0.3",
     "marked": "^16.2.1",
     "mixpanel-browser": "^2.69.1",
@@ -23,7 +25,8 @@
     "rehype-pretty-code": "^0.14.1",
     "remark-autolink-headings": "^7.0.1",
     "remark-gfm": "^4.0.1",
-    "remark-slug": "^7.0.1"
+    "remark-slug": "^7.0.1",
+    "stripe": "^18.5.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -37,10 +40,5 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.13",
     "typescript": "^5"
-  },
-  "overrides": {
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "recharts": "^2.12.0"
   }
 }
