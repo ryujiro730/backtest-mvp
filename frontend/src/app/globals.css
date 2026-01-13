@@ -1,0 +1,45 @@
+/* src/app/globals.css （LPや共通のエントリ）*/
+@config "../../tailwind.lp.config.js";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* LP 用の追加スタイルがあればここに */
+
+/* ---- 全体設定 ---- */
+:root { color-scheme: dark; }
+html, body { height: 100%; }
+
+/* ---- Superhuman っぽい背景/装飾 ---- */
+.hero-gradient{
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(120,119,198,0.25), transparent 60%),
+    radial-gradient(800px 400px at 80% 10%, rgba(168,85,247,0.18), transparent 60%),
+    linear-gradient(180deg, #0b0b10 0%, #000 100%);
+}
+
+.glow{
+  background: radial-gradient(600px 220px at 50% 0%, rgba(168,85,247,.25), transparent 60%);
+  filter: blur(40px);
+}
+
+/* ---- コンポーネント的ユーティリティ ---- */
+.section{ @apply py-16 md:py-24; }
+.h2{ @apply text-3xl md:text-4xl font-extrabold tracking-tight text-white; }
+
+.card{
+  @apply rounded-2xl border border-white/10 bg-white/5 p-6 text-white/90 backdrop-blur-sm;
+}
+
+.kbd{
+  @apply inline-flex h-6 items-center rounded-md border border-white/20 bg-white/5 px-2 text-xs text-white/80;
+}
+
+.btn{
+  @apply inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-fuchsia-500 to-violet-500 px-5 py-3 font-semibold text-white shadow-lg shadow-fuchsia-500/20 hover:opacity-90;
+}
+
+.btn-ghost{
+  @apply inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-white hover:bg-white/10;
+}
+

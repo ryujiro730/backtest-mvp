@@ -1,0 +1,18 @@
+@config "./tailwind.app.config.js";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ここからは App 専用の見た目。LPには届かない */
+.delver-app .btn {
+  @apply inline-flex items-center justify-center rounded-2xl bg-white px-4 py-2 font-bold text-black
+         shadow-sm hover:bg-gray-50 active:translate-y-px
+         focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+.delver-app .field{ @apply w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 placeholder-slate-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-200; }
+.delver-app .checkbox{ @apply h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500; }
+.delver-app .card{ @apply rounded-2xl border border-slate-200 bg-white shadow-sm; }
+.delver-app .section{ @apply rounded-2xl border border-slate-200 bg-white p-4 shadow-sm; }
+.delver-app .alert{ @apply rounded-2xl border p-3 shadow-sm; }
+.delver-app .alert-warn{ @apply border-amber-300 bg-amber-50 text-amber-900; }
+/* 必要に応じて他のクラスもここに */

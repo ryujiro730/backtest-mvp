@@ -1,0 +1,13 @@
+@config "../../../tailwind.app.config.js";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---- App 共通の最低限 ---- */
+html, body {
+  height: 100%;
+}
+
+body {
+  @apply bg-white text-gray-900;
+}

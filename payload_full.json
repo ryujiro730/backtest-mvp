@@ -1,0 +1,15 @@
+{
+  "pair": "EURUSD",
+  "timeframe": "H1",
+  "date_range": { "from": "2023-01-01", "to": "2025-01-01", "tz": "UTC" },
+  "direction": "long",
+  "entry": [
+    { "type": "ema_cross", "fast": 10, "slow": 30, "cross": "above" },
+    { "type": "rsi_threshold", "length": 14, "level": 55, "event": "above" }
+  ],
+  "exit": {
+    "sl_atr": { "atr_mult": 2.0 },
+    "tp_rr":  { "rr": 2.0 },
+    "trailing": { "mode": "breakeven", "rr_to_breakeven": 1.0 }
+  }
+}
