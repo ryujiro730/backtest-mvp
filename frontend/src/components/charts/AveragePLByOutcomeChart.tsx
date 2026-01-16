@@ -1,3 +1,4 @@
+// frontend/src/components/charts/AveragePLByOutcomeChart.tsx
 "use client";
 
 import {

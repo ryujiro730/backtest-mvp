@@ -9,18 +9,9 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+import type { EquityPoint } from "@/lib/performance/transform";
 
-const data = [
-  { date: "01/01", equity: 100000 },
-  { date: "01/02", equity: 101200 },
-  { date: "01/03", equity: 100400 },
-  { date: "01/04", equity: 102800 },
-  { date: "01/05", equity: 101600 },
-  { date: "01/06", equity: 104200 },
-  { date: "01/07", equity: 103500 },
-];
-
-export function EquityCurveChart() {
+export function EquityCurveChart({ data }: { data: EquityPoint[] }) {
   return (
     <ResponsiveContainer width="100%" height={260}>
       <LineChart data={data}>

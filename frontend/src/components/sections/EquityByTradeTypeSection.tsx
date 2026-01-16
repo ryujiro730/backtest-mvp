@@ -5,7 +5,7 @@ export function EquityByTradeTypeSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>トレード種別別エクイティ推移</CardTitle>
+        <CardTitle>トレード種別エクイティ推移</CardTitle>
       </CardHeader>
       <CardContent>
         <EquityByTradeTypeChart />

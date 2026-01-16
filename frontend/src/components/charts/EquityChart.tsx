@@ -1,3 +1,4 @@
+// frontend/src/components/charts/EquityChart.tsx
 'use client';
 import React from "react";
 import {

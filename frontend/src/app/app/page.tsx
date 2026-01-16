@@ -3,6 +3,7 @@ import { getEntitlement } from '@/lib/entitlement';
 import UserAvatarButton from '@/components/account/UserAvatarButton';
 import { RulesBuilder } from '@/rules/RulesBuilder';
 import { RunPanel } from '@/components/run/RunPanel';
+import NoticeCard from '@/components/NoticeCard';
 
 
 function DarkHeader() {
@@ -45,7 +46,10 @@ export default async function Page() {
 
       <main className="relative max-w-5xl mx-auto px-4 py-6 space-y-6">
         <UserAvatarButton className="absolute right-2 top-2" />
-        <div className="mt-12 border-t border-white/10 pt-8">
+        <div className="mt-12 border-t border-white/10 pt-8 space-y-8">
+
+
+        <NoticeCard />
 
           <RunPanel/>
         </div>

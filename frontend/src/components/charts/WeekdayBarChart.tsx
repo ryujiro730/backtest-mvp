@@ -1,3 +1,4 @@
+// frontend/src/components/charts/WeekdayBarChart.tsx
 "use client";
 
 import {
@@ -9,16 +10,9 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+import type { WeekdayPoint } from "@/lib/performance/transform";
 
-const data = [
-  { day: "月", profit: 1200 },
-  { day: "火", profit: -400 },
-  { day: "水", profit: 900 },
-  { day: "木", profit: 300 },
-  { day: "金", profit: 1500 },
-];
-
-export function WeekdayBarChart() {
+export function WeekdayBarChart({ data }: { data: WeekdayPoint[] }) {
   return (
     <ResponsiveContainer width="100%" height={240}>
       <BarChart data={data}>

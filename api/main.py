@@ -230,60 +230,53 @@ def api_run(strategy: StrategyMvp0, idem_key: str = Header(..., alias="Idempoten
 
 @app.get("/api/reports/{run_id}")
 def get_report(run_id: str):
-    with psycopg.connect(POSTGRES_URL, row_factory=psycopg.rows.dict_row) as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                select run_id, status, pf, winrate, maxdd, trades
-                from runs
-                where run_id=%s
-            """, (run_id,))
-            row = cur.fetchone()
+    base = f"/delver/results/{run_id}"
 
-            if not row:
-                return JSONResponse({"status": "not_found"}, status_code=404)
+    # --- ファイルパスを修正 ---
+    eq_path = f"{base}/equity.json"
+    summary_path = f"{base}/summary.json"
+    trades_path = f"{base}/trades.json"
 
-            # equity
-            equity = load_equity(run_id)
+    # --- 各ファイル読み込み ---
+    try:
+        with open(eq_path) as f:
+            equity = json.load(f)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="equity_not_found")
 
-            # extra meta
-            first_t = equity[0]["t"] if equity else None
-            last_t  = equity[-1]["t"] if equity else None
-            bars    = len(equity)
-            duration_days = None
-            if first_t and last_t:
-                from datetime import datetime
-                f = datetime.fromisoformat(first_t)
-                l = datetime.fromisoformat(last_t)
-                duration_days = (l - f).days
+    try:
+        with open(summary_path) as f:
+            summary = json.load(f)
+    except FileNotFoundError:
+        summary = None
 
-            return {
-                "run_id": row["run_id"],
-                "status": row["status"],
+    try:
+        with open(trades_path) as f:
+            trades = json.load(f)
+    except FileNotFoundError:
+        trades = []
 
-                "summary": {
-                    "pf": row["pf"],
-                    "pf_label": "Profit Factor",
+    # --- meta 計算 ---
+    first_t = equity[0]["t"] if equity else None
+    last_t  = equity[-1]["t"] if equity else None
 
-                    "winrate": row["winrate"],
-                    "winrate_label": "Win %",
+    bars = len(equity)
+    duration_days = None
+    if first_t and last_t:
+        from datetime import datetime
+        f = datetime.fromisoformat(first_t)
+        l = datetime.fromisoformat(last_t)
+        duration_days = (l - f).days
 
-                    "maxdd": row["maxdd"],
-                    "maxdd_label": "Max Drawdown",
-
-                    "trades": row["trades"],
-                    "trades_label": "Number of Trades",
-
-                    "risk_warning": "Trades=0: strategy produced no entries."
-                    if row["trades"] == 0 else None
-                },
-
-                "stats": {
-                    "start": first_t,
-                    "end": last_t,
-                    "bars": bars,
-                    "duration_days": duration_days,
-                    "is_profitable": (row["pf"] or 0) > 1,
-                },
-
-                "equity": equity
-            }
+    return {
+        "run_id": run_id,
+        "summary": summary,
+        "stats": {
+            "start": first_t,
+            "end": last_t,
+            "bars": bars,
+            "duration_days": duration_days,
+        },
+        "equity": equity,
+        "trades": trades,
+    }

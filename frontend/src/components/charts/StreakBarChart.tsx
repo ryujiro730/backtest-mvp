@@ -1,3 +1,4 @@
+// frontend/src/components/charts/StreakBarChart.tsx
 "use client";
 
 import {
@@ -8,18 +9,10 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
-  ReferenceLine,
 } from "recharts";
+import type { StreakPoint } from "@/lib/performance/transform";
 
-const data = [
-  { streak: "1連敗", count: 18 },
-  { streak: "2連敗", count: 12 },
-  { streak: "3連敗", count: 7 },
-  { streak: "4連敗", count: 3 },
-  { streak: "5連敗", count: 1 },
-];
-
-export function StreakBarChart() {
+export function StreakBarChart({ data }: { data: StreakPoint[] }) {
   return (
     <ResponsiveContainer width="100%" height={260}>
       <BarChart data={data}>

@@ -25,7 +25,7 @@ const items: { id: Tab; label: string }[] = [
   { id: "heatmap", label: "頻度ヒートマップ" },
   { id: "streak", label: "連勝・連敗" },
   { id: "duration", label: "保有時間と損益" },
-  { id: "equity", label: "トレード種別別エクイティ推移" }
+  { id: "equity", label: "トレード種別エクイティ推移" }
 ];
 
 export function PerformanceSidebar({

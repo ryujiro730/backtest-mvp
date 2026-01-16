@@ -1,3 +1,4 @@
+//frontend/src/components/charts/DrawdownChart.tsx
 "use client";
 
 import {
@@ -10,30 +11,16 @@ import {
   CartesianGrid,
 } from "recharts";
 
-const data = [
-  { date: "01/01", dd: 0 },
-  { date: "01/02", dd: -200 },
-  { date: "01/03", dd: -800 },
-  { date: "01/04", dd: -300 },
-  { date: "01/05", dd: -1200 },
-  { date: "01/06", dd: -500 },
-  { date: "01/07", dd: -700 },
-];
 
-export function DrawdownChart() {
+export function DrawdownChart({ data }) {
   return (
     <ResponsiveContainer width="100%" height={240}>
       <AreaChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" />
+        <XAxis dataKey="t" />
         <YAxis />
         <Tooltip />
-        <Area
-          type="monotone"
-          dataKey="dd"
-          stroke="#ef4444"
-          fill="#fecaca"
-        />
+        <Area type="monotone" dataKey="dd" stroke="#ef4444" fill="#fecaca" />
       </AreaChart>
     </ResponsiveContainer>
   );
