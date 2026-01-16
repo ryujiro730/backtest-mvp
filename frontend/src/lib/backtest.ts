@@ -22,14 +22,23 @@ export async function executeRun(payload: any, { idem }: { idem: string }) {
   });
 
   // 402 → Paywall
-  if (res.status === 402) {
-    let details: any = {};
-    try { details = await res.json(); } catch {}
-    const e: any = new Error("SHOW_PAYWALL");
-    e.code = "SHOW_PAYWALL";
-    e.details = details; // {error, used, limit} など
-    throw e;
+const FREE_MODE = true; // ← いまはベタ書きでOK（あとで env に）
+
+// 402 → Paywall
+if (res.status === 402) {
+  if (FREE_MODE) {
+    console.warn("FREE MODE: skip paywall");
+    return await res.json(); // ← API が結果返す前提
   }
+
+  let details: any = {};
+  try { details = await res.json(); } catch {}
+  const e: any = new Error("SHOW_PAYWALL");
+  e.code = "SHOW_PAYWALL";
+  e.details = details;
+  throw e;
+}
+
 
   // 401 → 未ログイン/期限切れ
   if (res.status === 401) {

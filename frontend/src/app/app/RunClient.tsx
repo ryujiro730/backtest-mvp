@@ -1,3 +1,4 @@
+// frontend/src/app/app/RunClient.tsx
 'use client';
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -103,6 +104,8 @@ const [trailAtrLookback, setTrailAtrLookback] = useState(22);
 const [useIndicatorExit, setUseIndicatorExit] = useState(true);
 const [rsiExitLen, setRsiExitLen] = useState(14);
 const [useOppositeExit, setUseOppositeExit] = useState(true);
+
+
 
   // run state
   const [running, setRunning] = useState(false);
@@ -705,6 +708,9 @@ return (
       used={used}
       limit={limit}
     />
+
+
+
   </div>
 );
 }

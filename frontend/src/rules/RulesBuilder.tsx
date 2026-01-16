@@ -1,19 +1,20 @@
 "use client";
 
-import { Accordion } from "./components/Accordion";
-import { SectionHeader } from "./components/SectionHeader";
-
-import { TradingConditions } from "./sections/TradingConditions";
-import { IndicatorThreshold } from "./sections/IndicatorThreshold";
-import { TimeZoneSection } from "./sections/TimeZoneSection";
-import { PriceActionSection } from "./sections/PriceActionSection";
-import { ExitSection } from "./sections/ExitSection";
-
 import { useRuleStore } from "./store";
+import { SectionAccordion } from "../components/common/SectionAccordion";
+import { LogicSwitch } from "../components/common/LogicSwitch";
+
+import { TradingConditions } from "../components/sections/TradingConditions";
+import { IndicatorThreshold } from "../components/sections/IndicatorThreshold";
+import { TimeZoneSection } from "../components/sections/TimeZoneSection";
+import { PriceActionSection } from "../components/sections/PriceActionSection";
+import { ChartPatternSection } from "../components/sections/ChartPatternSection";
+import { ExitSection } from "../components/sections/ExitSection";
+import { ExecutionCondition } from "@/components/sections/ExecutionCondition";
 
 export function RulesBuilder() {
-  const rule = useRuleStore((s) => s.rule);
-  const update = useRuleStore((s) => s.update);
+const rule = useRuleStore((s) => s.rule);
+const update = useRuleStore((s) => s.update);
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -22,24 +23,25 @@ export function RulesBuilder() {
         <h1 className="text-2xl font-bold">
           エントリー／エグジットルールの定義
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           バックテスト用の戦略ルールを定義します
         </p>
       </div>
 
-      {/* 取引条件（logicなし） */}
-      <Accordion
+      <ExecutionCondition />
+
+      <SectionAccordion
+        id="trading"
+        title="取引条件"
         enabled={true}
         onToggleEnabled={() => {}}
-        header={
-          <SectionHeader title="取引条件" />
-        }
       >
         <TradingConditions />
-      </Accordion>
+      </SectionAccordion>
 
-      {/* インジケーター条件（AND / OR） */}
-      <Accordion
+      <SectionAccordion
+        id="indicator"
+        title="インジケーター条件"
         enabled={rule.indicatorThreshold.enabled}
         onToggleEnabled={(v) =>
           update({
@@ -49,26 +51,13 @@ export function RulesBuilder() {
             },
           })
         }
-        header={
-          <SectionHeader
-            title="インジケーター条件"
-            logic={rule.indicatorThreshold.logic}
-            onChangeLogic={(logic) =>
-              update({
-                indicatorThreshold: {
-                  ...rule.indicatorThreshold,
-                  logic,
-                },
-              })
-            }
-          />
-        }
       >
         <IndicatorThreshold />
-      </Accordion>
+      </SectionAccordion>
 
-      {/* 時間帯 */}
-      <Accordion
+      <SectionAccordion
+        id="time"
+        title="時間帯"
         enabled={rule.timeZone.enabled}
         onToggleEnabled={(v) =>
           update({
@@ -78,13 +67,13 @@ export function RulesBuilder() {
             },
           })
         }
-        header={<SectionHeader title="時間帯" />}
       >
         <TimeZoneSection />
-      </Accordion>
+      </SectionAccordion>
 
-      {/* プライスアクション */}
-      <Accordion
+      <SectionAccordion
+        id="price"
+        title="プライスアクション"
         enabled={rule.priceAction.enabled}
         onToggleEnabled={(v) =>
           update({
@@ -94,26 +83,29 @@ export function RulesBuilder() {
             },
           })
         }
-        header={
-          <SectionHeader
-            title="プライスアクション"
-            logic={rule.priceAction.logic}
-            onChangeLogic={(logic) =>
-              update({
-                priceAction: {
-                  ...rule.priceAction,
-                  logic,
-                },
-              })
-            }
-          />
-        }
       >
         <PriceActionSection />
-      </Accordion>
+      </SectionAccordion>
 
-      {/* エグジット */}
-      <Accordion
+      <SectionAccordion
+        id="chartPattern"
+        title="チャートパターン"
+        enabled={rule.chartPattern.enabled}
+        onToggleEnabled={(v) =>
+          update({
+            chartPattern: {
+              ...rule.chartPattern,
+              enabled: v,
+            },
+          })
+        }
+      >
+        <ChartPatternSection />
+      </SectionAccordion>
+
+      <SectionAccordion
+        id="exit"
+        title="エグジットルール"
         enabled={rule.exit.enabled}
         onToggleEnabled={(v) =>
           update({
@@ -123,10 +115,9 @@ export function RulesBuilder() {
             },
           })
         }
-        header={<SectionHeader title="エグジットルール" />}
       >
         <ExitSection />
-      </Accordion>
+      </SectionAccordion>
     </div>
   );
 }

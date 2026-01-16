@@ -18,6 +18,10 @@ dist/
 build/
 .turbo/
 
+# Backtest results
+results/
+
+
 ############################
 # Env / Secrets
 ############################

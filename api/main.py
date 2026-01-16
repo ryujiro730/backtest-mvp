@@ -32,6 +32,7 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 
 app = FastAPI(debug=True)
+BASE = "/delver/data"
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -91,73 +92,16 @@ def _req(name: str) -> str:
         raise RuntimeError(f"Missing required env var: {name}")
     return v
 
-S3_ENDPOINT   = os.getenv("S3_ENDPOINT", "http://minio:9000")
-S3_ACCESS_KEY = _req("S3_ACCESS_KEY")
-S3_SECRET_KEY = _req("S3_SECRET_KEY")
-S3_REGION     = os.getenv("S3_REGION", "us-east-1")
-
-S3_BUCKET_DATA       = os.getenv("S3_BUCKET_DATA", "backtest-data")
-S3_BUCKET_STRATEGIES = os.getenv("S3_BUCKET_STRATEGIES", "strategies")
-S3_BUCKET_RESULTS    = os.getenv("S3_BUCKET_RESULTS", "results")
-PUBLIC_BUCKET        = os.getenv("PUBLIC_BUCKET", "public-uploads")
 
 POSTGRES_URL         = _req("POSTGRES_URL")
 REDIS_URL            = os.getenv("REDIS_URL", "redis://redis:6379/0")
 
-# ---------- Clients ----------
-ENDPOINT = os.getenv("S3_ENDPOINT") or os.getenv("MINIO_ENDPOINT") or "http://minio:9000"
-ACCESS   = os.getenv("S3_ACCESS_KEY") or os.getenv("MINIO_ACCESS_KEY")
-SECRET   = os.getenv("S3_SECRET_KEY") or os.getenv("MINIO_SECRET_KEY")
-REGION   = os.getenv("S3_REGION", "us-east-1")
-
-from botocore.config import Config
-_CFG = Config(
-    s3={"addressing_style": "path"},
-    retries={"max_attempts": 2, "mode": "standard"},
-    connect_timeout=3,
-    read_timeout=10,
-    signature_version="s3v4",
+from celery import Celery
+celery = Celery(
+    "backtest",
+    broker=REDIS_URL,
+    backend=REDIS_URL,
 )
-
-_s3 = None
-def get_s3():
-    global _s3
-    if _s3 is None:
-        _s3 = boto3.client(
-            "s3",
-            endpoint_url=ENDPOINT,
-            aws_access_key_id=ACCESS,
-            aws_secret_access_key=SECRET,
-            region_name=REGION,
-            config=_CFG,
-        )
-    return _s3
-
-def refresh_s3():
-    global _s3
-    _s3 = None
-    return get_s3()
-
-# 起動時ログも専用ロガーで
-logger.warning(f"[BOOT] S3 endpoint={ENDPOINT} access={ACCESS[:3]}***")
-try:
-    logger.warning(f"[BOOT] buckets={[b['Name'] for b in get_s3().list_buckets().get('Buckets',[])]}")
-except Exception as e:
-    logger.error(f"[BOOT] list_buckets error: {e!r}")
-
-s3 = boto3.client(
-  "s3",
-  endpoint_url=ENDPOINT,
-  aws_access_key_id=ACCESS,
-  aws_secret_access_key=SECRET,
-  region_name=os.getenv("S3_REGION","us-east-1"),
-  config=Config(s3={"addressing_style": "path"}))
-
-celery = Celery("mvp", broker=REDIS_URL, backend=REDIS_URL)
-
-logging.warning(f"[BOOT] S3 endpoint={ENDPOINT} access={ACCESS[:3]}***")
-logging.warning(f"[BOOT] buckets={[b['Name'] for b in s3.list_buckets().get('Buckets',[])]}")
-
 
 # ---------- CORS ----------
 app.add_middleware(
@@ -172,6 +116,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],  # Content-Type/Authorization などまとめて許可
 )
+
+def load_equity(run_id):
+    path = f"data/equity/{run_id}.json"
+    with open(path) as f:
+        return json.load(f)
+
 
 
 # ---------- Helpers ----------
@@ -188,74 +138,36 @@ def _thin_equity(
     step = max(1, (n + max_points - 1) // max_points)
     return points[::step]
 
-# _catalog を差し替え
 def _catalog() -> Dict[str, Any]:
-    pairs, tfs, items = set(), set(), []
-    token = None
+    items = []
+    pairs, tfs = set(), set()
 
-    s3 = get_s3()
-    logger.warning(f"[CATALOG] endpoint={s3.meta.endpoint_url}")
-
-    while True:
-        kw = {"Bucket": S3_BUCKET_DATA, "Prefix": "data/"}
-        if token:
-            kw["ContinuationToken"] = token
-
-        # 失敗時はクライアント再生成で1回だけリトライ
-        for attempt in (1, 2):
-            try:
-                r = s3.list_objects_v2(**kw)
-                break
-            except EndpointConnectionError as e:
-                logger.error(f"[CATALOG] EndpointConnectionError (try {attempt}): {e}")
-                if attempt == 2:
-                    raise
-                s3 = refresh_s3()
-
-        for o in r.get("Contents", []):
-            key = o["Key"]
-            if not key.endswith(".parquet"):
-                continue
-            base = key.rsplit("/", 1)[-1][:-8]  # EURUSD_M15
-            pair, tf = base.split("_", 1)
-            pair, tf = pair.upper(), tf.upper()
-            pairs.add(pair); tfs.add(tf)
-            items.append({"pair": pair, "timeframe": tf, "dataset_hash": base})
-
-        if not r.get("IsTruncated"):
-            break
-        token = r.get("NextContinuationToken")
+    for fn in os.listdir("data"):
+        if not fn.endswith(".parquet"):
+            continue
+        base = fn[:-8]  # EURUSD_M15
+        if "_" not in base:
+            continue
+        pair, tf = base.split("_", 1)
+        pair, tf = pair.upper(), tf.upper()
+        items.append({"pair": pair, "timeframe": tf, "dataset_hash": base})
+        pairs.add(pair); tfs.add(tf)
 
     return {"items": items, "pairs": sorted(pairs), "timeframes": sorted(tfs)}
 
-
-
 def _resolve_dataset_hash(pair: str, timeframe: str) -> str:
-    pair = pair.upper(); timeframe = timeframe.upper()
     cat = _catalog()
+    pair = pair.upper(); timeframe = timeframe.upper()
+
     for it in cat["items"]:
         if it["pair"] == pair and it["timeframe"] == timeframe:
             h = it["dataset_hash"]
-            # parquet 実体チェック
-            s3.head_object(Bucket=S3_BUCKET_DATA, Key=f"data/{h}.parquet")
-            return h
-    raise HTTPException(status_code=422, detail=f"dataset_not_found:{pair} {timeframe}")
+            if os.path.exists(f"data/{h}.parquet"):
+                return h
+            raise HTTPException(status_code=500, detail="dataset_file_missing")
 
-# ---------- Public uploads proxy (optional) ----------
-@app.get("/api/public-uploads/{key:path}")
-def serve_public_uploads(key: str):
-    try:
-        obj = s3.get_object(Bucket=PUBLIC_BUCKET, Key=key)
-    except ClientError as e:
-        code = e.response.get("Error", {}).get("Code", "")
-        if code in ("NoSuchKey", "404"): raise HTTPException(status_code=404, detail=f"no_such_key:{key}")
-        if code == "AccessDenied":        raise HTTPException(status_code=403, detail="access_denied")
-        raise
-    body = obj["Body"].read()
-    headers = {"Cache-Control": "public, max-age=600, s-maxage=3600, stale-while-revalidate=86400"}
-    ctype = obj.get("ContentType")
-    if ctype: headers["Content-Type"] = ctype
-    return Response(content=body, headers=headers)
+    raise HTTPException(status_code=422, detail="dataset_not_found")
+
 
 # ---------- API ----------
 SQL_INSERT_RUN = """
@@ -278,17 +190,15 @@ def api_run(strategy: StrategyMvp0, idem_key: str = Header(..., alias="Idempoten
         payload = strategy.model_dump(by_alias=True, exclude_none=True)
         logging.info("RUN step=1 payload_ready")
 
-        dataset_hash = _resolve_dataset_hash(payload["pair"], payload["timeframe"])
-        sid = _strategy_sid(payload)
-        logging.info("RUN step=2 resolved dataset_hash=%s sid=%s", dataset_hash, sid)
+        pair = payload["pair"]
+        timeframe = payload["timeframe"]
+        dataset_hash = _resolve_dataset_hash(pair, timeframe)
 
-        s3.put_object(
-            Bucket=S3_BUCKET_STRATEGIES,
-            Key=f"strategies/{sid}.json",
-            Body=json.dumps(payload).encode("utf-8"),
-            ContentType="application/json",
-        )
-        logging.info("RUN step=3 s3_put_ok")
+        sid = _strategy_sid(payload)
+        os.makedirs("data/strategies", exist_ok=True)
+        with open(f"{BASE}/strategies/{sid}.json", "w") as f:
+            json.dump(payload, f)
+        logging.info("RUN step=2 resolved dataset_hash=%s sid=%s", dataset_hash, sid)
 
         run_id = str(uuid.uuid4())
         with psycopg.connect(POSTGRES_URL) as conn, conn.cursor() as cur:
@@ -313,32 +223,67 @@ def api_run(strategy: StrategyMvp0, idem_key: str = Header(..., alias="Idempoten
 
         return {"run_id": run_id, "status": "queued"}
 
-
     except Exception as e:
         logging.exception("RUN step=ERR %s", e)
         raise HTTPException(status_code=500, detail=str(e))
 
 
-
 @app.get("/api/reports/{run_id}")
-def api_reports(run_id: str):
-    prefix = f"results/{run_id}/"
-    # metrics
-    try:
-        mobj = s3.get_object(Bucket=S3_BUCKET_RESULTS, Key=f"{prefix}metrics.json")
-        metrics = json.loads(mobj["Body"].read().decode("utf-8"))
-    except Exception:
-        raise HTTPException(status_code=202, detail="artifacts_not_ready")
-    # equity (optional)
-    equity = []
-    try:
-        eobj = s3.get_object(Bucket=S3_BUCKET_RESULTS, Key=f"{prefix}equity.json")
-        raw = json.loads(eobj["Body"].read().decode("utf-8"))
-        if isinstance(raw, dict):
-            raw = raw.get("equity") or raw.get("series") or raw.get("data") or []
-        if not isinstance(raw, list):
-            raw = []
-        equity = _thin_equity(raw, 1500)
-    except Exception:
-        equity = []
-    return {"run_id": run_id, "status": "done", "summary": metrics.get("summary", {}), "equity": equity}
+def get_report(run_id: str):
+    with psycopg.connect(POSTGRES_URL, row_factory=psycopg.rows.dict_row) as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                select run_id, status, pf, winrate, maxdd, trades
+                from runs
+                where run_id=%s
+            """, (run_id,))
+            row = cur.fetchone()
+
+            if not row:
+                return JSONResponse({"status": "not_found"}, status_code=404)
+
+            # equity
+            equity = load_equity(run_id)
+
+            # extra meta
+            first_t = equity[0]["t"] if equity else None
+            last_t  = equity[-1]["t"] if equity else None
+            bars    = len(equity)
+            duration_days = None
+            if first_t and last_t:
+                from datetime import datetime
+                f = datetime.fromisoformat(first_t)
+                l = datetime.fromisoformat(last_t)
+                duration_days = (l - f).days
+
+            return {
+                "run_id": row["run_id"],
+                "status": row["status"],
+
+                "summary": {
+                    "pf": row["pf"],
+                    "pf_label": "Profit Factor",
+
+                    "winrate": row["winrate"],
+                    "winrate_label": "Win %",
+
+                    "maxdd": row["maxdd"],
+                    "maxdd_label": "Max Drawdown",
+
+                    "trades": row["trades"],
+                    "trades_label": "Number of Trades",
+
+                    "risk_warning": "Trades=0: strategy produced no entries."
+                    if row["trades"] == 0 else None
+                },
+
+                "stats": {
+                    "start": first_t,
+                    "end": last_t,
+                    "bars": bars,
+                    "duration_days": duration_days,
+                    "is_profitable": (row["pf"] or 0) > 1,
+                },
+
+                "equity": equity
+            }

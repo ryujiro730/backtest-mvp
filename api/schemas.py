@@ -1,6 +1,6 @@
 # api/schemas.py
 from __future__ import annotations
-from typing import List, Literal, Optional, Union, Annotated
+from typing import Optional, Dict, Any, List, Literal, Annotated, Union
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -9,6 +9,23 @@ Pair = Literal["EURUSD","GBPUSD","USDJPY","USDCAD","AUDUSD","NZDUSD","XAUUSD","G
 Timeframe = Literal["M1","M15","H1","H4"]
 Direction = Literal["long","short","both"]
 
+class EntrySchema(BaseModel):
+    type: str
+    params: Optional[Dict[str, Any]] = None
+    side: Optional[str] = None
+
+
+class Trading(BaseModel):
+    balance: Optional[float] = None
+    spread: Optional[float] = None
+    slippage: Optional[float] = None
+    swap: Optional[float] = None
+    commission: Optional[float] = None
+    leverage: Optional[float] = None
+    margin_call: Optional[float] = None
+    lot_mode: Literal["fixed", "dynamic"] = "fixed"
+    lot_size: Optional[float] = None
+    risk_pct: Optional[float] = None
 
 class DateRange(BaseModel):
     from_: str = Field(..., alias="from")
@@ -133,67 +150,150 @@ class DonchianBreakout(BaseModel):
     fee_bps: Optional[float] = Field(default=None, ge=0)
     slippage_bps: Optional[float] = Field(default=None, ge=0)
 
+# === タイムゾーン ===
+class IntradayWindow(BaseModel):
+    enabled: bool
+    from_: Optional[str] = Field(None, alias="from")
+    to: Optional[str] = Field(None, alias="to")
+
+    model_config = {"populate_by_name": True}
+
+class TimeWindowEntry(BaseModel):
+    type: Literal["time_window"]
+    days: Dict[str, bool]
+    intraday: Optional[IntradayWindow] = None
+    side: Optional[str] = None
+
+
+
+
+
+# === プライスアクション ===
+class Pinbar(BaseModel):
+    type: Literal["pinbar"]
+    signal: Literal["bullish", "bearish"]
+    entrySide: Literal["long", "short"]
+    side: Optional[Literal["long", "short"]] = None  # 方向（オプション）
+
+class InsideBar(BaseModel):
+    type: Literal["inside_bar"]
+    signal: Literal["bullish", "bearish"]
+    entrySide: Literal["long", "short"]
+
+class ThreeBarReversal(BaseModel):
+    type: Literal["threebar"]
+    signal: Literal["bullish", "bearish"]
+    entrySide: Literal["long", "short"]
+
+    # === チャートパターン ===
+
+class HeadAndShoulders(BaseModel):
+    type: Literal["head_and_shoulders"]
+    direction: Literal["reversal", "continuation"]
+    entry: Literal["long", "short"]
+    option: Literal["neckline", "none", "tight"] = "none"
+    side: Optional[Literal["long","short"]] = None
+
+class AscendingTriangle(BaseModel):
+    type: Literal["ascending_triangle"]
+    direction: Literal["reversal", "continuation"]
+    entry: Literal["long", "short"]
+    option: Literal["none", "tight", "neckline"] = "none"
+    side: Optional[Literal["long","short"]] = None
+
+class BearFlag(BaseModel):
+    type: Literal["bear_flag"]
+    direction: Literal["reversal", "continuation"]
+    entry: Literal["long", "short"]
+    option: Literal["none", "tight"] = "none"
+    side: Optional[Literal["long","short"]] = None
+
+class BullFlag(BaseModel):
+    type: Literal["bull_flag"]
+    direction: Literal["reversal", "continuation"]
+    entry: Literal["long", "short"]
+    option: Literal["none", "tight"] = "none"
+    side: Optional[Literal["long","short"]] = None
+
+class Triangle(BaseModel):
+    type: Literal["triangle"]
+    direction: Literal["reversal", "continuation"]
+    entry: Literal["long", "short"]
+    option: Literal["none", "tight", "breakout"] = "none"
+    side: Optional[Literal["long","short"]] = None
+
+
+class Engulfing(BaseModel):
+    type: Literal["engulfing"]
+    signal: Literal["bullish", "bearish"]
+    entrySide: Literal["long", "short"]
+    side: Optional[Literal["long","short"]] = None
+
+
+
 # === 判別ユニオン ===
 Entry = Annotated[
     Union[
         EmaCross, SmaCross, RsiThreshold, Breakout,
         Macd, BollingerBands, Stochastic, AdxThreshold,
-        CciThreshold, VwapCross, SupertrendSignal, DonchianBreakout,
+        CciThreshold, VwapCross, SupertrendSignal, DonchianBreakout, Pinbar, InsideBar, ThreeBarReversal,
+        HeadAndShoulders, AscendingTriangle, BearFlag, BullFlag, Triangle, TimeWindowEntry, Engulfing
     ],
     Field(discriminator="type"),
 ]
 
 # === Exit 関連 ===
-class IndicatorLevel(BaseModel):
-    kind: str
-    dir: Optional[Literal["up","down"]] = None
-    fast: Optional[int] = None
-    slow: Optional[int] = None
-    n: Optional[int] = None
-    k: Optional[float] = None
-    level: Optional[float] = None
-    op: Optional[Literal[">=", "<=", ">", "<"]] = None
-    side: Optional[Literal["long","short"]] = None
-    band: Optional[Literal["mid","upper","lower"]] = None
+class ForcedExit(BaseModel):
+    start: Optional[str] = None
+    end: Optional[str] = None
 
-class Breakeven(BaseModel):
-    activate_at_R: float = 1.0
-    offset_pips: float = 0.0
 
-class TrailATR(BaseModel):
-    n: int = 14
-    k: float = 2.5
-    mode: Literal["step","chandelier"] = "chandelier"
-    lookback: int = 22
+class CandleExit(BaseModel):
+    pattern: str  # "pinbar" / "engulfing" / "inside"
+    signal: Literal["bullish", "bearish"]
+    entrySide: Literal["long", "short"]
 
-class TPLeg(BaseModel):
-    mode: Literal["R","pips","atr","pct"] = "R"
-    value: float
-    close_pct: float
+
+class TrailPips(BaseModel):
+    activate: float
+    trail: float
+
 
 class Exit(BaseModel):
-    sl_atr: Optional[dict] = None
+    # pips-based SL/TP
     sl_fixed_pips: Optional[float] = None
-    tp_rr: Optional[float] = None
-    tp_legs: Optional[List[TPLeg]] = None
+    tp_r_multiple: Optional[float] = None
+
+    # percentage-based exit (new)
+    tp_pct: Optional[float] = None
+    sl_pct: Optional[float] = None
+
+    # time-based exit (bars)
     time_stop_bars: Optional[int] = None
-    trailing: Optional[Literal["none","breakeven","atr"]] = None
-    breakeven: Optional[Breakeven] = None
-    trail_atr: Optional[TrailATR] = None
-    indicator_exit: Optional[List[IndicatorLevel]] = None
-    opposite_signal_exit: Optional[bool] = None
+
+    # forced exit window (new)
+    forced_exit: Optional[ForcedExit] = None
+
+    # candle exit (new)
+    candle_exit: Optional[List[CandleExit]] = None
+
+    # trail by fixed pips (new)
+    trail_pips: Optional[TrailPips] = None
+
 
 # === Strategy ===
 class StrategyMvp0(BaseModel):
-    pair: Pair
-    timeframe: Timeframe
-    direction: Direction = "long"
-    entry: List[Entry]
-    exit: Optional[Exit] = None
-    fee_bps: Optional[float] = 5.0
-    slippage_bps: Optional[float] = 0.5
-    date_range: Optional[DateRange] = None
-    filters: Optional[Filters] = None
+    pair: str
+    timeframe: str
+    direction: str
+
+    fee_bps: float = 5.0
+    slippage_bps: float = 0.5
+
+    entry: List[EntrySchema]
+    exit: Optional[Dict[str, Any]] = None
+    trading: Optional[Trading] = None
+
 
     @field_validator("entry", mode="before")
     @classmethod
@@ -204,3 +304,6 @@ class StrategyMvp0(BaseModel):
     @classmethod
     def normalize_direction(cls, v):
         return v.lower() if isinstance(v, str) else v
+
+# === rebuild models for Pydantic v2 ===
+StrategyMvp0.model_rebuild()
