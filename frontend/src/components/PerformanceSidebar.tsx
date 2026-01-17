@@ -9,7 +9,7 @@ type Props = {
   onChange: (v: string) => void;
 };
 
-type Tab =
+export type Tab =
   | "overview"
   | "returns"
   | "hour"
@@ -18,14 +18,14 @@ type Tab =
   | "streak"
   | "equity";
 
-const items: { id: Tab; label: string }[] = [
+export const items: { id: Tab; label: string }[] = [
   { id: "overview", label: "概要" },
   { id: "returns", label: "リターン分布" },
   { id: "hour", label: "時間別パフォーマンス" },
   { id: "heatmap", label: "頻度ヒートマップ" },
   { id: "streak", label: "連勝・連敗" },
   { id: "duration", label: "保有時間と損益" },
-  { id: "equity", label: "トレード種別エクイティ推移" }
+  { id: "equity", label: "トレード種別エクイティ推移" },
 ];
 
 export function PerformanceSidebar({
@@ -38,7 +38,7 @@ export function PerformanceSidebar({
 {
     const router = useRouter();
   return (
-    <aside className="w-56 border-r bg-background p-4 flex flex-col">
+    <aside className="hidden md:flex w-56 border-r bg-background p-4 flex-col">
       <ul className="space-y-1">
         {items.map((item) => (
           <li key={item.id}>
