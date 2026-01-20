@@ -59,7 +59,12 @@ def run_backtest_logic(run_id, sid, seed, code_hash, dataset_hash):
     """
 
     # --- 1) ストラテジー JSON を読み込み ---
+
     raw = _load_strategy_json(sid)
+
+    exit_cfg = raw.get("exit", {}).copy()
+
+    print("[DEBUG EXIT CFG]", exit_cfg, flush=True)
 
     print(f"[STRAT] sid={sid} entries={json.dumps(raw.get('entry', []))} "
           f"direction={raw.get('direction','long')} "
@@ -77,6 +82,8 @@ def run_backtest_logic(run_id, sid, seed, code_hash, dataset_hash):
         raise RuntimeError("Strategy payload must have a non-empty 'entry' list")
 
     exit_cfg = normalize_exit(raw.get("exit"))
+    if raw.get("exit", {}).get("max_hold_minutes_profit") is not None:
+        exit_cfg["time_stop_minutes"] = raw["exit"]["max_hold_minutes_profit"]
 
     fee_bps = float(raw.get("fee_bps", os.getenv("FEE_BPS_DEFAULT", "5.0")))
     slip_bps = float(raw.get("slippage_bps", os.getenv("SLIPPAGE_BPS_DEFAULT", "0.5")))
@@ -93,7 +100,10 @@ def run_backtest_logic(run_id, sid, seed, code_hash, dataset_hash):
     }
 
     # --- 3) 価格データをロード ---
-    df = _load_prices(dataset_hash)
+    pair, signal_tf = dataset_hash.split("_", 1)
+
+    signal_df = _load_prices(f"{pair}_{signal_tf}")
+    m1_df     = _load_prices(f"{pair}_M1")
 
     # --- 4) direction = both の場合は2回実行して合成 ---
     if direction == "both":
@@ -103,8 +113,8 @@ def run_backtest_logic(run_id, sid, seed, code_hash, dataset_hash):
         cfg_long  = {**engine_cfg, "direction": "long", "entries": long_entries}
         cfg_short = {**engine_cfg, "direction": "short", "entries": short_entries}
 
-        out_long  = run_engine(df, cfg_long)
-        out_short = run_engine(df, cfg_short)
+        out_long  = run_engine(signal_df, m1_df, cfg_long)
+        out_short = run_engine(signal_df, m1_df, cfg_short)
 
         trades = out_long["trades"] + out_short["trades"]
 
@@ -137,7 +147,7 @@ def run_backtest_logic(run_id, sid, seed, code_hash, dataset_hash):
 
     else:
         # --- 通常の long または short のみ ---
-        out = run_engine(df, engine_cfg)
+        out = run_engine(signal_df, m1_df, engine_cfg)
 
     # --- 5) DBを更新 ---
     s = out["summary"]

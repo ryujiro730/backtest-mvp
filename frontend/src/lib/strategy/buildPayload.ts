@@ -156,6 +156,13 @@ if (exit.slTimeMin != null) {
   out.sl_time_stop_bars = Math.round(exit.slTimeMin / tfMin);
 }
 
+/* --- Time based Exit (minutes, worker用) --- */
+if (exit.tpTimeMin != null) {
+  out.max_hold_minutes_profit = exit.tpTimeMin;
+} else if (exit.slTimeMin != null) {
+  out.max_hold_minutes_profit = exit.slTimeMin;
+}
+
 
   /* --- Forced exit window --- */
   if (exit.forcedExit.start || exit.forcedExit.end) {
