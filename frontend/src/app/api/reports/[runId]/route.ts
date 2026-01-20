@@ -7,8 +7,9 @@ export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ runId: string }> }
 ) {
-  // Next.js 15 の仕様で params は Promise
   const { runId } = await ctx.params;
+
+  console.log("[reports route] requested runId =", runId);
 
   if (!runId || runId === "null") {
     return NextResponse.json(
@@ -18,9 +19,12 @@ export async function GET(
   }
 
   const url = `${API.replace(/\/$/, "")}/api/reports/${runId}`;
+  console.log("[reports route] proxy url =", url);
 
   try {
     const res = await fetch(url, { cache: "no-store" });
+
+    console.log("[reports route] response status =", res.status);
 
     const text = await res.text();
     const contentType =

@@ -1,3 +1,4 @@
+// frontend/src/app/app/layout.tsx
 import "./app.css";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {

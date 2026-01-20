@@ -1,3 +1,4 @@
+// frontend/src/app/app/performance/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -23,22 +24,21 @@ const [tab, setTab] = useState<
 
 useEffect(() => {
   const runId = localStorage.getItem("last_run_id");
-  console.log("PerformancePage runId =", runId);
+  console.log("[PerformancePage] using runId =", runId);
 
-  if (!runId) {
-    console.warn("No runId in localStorage");
-    return;
-  }
+  if (!runId) return;
+
 
   fetch(`/api/reports/${runId}`)
     .then(r => r.json())
     .then(json => {
-      console.log("report json", json);
+      console.log(
+        "[PerformancePage] fetched summary =",
+        json.summary
+      );
       setData(json);
-    })
-    .catch(console.error);
+    });
 }, []);
-
 
 
 

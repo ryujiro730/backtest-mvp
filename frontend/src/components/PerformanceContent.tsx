@@ -6,7 +6,7 @@ import { ReturnDistributionChart } from "@/components/charts/ReturnDistributionC
 import { HourlyPerformanceChart } from "@/components/charts/HourlyPerformanceChart";
 import { StreakBarChart } from "@/components/charts/StreakBarChart";
 import { DurationProfitScatterChart } from "@/components/charts/DurationProfitScatterChart";
-import { TradeFrequencyHeatmap } from "./TradeFrequencyHeatmap";
+import { KPIOverview } from "./KPIOverview";
 import { TradeFrequencyHeatmapGrid } from "@/components/charts/TradeFrequencyHeatmapGrid";
 import { EquityByTradeTypeChart } from "@/components/charts/EquityByTradeTypeChart";
 import { useMemo } from "react";
@@ -54,39 +54,52 @@ case "overview": {
   const thinned = useMemo(() => thinData(data.equity, 2000), [data.equity]);
   const drawdownData = useMemo(() => calcDrawdown(thinned), [thinned]);
 
-      return (
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>エクイティカーブ</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <EquityCurveChart data={equitySeries} />
-            </CardContent>
-          </Card>
+  return (
+    <div className="space-y-6">
+      {/* ★ KPI（summary.json 直結） */}
+      <KPIOverview
+        pf={data.summary.pf}
+        winrate={data.summary.winrate}
+        maxdd={data.summary.maxdd}
+        trades={data.summary.trades}
+      />
 
-          <div className="grid grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>ドローダウン</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <DrawdownChart data={drawdownData} />
-              </CardContent>
-            </Card>
+      {/* エクイティ */}
+      <Card>
+        <CardHeader>
+          <CardTitle>エクイティカーブ</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <EquityCurveChart data={buildEquitySeries(data.equity)} />
+        </CardContent>
+      </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>曜日別</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <WeekdayBarChart data={weekdaySeries} />
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      );
-    }
+      {/* DD + 曜日 */}
+      <div className="grid grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>ドローダウン</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DrawdownChart data={drawdownData} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>曜日別</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <WeekdayBarChart
+              data={buildWeekdaySeries(data.trades)}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
 
     case "returns":
       return (

@@ -1,5 +1,7 @@
+// frontend/src/components/charts/EquityCurveChart.tsx
 "use client";
 
+import { useEffect } from "react";
 import {
   LineChart,
   Line,
@@ -11,7 +13,17 @@ import {
 } from "recharts";
 import type { EquityPoint } from "@/lib/performance/transform";
 
-export function EquityCurveChart({ data }: { data: EquityPoint[] }) {
+export function EquityCurveChart({
+  data,
+  onReady,
+}: {
+  data: EquityPoint[];
+  onReady?: () => void;
+}) {
+  useEffect(() => {
+    onReady?.();
+  }, [onReady]);
+
   return (
     <ResponsiveContainer width="100%" height={260}>
       <LineChart data={data}>

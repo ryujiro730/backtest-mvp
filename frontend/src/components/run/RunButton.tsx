@@ -3,53 +3,74 @@
 
 import { buildPayload } from "@/lib/strategy/buildPayload";
 import { useRuleStore } from "@/rules/store";
+import { Spinner } from "@/components/ui/spinner";
 
-export function RunButton({ onRunStarted }: { onRunStarted: (runId: string) => void }) {
+export function RunButton({
+  running,
+  onRunStarted,
+}: {
+  running: boolean;
+  onRunStarted: (runId: string) => void;
+}) {
   const rule = useRuleStore((s) => s.rule);
 
-  const onClick = async () => {
-    const payload = buildPayload(rule);
+const onClick = async () => {
+  if (running) return;
 
-    if (!payload.entry || payload.entry.length === 0) {
-      alert("エントリー条件を1つ以上設定してください");
-      return;
-    }
+  const payload = buildPayload(rule);
+  if (!payload.entry || payload.entry.length === 0) {
+    alert("エントリー条件を1つ以上設定してください");
+    return;
+  }
 
-    try {
-      const res = await fetch("/api/run/start", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Idempotency-Key": crypto.randomUUID(),
-        },
-        body: JSON.stringify(payload),
-      });
+  const res = await fetch("/api/run/start", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Idempotency-Key": crypto.randomUUID(),
+    },
+    body: JSON.stringify(payload),
+  });
 
-      const txt = await res.text();
-      let data = {};
-      try {
-        data = JSON.parse(txt);
-      } catch {
-        console.error("[RunButton] invalid JSON:", txt);
-      }
+  const data = await res.json(); // ← ★ここが起点
 
-      const runId = data.run_id ?? null;
-      console.log("[RunButton] parsed runId:", runId);
+  // ★① APIレスポンス確認
+  console.log("[RunButton] response =", data);
 
-      if (runId) {
-        // ★ localStorage に runId を保存
-        localStorage.setItem("last_run_id", runId);
-        console.log("[RunButton] saved runId =", runId);
+  if (data?.run_id) {
+    // ★② 新 runId の確認
+    console.log("[RunButton] new runId =", data.run_id);
 
-        // ★ 呼び出し元へ runId を伝える
-        onRunStarted(runId);
-      } else {
-        console.error("runId not returned", data);
-      }
-    } catch (e) {
-      console.error("[RunButton] exception:", e);
-    }
-  };
+    // ★③ localStorage に入れた瞬間の確認
+    localStorage.setItem("last_run_id", data.run_id);
+    console.log(
+      "[RunButton] localStorage last_run_id =",
+      localStorage.getItem("last_run_id")
+    );
 
-  return <button onClick={onClick}>実行</button>;
+    onRunStarted(data.run_id);
+  } else {
+    console.error("[RunButton] run_id not found", data);
+  }
+};
+
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={running}
+      className="flex items-center gap-2"
+    >
+      {running ? (
+        <>
+          <Spinner className="h-4 w-4 animate-spin" />
+          計算中…
+        </>
+      ) : (
+        "実行"
+      )}
+    </button>
+  );
+
+  
 }
