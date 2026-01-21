@@ -1,7 +1,7 @@
 // frontend/src/components/run/RunPanel.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { RulesBuilder } from "@/rules/RulesBuilder";
@@ -10,37 +10,80 @@ import { RunButton } from "@/components/run/RunButton";
 export function RunPanel() {
   const [runId, setRunId] = useState<string | null>(null);
   const [uiRunning, setUiRunning] = useState(false);
+
   const router = useRouter();
+
+  // 多重起動防止
+  const pollingRef = useRef(false);
 
   useEffect(() => {
     if (!runId) return;
+    if (pollingRef.current) return;
+    pollingRef.current = true;
 
-    const interval = setInterval(async () => {
-      const res = await fetch(`/api/reports/${runId}`);
-      const json = await res.json();
+    let alive = true;
 
-      const isCompleted =
-        Array.isArray(json?.equity) &&
-        json.equity.length > 0 &&
-        Array.isArray(json?.trades);
+    const tick = async () => {
+      if (!alive) return;
 
-      if (!isCompleted) return;
+      try {
+        // 完了判定は「summary が取れるか」で十分
+        const res = await fetch(`/api/reports/${runId}/summary`, {
+          cache: "no-store",
+        });
 
-      clearInterval(interval);
-      router.push("/app/performance");
-    }, 1500);
+        if (!alive) return;
 
-    return () => clearInterval(interval);
+        // 404 = report_not_ready（まだ結果ファイルがない）
+        if (res.status === 404) {
+          setTimeout(tick, 1500);
+          return;
+        }
+
+        // 200以外はログ出して少し待つ
+        if (!res.ok) {
+          const text = await res.text().catch(() => "");
+          console.warn(
+            "[RunPanel] summary not ready:",
+            res.status,
+            text.slice(0, 200)
+          );
+          setTimeout(tick, 1500);
+          return;
+        }
+
+        // ここに来たら完了（summary.json と equity.json は揃ってる前提）
+        await res.json().catch(() => null);
+
+        if (!alive) return;
+
+        // 実行中フラグ解除して遷移
+        setUiRunning(false);
+        router.push("/app/performance");
+      } catch (e) {
+        console.warn("[RunPanel] polling error:", e);
+        setTimeout(tick, 1500);
+      }
+    };
+
+    // すぐ1回目を叩く
+    tick();
+
+    return () => {
+      alive = false;
+      pollingRef.current = false;
+    };
   }, [runId, router]);
 
   return (
     <>
       <RulesBuilder />
+      
 
       <RunButton
         running={uiRunning}
         onRunStarted={(id) => {
-          setUiRunning(true); // ★ 押した瞬間にON
+          setUiRunning(true); // 押した瞬間にON
           setRunId(id);
         }}
       />

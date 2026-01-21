@@ -17,18 +17,21 @@ const rule = useRuleStore((s) => s.rule);
 const update = useRuleStore((s) => s.update);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto">
       {/* Header */}
-      <div>
+      <div className="space-y-2 mb-6">
         <h1 className="text-2xl font-bold">
           エントリー／エグジットルールの定義
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="text-sm text-muted-foreground">
           バックテスト用の戦略ルールを定義します
         </p>
       </div>
+      <div className="mb-4">
+        <ExecutionCondition />
+      </div>
 
-      <ExecutionCondition />
+      <div className="space-y-4">
 
       <SectionAccordion
         id="trading"
@@ -118,6 +121,7 @@ const update = useRuleStore((s) => s.update);
       >
         <ExitSection />
       </SectionAccordion>
+    </div>
     </div>
   );
 }

@@ -32,6 +32,10 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 
 app = FastAPI(debug=True)
+
+from fastapi.middleware.gzip import GZipMiddleware
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
 BASE = "/delver/data"
 
 @app.exception_handler(RequestValidationError)
@@ -228,55 +232,37 @@ def api_run(strategy: StrategyMvp0, idem_key: str = Header(..., alias="Idempoten
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/reports/{run_id}")
-def get_report(run_id: str):
+@app.get("/api/reports/{run_id}/summary")
+def get_report_summary(run_id: str):
     base = f"/delver/results/{run_id}"
 
-    # --- ファイルパスを修正 ---
-    eq_path = f"{base}/equity.json"
-    summary_path = f"{base}/summary.json"
-    trades_path = f"{base}/trades.json"
-
-    # --- 各ファイル読み込み ---
     try:
-        with open(eq_path) as f:
-            equity = json.load(f)
-    except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="equity_not_found")
-
-    try:
-        with open(summary_path) as f:
+        with open(f"{base}/summary.json") as f:
             summary = json.load(f)
+
+        with open(f"{base}/equity.json") as f:
+            equity = json.load(f)
+            if not equity:
+                raise FileNotFoundError
+
+        return {
+            "run_id": run_id,
+            "summary": summary,
+            "stats": {
+                "start": equity[0]["t"],
+                "end": equity[-1]["t"],
+                "bars": len(equity),
+            }
+        }
     except FileNotFoundError:
-        summary = None
+        raise HTTPException(status_code=404, detail="report_not_ready")
 
-    try:
-        with open(trades_path) as f:
-            trades = json.load(f)
-    except FileNotFoundError:
-        trades = []
+@app.get("/api/reports/{run_id}/equity")
+def get_report_equity(run_id: str):
+    with open(f"/delver/results/{run_id}/equity.json") as f:
+        return json.load(f)
 
-    # --- meta 計算 ---
-    first_t = equity[0]["t"] if equity else None
-    last_t  = equity[-1]["t"] if equity else None
-
-    bars = len(equity)
-    duration_days = None
-    if first_t and last_t:
-        from datetime import datetime
-        f = datetime.fromisoformat(first_t)
-        l = datetime.fromisoformat(last_t)
-        duration_days = (l - f).days
-
-    return {
-        "run_id": run_id,
-        "summary": summary,
-        "stats": {
-            "start": first_t,
-            "end": last_t,
-            "bars": bars,
-            "duration_days": duration_days,
-        },
-        "equity": equity,
-        "trades": trades,
-    }
+@app.get("/api/reports/{run_id}/trades")
+def get_report_trades(run_id: str):
+    with open(f"/delver/results/{run_id}/trades.json") as f:
+        return json.load(f)

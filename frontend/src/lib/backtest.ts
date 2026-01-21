@@ -75,14 +75,22 @@ export type PollResult = {
  */
 export async function pollReport(runId: string) {
   for (;;) {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/reports/${runId}`, {
-      method: "GET",
-    });
-    if (res.status === 202) {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE}/api/reports/${runId}/summary`,
+      { cache: "no-store" }
+    );
+
+    // 404 = まだ計算中
+    if (res.status === 404) {
       await new Promise(r => setTimeout(r, 2000));
       continue;
     }
-    if (!res.ok) throw new Error("REPORT_FETCH_FAILED");
+
+    if (!res.ok) {
+      throw new Error(`REPORT_FETCH_FAILED (${res.status})`);
+    }
+
+    // 200 = 完了
     return res.json();
   }
 }

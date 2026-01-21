@@ -26,7 +26,7 @@ export async function executeRun(payload: any, opts?: { idem?: string }) {
 export async function pollReport(id: string) {
   const sleep=(ms:number)=>new Promise(r=>setTimeout(r,ms));
   for (let i=0;i<120;i++){
-    const res = await fetch(`${API}/api/reports/${id}`);
+    const res = await fetch(`${API}/api/reports/${id}/summary`);
     if(res.status===202){ await sleep(1000); continue; }
     const text = await res.text();
     if(res.status!==200) throw new Error(`GET /api/reports/${id} ${res.status}: ${text}`);
