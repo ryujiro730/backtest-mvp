@@ -1,0 +1,117 @@
+[33m1e37c35c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mrollback-stable[m[33m, [m[1;32mmain[m[33m)[m HEAD@{0}: reset: moving to origin/develop
+[33m0d0100c8[m HEAD@{1}: commit: remove data directory from git tracking
+[33mea9aef37[m HEAD@{2}: commit: remove large parquet files from git
+[33m8c76c813[m HEAD@{3}: commit: 英語消した。日本語だけにした
+[33m1e37c35c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mrollback-stable[m[33m, [m[1;32mmain[m[33m)[m HEAD@{4}: checkout: moving from develop to develop
+[33m1e37c35c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mrollback-stable[m[33m, [m[1;32mmain[m[33m)[m HEAD@{5}: checkout: moving from develop to develop
+[33m1e37c35c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mrollback-stable[m[33m, [m[1;32mmain[m[33m)[m HEAD@{6}: checkout: moving from rollback-stable to develop
+[33m1e37c35c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mrollback-stable[m[33m, [m[1;32mmain[m[33m)[m HEAD@{7}: checkout: moving from 1e37c35c6e120842eeed7d7e1d6ce4218a8a409d to rollback-stable
+[33m1e37c35c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mrollback-stable[m[33m, [m[1;32mmain[m[33m)[m HEAD@{8}: checkout: moving from main to 1e37c35c
+[33m1e37c35c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mrollback-stable[m[33m, [m[1;32mmain[m[33m)[m HEAD@{9}: commit: 写真を見れるように
+[33m7578249c[m HEAD@{10}: commit: 無料化、バルサラ追加
+[33mfb06bc38[m HEAD@{11}: commit: FX　終わり！
+[33m4ceac2f0[m HEAD@{12}: commit: fix gc
+[33m68309fef[m HEAD@{13}: commit: 記事追加
+[33m6cae51b6[m HEAD@{14}: commit: fix schemas
+[33mda835470[m HEAD@{15}: commit: delete bag
+[33m69843f8f[m HEAD@{16}: commit: edit rsi
+[33m2027023f[m HEAD@{17}: commit: fix rsi
+[33m0910d6a9[m HEAD@{18}: commit: fix payload
+[33m8b7d965f[m HEAD@{19}: commit: ペイロード形をバックと合わせた
+[33m1cb6c52e[m HEAD@{20}: commit: add both entry
+[33m66c9e6e5[m HEAD@{21}: commit: Add new blog post
+[33mafb74cdc[m HEAD@{22}: commit: fix middleware
+[33ma7ac8821[m HEAD@{23}: commit: add sitemap
+[33m300187a5[m HEAD@{24}: commit: fix sitemap
+[33mfaac688c[m HEAD@{25}: commit: auto sitemap
+[33m013edd6d[m HEAD@{26}: commit: add sitemap
+[33m486318cb[m HEAD@{27}: commit: configure sitemap
+[33m1ab4b6b3[m HEAD@{28}: commit: add sitemap.xml
+[33m19035bab[m HEAD@{29}: commit: Add sitemap.xml
+[33ma54d170b[m HEAD@{30}: commit: add sitemap
+[33ma8de7b88[m HEAD@{31}: commit: add sitemap
+[33m9963b80a[m HEAD@{32}: commit: component
+[33m6f99947d[m HEAD@{33}: commit: dasf
+[33mc5bd712f[m HEAD@{34}: commit: sadfsa
+[33m090b3b9e[m HEAD@{35}: commit: sa
+[33mdd61c416[m HEAD@{36}: commit: edit ssr
+[33m7081033f[m HEAD@{37}: commit: ssg disabled2
+[33ma86e40dd[m HEAD@{38}: commit: ssg disabled
+[33md54aaa59[m HEAD@{39}: commit: api iroiro
+[33m9677db62[m HEAD@{40}: commit: edit portal
+[33m79d81fea[m HEAD@{41}: commit: edit webhook
+[33m0e40c9ab[m HEAD@{42}: commit: edit stripe
+[33m4cd77f30[m HEAD@{43}: commit: edit portal
+[33me2cb9751[m HEAD@{44}: commit: debug
+[33m0398b180[m HEAD@{45}: commit: edit route.ts
+[33me824ac83[m HEAD@{46}: commit: move sitemap
+[33m47c08b87[m HEAD@{47}: commit: add sitemap
+[33m604a91e0[m HEAD@{48}: commit: GA
+[33m2211dbfc[m HEAD@{49}: commit: GA
+[33mce4eb67e[m HEAD@{50}: commit: GAのタグを追加
+[33m82c9915f[m HEAD@{51}: commit: delete duplicate
+[33m0b9a1c9c[m HEAD@{52}: commit: remove pnpm lockfile
+[33m295d448f[m HEAD@{53}: commit: ブログコーナー開設
+[33m8fad935a[m HEAD@{54}: commit: URLを正規化
+[33mfd5f1636[m HEAD@{55}: commit: サイトアイコンを設定
+[33m3e46ecb6[m HEAD@{56}: commit: 未ログインユーザーでも3回回せるようにした
+[33mc454b674[m HEAD@{57}: commit: sa
+[33mf9e91703[m HEAD@{58}: commit: fix suspense
+[33m554dadec[m HEAD@{59}: commit: fix auth
+[33mebecc8b7[m HEAD@{60}: commit: fix lib
+[33ma69b62c7[m HEAD@{61}: commit: 最終　レイアウト調整
+[33mdb1aa400[m HEAD@{62}: commit: fix for X
+[33m106b7dcc[m HEAD@{63}: commit: fix for deploy
+[33mff07f229[m HEAD@{64}: commit: chore: update pnpm-lock.yaml to match package.json
+[33m445bb822[m HEAD@{65}: commit: アカウント、決済完了。インジも大量追加
+[33m5d3c06a9[m HEAD@{66}: commit: add PLG
+[33m3801d525[m HEAD@{67}: checkout: moving from main to main
+[33m3801d525[m HEAD@{68}: checkout: moving from main to main
+[33m3801d525[m HEAD@{69}: commit: Stripe導入、アカウント概念導入
+[33m906e0264[m[33m ([m[1;31morigin/my-feature[m[33m)[m HEAD@{70}: commit: ヘッダーUI整理（ロゴ左・認証ボタン右）、アカウントモーダル等を実装
+[33mdf4f0fc5[m HEAD@{71}: commit: MinIOの出力がおかしいので擬似的にCloseを埋めた。明日またちゃんとしたデータを使うようにする
+[33m60fcf3f3[m HEAD@{72}: commit: CORSを素通りにした
+[33m99c7f5d0[m HEAD@{73}: commit: 画像表示
+[33md7a83df5[m HEAD@{74}: commit: LPのバグ直し
+[33m7463b606[m HEAD@{75}: commit: APIを堅 牢化
+[33m3f81ed8b[m HEAD@{76}: commit: APIが落ちるのを阻止
+[33maee3e2a5[m HEAD@{77}: commit: 疎通確認完了
+[33mafa947ad[m HEAD@{78}: commit: Nextconfigを改良
+[33ma0ab1636[m HEAD@{79}: commit: API上の動きは完成。デプロイしてどうなるか
+[33m5f71d950[m HEAD@{80}: commit: APIの部分のミスを直した。＋が入ってた
+[33mc2e9f359[m HEAD@{81}: commit: APIをなんやかんや
+[33m25ddf7bf[m HEAD@{82}: commit: VPSとの連携テスト
+[33mc03a4904[m HEAD@{83}: commit: add: auto deploy workflow
+[33m2b6efee8[m HEAD@{84}: commit: PREFIXをdataに明示的に指定した
+[33m337ae6de[m HEAD@{85}: commit: APIとMinIOへの接続をグローバルなものにした
+[33m5557c822[m HEAD@{86}: commit: ci: ignore ESLint/TS errors during build & ignore .next
+[33mdd3a9b53[m HEAD@{87}: commit: chore: add marked and aws s3 client
+[33m6265d0fb[m HEAD@{88}: commit: 完全版
+[33mc2f09392[m HEAD@{89}: merge draft/my-feature: Merge made by the 'ort' strategy.
+[33m2e1ae7b8[m HEAD@{90}: checkout: moving from my-feature to main
+[33m04dc1626[m[33m ([m[1;31morigin/draft/my-feature[m[33m, [m[1;32mmy-feature[m[33m, [m[1;32mdraft/my-feature[m[33m)[m HEAD@{91}: reset: moving to HEAD^
+[33m34b5d94e[m HEAD@{92}: reset: moving to HEAD^
+[33m47b7c73f[m HEAD@{93}: commit: restore: remove node_modules & backups from repo
+[33m34b5d94e[m HEAD@{94}: reset: moving to HEAD^
+[33m10cef83f[m HEAD@{95}: commit: build: next prod-ready
+[33m34b5d94e[m HEAD@{96}: commit: build: next prod-ready
+[33m04dc1626[m[33m ([m[1;31morigin/draft/my-feature[m[33m, [m[1;32mmy-feature[m[33m, [m[1;32mdraft/my-feature[m[33m)[m HEAD@{97}: checkout: moving from main to my-feature
+[33m2e1ae7b8[m HEAD@{98}: commit: LP完成、通貨ペア増やした、Blogコーナー完成
+[33m2df7c3e5[m HEAD@{99}: checkout: moving from draft/my-feature to main
+[33m04dc1626[m[33m ([m[1;31morigin/draft/my-feature[m[33m, [m[1;32mmy-feature[m[33m, [m[1;32mdraft/my-feature[m[33m)[m HEAD@{100}: commit: chore: update pnpm lockfile
+[33me0a2d9be[m HEAD@{101}: commit: LP完成、通貨ペア増やした、Blogコーナー完成
+[33me7a0f8c4[m HEAD@{102}: commit: LP作ってenで日本語表示されるバグ直した
+[33mb0e1c712[m HEAD@{103}: commit: WIP: backup at end of day
+[33m2df7c3e5[m HEAD@{104}: checkout: moving from main to draft/my-feature
+[33m2df7c3e5[m HEAD@{105}: commit: Add frontend as a normal directory
+[33me31dd87d[m HEAD@{106}: commit: Remove submodule reference of frontend
+[33m66785ddf[m HEAD@{107}: commit: Fix .gitignore: don't ignore whole frontend/
+[33m08a50b3f[m HEAD@{108}: commit: Replace 'frontend' submodule with a normal directory
+[33mb12ac02b[m HEAD@{109}: commit: MVP完成版
+[33m77583bf8[m HEAD@{110}: commit: graph toriaezu ugoku
+[33m6fecb016[m HEAD@{111}: commit: MVP完成！グラフも書いた
+[33m554965ab[m HEAD@{112}: commit: Add report API and S3 artifacts (metrics/equity) + artifacts table
+[33m5909af3b[m HEAD@{113}: commit: Persist run.error; Idempotency-Key; next-bar open fills with slippage; schema(slippage_bps)
+[33m98b7ea68[m HEAD@{114}: commit: データベースに実データを保存してそれで検証成功
+[33m1abf651b[m HEAD@{115}: Branch: renamed refs/heads/master to refs/heads/main
+[33m1abf651b[m HEAD@{117}: commit (initial): initial commit

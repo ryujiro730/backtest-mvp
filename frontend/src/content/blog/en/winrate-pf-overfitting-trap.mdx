@@ -1,0 +1,186 @@
+---
+slug: "winrate-pf-overfitting-trap"
+title: "The Trap of Win Rates and PF | Spotting 'Curve Fitting' Hidden Behind the Numbers"
+description: "Discover why strategies with high win rates and Profit Factors (PF) are often the most dangerous. We break down equity curves, outliers, and drawdown distributions to help you look past the vanity metrics."
+category: "analysis"
+publishedAt: "2026-01-30"
+readTimeMinutes: 10
+author: "Jack Sterling"
+---
+
+<BlogToc />
+
+Have you ever seen backtest results boasting a **"90% Win Rate"** or a **"3.0 PF"** and thought to yourself:
+
+> "This has to be an incredibly strong strategy."
+
+In this article, we will ruthlessly dismantle why that intuition is **dangerous** by analyzing the relationship between win rates, PF, equity curves, and drawdown.
+
+---
+
+## Why "High Win Rate" Strategies are Often the Most Dangerous
+
+### Bankruptcy Occurs Even with Positive Expectancy
+
+Win rate is simply "Number of Wins ÷ Total Number of Trades." It contains zero information regarding **when those losses occur** or if **losing streaks cluster together.**
+
+In other words, win rate is a metric that **completely ignores sequence.**
+
+You can gain a deeper understanding by reading <InlineLink href="/blog/60-percent-winrate-but-losing-reason">Why You Lose Despite a 60% Win Rate</InlineLink> along with <InlineLink href="/blog/max-drawdown-risk-of-ruin">The Probability of Ruin for Traders Who Ignore Max Drawdown</InlineLink>.
+
+---
+
+### The Illusion Created by Short-Term Backtests
+
+Take a look at the following equity curve:
+
+![Equity curve that looks perfect but is irreproducible](/blog/winrate-pf-overfitting-trap/high_pf_curve_fitting.png)
+
+- **Blue Line:** Short-term backtest (100 trades).
+- **Orange Line:** The same rules applied over a longer period.
+
+While it looks "perfect" in the short term, extending the period reveals that it was merely an **illusion of steady growth.** At this stage, it's not that the strategy is superior; it’s just that **no major "accidents" have happened yet.**
+
+---
+
+## The Real Reason Profit Factor (PF) is Untrustworthy
+
+### PF is an "Average" and Ignores Distribution
+
+PF is calculated using the following formula:
+
+```text
+PF = Total Gross Profit / Total Gross Loss
+```
+
+While it seems logical, this metric **completely ignores the shape of your profit and loss.**
+
+- Are wins distributed evenly?
+- Is there a single, massive outlier win?
+- Are losses clustered together?
+
+None of this can be deciphered from PF alone.
+
+---
+
+### A Single Outlier Can Corrupt Your PF
+
+Look at the graph below:
+
+![Outliers distorting the Profit Factor](/blog/winrate-pf-overfitting-trap/pf_outlier_distortion.png)
+
+- Most trades are small wins or losses.
+- A single massive win is artificially inflating the PF.
+
+Remove that one trade, and the PF becomes something entirely different. The assumption that **High PF = Stability** is a complete fallacy.
+
+---
+
+## High Win Rate and PF $\neq$ Safety
+
+### PF Does Not Correlate with Maximum Drawdown
+
+Here is a scatter plot mapping multiple strategies:
+
+![Lack of correlation between PF and Max Drawdown](/blog/winrate-pf-overfitting-trap/pf_vs_drawdown.png)
+
+- **Horizontal Axis:** PF
+- **Vertical Axis:** Maximum Drawdown (Max DD)
+
+As you can see, there are plenty of strategies with high PF that **carry massive drawdowns.** In short:
+
+> High PF $\neq$ Capital Stability.
+
+---
+
+### What You Should Really Watch: "DD Distribution"
+
+Simply looking at a single Max DD value is insufficient.
+
+- **Average DD:** Almost meaningless.
+- **Max DD:** Often influenced by luck.
+
+What you really need to look at is the **distribution itself**: "What level of DD occurs, and with what probability?"
+
+This article explains how to interpret various trade results in detail:
+<NextLink href="/blog/how-to-read-backtest-results"
+  title="How to Read Backtest Results | Perspectives for Uncovering Truth from Real Data"
+  image="/blog/how-to-read-backtest-results/delver_results.png"
+  width={1200}
+  height={700}
+/>
+
+---
+
+## Curve Fitting: The Art of Creating "Perfect Numbers"
+
+### Why Win Rate and PF are Easy to Over-Optimize
+
+Win rate and PF are the **metrics most prone to curve fitting** because:
+
+- They can be boosted by slightly tweaking parameters.
+- They can be perfectly tailored to a specific historical period.
+- They can exist without any consideration for market structure.
+
+You must always ask: Is the strategy capturing market behavior, or is it just **matching past noise?**
+
+---
+
+## What are the Truly Reliable Verification Metrics?
+
+### Does it Survive if You Break the Sequence?
+
+- Does the strategy hold up if you shuffle the trade order?
+- Can your capital survive a Monte Carlo simulation?
+
+Verification that lacks this perspective is **not a verification of reproducibility.**
+
+Using <InlineLink href="/" title="Delver">Delver</InlineLink>, you can instantly visualize your true performance by excluding single outliers and viewing detailed DD distributions that PF hides. Check for free right now if your strategy is just a "paper tiger" made of hollow numbers.
+
+---
+
+### Money Management IS the Strategy
+
+If you only look at entry conditions, your verification isn't even half-finished.
+
+- Risk percentage
+- Expected DD
+- Recovery period required
+
+Only when these are included do you have a "usable strategy." To find these entry conditions, a proper tool is essential. Check out our summary of free backtesting tools:
+<NextLink href="/blog/free-backtest-tools"
+  title="5 Best Free Backtesting Tools | Must-Try Verification Environments"
+  image="/blog/fx-backtest-tools-comparison/thumbnail.png"
+  width={1200}
+  height={700}
+/>
+
+---
+
+## Summary | As Long as You Trust Win Rate and PF, Reproducibility is Out of Reach
+
+### Bankruptcy is a Design Flaw, Not Bad Luck
+
+Thinking "It's safe because the win rate is high" or "It's excellent because the PF is good" is the fastest route to bankruptcy. 
+
+Tools like the "Risk of Ruin" calculator can help you verify your survival chances easily. Try calculating yours here:
+<NextLink href="/tools/risk-of-ruin"
+  title="Balsara's Risk of Ruin Calculator"
+  image="/blog/barsara/thumnail.png"
+  width={1200}
+  height={700}
+/>
+
+---
+
+### Survival Strategies Look at "Distributions"
+
+Look past the clean numbers and focus on the messy reality:
+
+- How deep will it sink?
+- How much can I actually endure?
+- What is the probability of that happening?
+
+Unless you face these questions, no number is worth trusting.
+
+Would you like me to **analyze a specific set of trade logs** to see if your current PF is being carried by an outlier?

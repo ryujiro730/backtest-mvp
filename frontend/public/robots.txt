@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://delvertrade.com
+
+# Sitemaps
+Sitemap: https://delvertrade.com/sitemap.xml

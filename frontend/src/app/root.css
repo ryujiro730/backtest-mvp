@@ -1,0 +1,9 @@
+/* ルートレイアウト用の最小限の定義 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0b0b10;
+  --foreground: #ffffff;
+}

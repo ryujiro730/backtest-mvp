@@ -1,0 +1,85 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fx
+      POSTGRES_PASSWORD: fxpass
+      POSTGRES_DB: fxdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks: [appnet]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    networks: [appnet]
+
+
+
+  api:
+    env_file:
+      - .env                           # ← ここも services: の下に入れる
+    build:
+      context: ..
+      dockerfile: ./infra/backend.Dockerfile
+    working_dir: /delver
+    image: infra-api
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 1 --log-level debug
+    environment:
+      POSTGRES_URL: postgresql://fx:fxpass@postgres:5432/fxdb
+      REDIS_URL: redis://redis:6379/0
+      DATASET_HASH_DEFAULT: 676f732694a3c0a1
+    ports: ["8000:8000"]
+    networks: [appnet]
+    restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_started }
+      redis: { condition: service_started }
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - |
+          python - <<'PY'
+          import urllib.request, sys
+          try:
+              urllib.request.urlopen('http://localhost:8000/health', timeout=2)
+              sys.exit(0)
+          except Exception:
+              sys.exit(1)
+          PY
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+
+    volumes:
+      - ..:/delver
+      - ../results:/delver/results
+
+  worker:                            # ← これも services: の下
+    networks: [appnet]
+    build:
+      context: ..
+      dockerfile: ./infra/backend.Dockerfile
+    working_dir: /delver
+    command: celery -A worker.tasks worker -l info
+    environment:
+      POSTGRES_URL: postgresql://fx:fxpass@postgres:5432/fxdb
+      REDIS_URL: redis://redis:6379/0
+      DATASET_HASH_DEFAULT: 676f732694a3c0a1
+    depends_on:
+        postgres: { condition: service_started }
+        redis: { condition: service_started }
+    volumes:
+      - ..:/delver
+      - /home/tsujiryujiro/dev/delver/results:/delver/results
+      
+
+volumes:
+  pg_data:
+
+networks:
+  appnet: {}

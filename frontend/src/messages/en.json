@@ -1,0 +1,625 @@
+{
+  "Index": {
+    "title": "Delver - Win with 25 Years of Historical Data"
+  },
+  "Header": {
+    "blog": "Blog",
+    "pricing": "Pricing",
+    "backtest": "Backtest Tool",
+    "ruin": "Ruin Probability",
+    "expectedValue": "Expected Value Tool",
+    "menu": "Menu"
+  },
+  "LP": {
+    "Hero": {
+      "title": "Extract one true edge from ten thousand lies.",
+      "subtitle": "A completely free simulation tool for FX and Crypto traders.",
+      "cta": "Audit Your First Strategy",
+      "disclaimer": "The tool is available in Japanese and English."
+    },
+    "Sections": {
+      "entry": "Entry rules cover everything from risk management to multiple indicators",
+      "timezone": "Strictly backtest across all time zones and days to extract optimal timing",
+      "indicator": "Combine multiple indicators with precise thresholds for any market condition",
+      "priceAction": "Enable automated backtesting for price action, which is difficult in traditional tools",
+      "chartPattern": "Set conditions to catch chart patterns that are difficult for the human eye to recognize",
+      "exit": "Verify with highly reliable backtests using the industry's largest selection of exit patterns"
+    },
+    "Features": {
+      "title": "Why Delver",
+      "speed": { "label": "Blazing Fast", "desc": "Minimize wait times by distributing tasks with lightweight workers and queues." },
+      "parallel": { "label": "Parallel Backtesting", "desc": "Run and compare multiple parameters simultaneously for instant learning." },
+      "free": { "label": "Completely Free", "desc": "No fees will ever be charged for using any of our services." }
+    },
+    "HowItWorks": {
+      "title": "How it Works (90s)",
+      "step1": "Go to 'Audit Your First Strategy'",
+      "step2": "Enter conditions and click <kbd>Run</kbd> to execute",
+      "step3": "Share your results"
+    },
+    "Pricing": {
+      "title": "Pricing Plans",
+      "month": "mo",
+      "free": {
+        "title": "Free",
+        "price": "$0",
+        "features": ["Basic Backtesting", "View Result Graphs", "Limited Monthly Runs"]
+      },
+      "starter": {
+        "title": "Starter",
+        "price": "$20",
+        "features": ["Fast-track Queue", "Up to 30 runs per day", "Priority Support"]
+      },
+      "pro": {
+        "title": "Pro",
+        "price": "$35",
+        "features": ["Large-scale Parallel Resources", "Unlimited Runs", "Dedicated Support"]
+      }
+    },
+    "Footer": {
+      "copy": "Delver: Free FX & Crypto Backtesting and Wealth Simulation",
+      "desc": "Fast-track your strategy from verification to learning.",
+      "contact": "Contact Us",
+      "terms": "Terms of Service",
+      "newsletter": "Get the latest updates via email"
+    },
+    "BetaSignup": {
+      "title": "Beta · Early Access",
+      "description": "This tool is in beta. Enter your email to join the early access list.",
+      "placeholder": "you@example.com",
+      "button": "Get Early Access",
+      "sending": "Sending...",
+      "thanks": "Registered",
+      "error": "Failed. Try again"
+    },
+    "SeoCopy": {
+      "heading": "Verify your FX strategy with a free backtesting tool",
+      "body": "Delver is a <strong>Product-Led Growth (PLG)</strong> free FX backtest tool—no login required. Run backtests in your browser without MT4/MT5, with automatic <strong>risk of ruin, expectancy, win rate, and drawdown</strong>. Focus on reproducible verification, not holy grails."
+    }
+  },
+  "Balsara": {
+    "Metadata": {
+      "title": "Balsara's Risk of Ruin Simulator | Delver Tools",
+      "description": "Calculate Risk of Ruin instantly from win rate, R/R, and risk per trade. Essential for FX risk management."
+    },
+    "title": "Balsara's Risk of Ruin Simulator",
+    "description": "Estimate ruin probability based on win rate, R/R, risk per trade, and number of trials (client-side calculation). 'Ruin' here means capital falling below <ruinFrac>{ruinFrac}%</ruinFrac>.",
+    "cards": {
+      "inputs": "Input Conditions",
+      "chart": "Risk of Ruin vs. Risk Rate",
+      "currentRor": "Current Risk of Ruin",
+      "reference": "Reference"
+    },
+    "fields": {
+      "winRate": "Win Rate (p)",
+      "rr": "R/R (Reward:Risk)",
+      "riskRate": "Risk per Trade f (%)",
+      "trials": "Number of Trials (N)",
+      "ruinLimit": "Ruin Threshold (% of Initial Capital)",
+      "probHint": "0-1 or 0-100% (e.g., 0.55 / 55%)"
+    },
+    "result": {
+      "limitLabel": "Ruin Threshold: Less than {val}% of initial capital",
+      "kelly": "Kelly Criterion:",
+      "disclaimer": "* Approx: Loss-streak based, independent trials, fixed f. For educational use only.",
+      "verdicts": {
+        "danger": "❌ Dangerous (Long-term capital loss likely)",
+        "warning": "⚠ Warning (Risk of ruin under certain conditions)",
+        "safe": "✅ Acceptable (If assumptions are maintained)"
+      }
+    },
+  "Chart": {
+    "title": "Risk of Ruin vs Risk Fraction f (other parameters fixed)",
+    "xLabel": "Risk fraction f (%)",
+    "yLabel": "Risk of ruin (%)",
+    "series": {
+      "ror": "Risk of ruin"
+    },
+    "currentF": "Current f={value}%",
+    "kelly": "Kelly {value}%",
+    "tooltip": {
+      "label": "f = {value}%",
+      "value": "Risk of ruin"
+    },
+    "footnote": "Approximation: losing-streak model, independent trials, fixed f. Hover to see exact values."
+  },
+    "EV": {
+    "title": "FX Expected Value (EV) Checker",
+    "subtitle": "Calculate expected value per trade from win rate, RR, risk fraction and costs (R-based / account %).",
+
+    "cards": {
+      "inputs": "Inputs",
+      "verdict": "Conclusion",
+      "cost": "Costs (R-based)",
+      "breakeven": "Breakeven",
+      "howto": "How to use"
+    },
+
+    "labels": {
+      "p": "Win rate p (0–1 / 0–100%)",
+      "rr": "RR (win:loss)",
+      "f": "Risk fraction f (%)",
+      "fee": "Fees (round-trip bps)",
+      "slip": "Slippage (round-trip bps)"
+    },
+
+    "placeholders": {
+      "p": "0.55 / 55%",
+      "rr": "1.0",
+      "f": "2",
+      "fee": "5",
+      "slip": "1"
+    },
+
+    "result": {
+      "evPct": "Expected value (account)",
+      "perTrade": "% / trade",
+      "costR": "Cost",
+      "fee": "Fees (bps)",
+      "slip": "Slippage (bps)",
+      "risk": "Risk fraction f",
+      "pBe": "Breakeven win rate",
+      "rrBe": "Breakeven RR"
+    },
+
+    "verdicts": {
+      "negative": "❌ Negative EV (mathematically losing)",
+      "border": "⚠ Marginal (easily wiped out by costs/variance)",
+      "positive": "✅ Worth testing (positive EV)"
+    },
+
+    "notes": {
+      "cost": "Costs in bps are converted to R using risk fraction f (smaller f makes costs heavier).",
+      "breakeven": "Breakeven conditions including costs.",
+      "howto1": "• If EV < 0, the strategy is not worth testing",
+      "howto2": "• Small EV can easily turn negative due to costs and execution noise"
+    }
+  }
+},
+  "RunButton": {
+    "run": "Run",
+    "running": "Running…",
+    "noEntry": "Please set at least one entry condition."
+  },
+    "RulesBuilder": {
+    "title": "Define Entry / Exit Rules",
+    "description": "Define strategy rules for backtesting",
+
+    "sections": {
+      "trading": "Trading Conditions",
+      "indicator": "Indicator Conditions",
+      "time": "Time Window",
+      "price": "Price Action",
+      "chartPattern": "Chart Patterns",
+      "exit": "Exit Rules"
+    }
+  },
+    "TradingConditions": {
+    "title": "Trading Conditions",
+
+    "fields": {
+      "allowPyramid": "Pyramid (Add to Position)",
+      "allowPyramidDesc": "When ON, each new signal in the same direction adds another entry. When OFF, only one position at a time.",
+      "balance": "Initial Balance",
+      "spread": "Spread",
+      "slippage": "Slippage",
+      "swap": "Swap",
+      "commission": "Commission",
+      "leverage": "Leverage",
+      "marginCall": "Margin Call Level",
+      "lotMode": "Lot Mode",
+      "fixedLot": "Fixed Lot",
+      "fixedLotDesc": "Trade with a constant lot size regardless of account balance (e.g. 0.1 lot)",
+      "dynamicLot": "Dynamic Lot",
+      "dynamicLotDesc": "Lot size changes with account balance, enabling compounding",
+      "lotSize": "Fixed Lot Size",
+      "riskPct": "Risk (%)"
+    },
+
+    "units": {
+      "yen": "JPY",
+      "pips": "pips",
+      "yenPerLot": "JPY / lot",
+      "percent": "%"
+    }
+  },
+    "TimeZone": {
+    "title": "Time Window",
+
+    "period": {
+      "start": "Backtest Start Date",
+      "end": "Backtest End Date"
+    },
+
+    "days": {
+      "label": "Days of Week",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+
+    "intraday": {
+      "label": "Enable intraday only",
+      "from": "Start Time",
+      "to": "End Time"
+    }
+  },
+"PriceAction": {
+  "title": "Price Action",
+  "tabs": {
+    "long": "Long",
+    "short": "Short"
+  },
+  "logic": {
+    "and": "All conditions",
+    "or": "Any condition"
+  },
+
+  "labels": {
+    "pattern": "Pattern",
+    "signal": "Signal",
+    "entry": "Entry"
+  },
+
+  "patterns": {
+    "pinbar": "Pin Bar",
+    "inside_bar": "Inside Bar",
+    "three_bar": "Three-Bar Reversal"
+  },
+
+  "signal": {
+    "bullish": "Bullish",
+    "bearish": "Bearish"
+  },
+
+  "entry": {
+    "long": "Long",
+    "short": "Short"
+  },
+
+  "actions": {
+    "add": "+ Add Pattern",
+    "remove": "Remove"
+  },
+
+  "patternName": "{value}"
+},
+    "ChartPattern": {
+    "title": "Chart Pattern",
+    "tabs": {
+      "long": "Long",
+      "short": "Short"
+    },
+    "patterns": {
+      "head_and_shoulders": "Head & Shoulders",
+      "ascending_triangle": "Ascending Triangle",
+      "bear_flag": "Bear Flag"
+    },
+
+    "direction": {
+      "label": "Direction",
+      "reversal": "Reversal",
+      "continuation": "Continuation"
+    },
+
+    "entry": {
+      "label": "Entry",
+      "long": "Long",
+      "short": "Short"
+    },
+
+    "option": {
+      "label": "Option",
+      "neckline": "Neckline",
+      "tight": "Tight Range",
+      "none": "---"
+    },
+
+    "actions": {
+      "add": "+ Add Pattern"
+    }
+  },
+    "Indicator": {
+    "title": "Indicator Conditions",
+    "tabs": {
+      "long": "Long",
+      "short": "Short"
+    },
+    "logic": {
+      "and": "All conditions",
+      "or": "Any condition"
+    },
+
+    "direction": {
+      "long": "Long",
+      "short": "Short"
+    },
+
+    "actions": {
+      "add": "+ Add Indicator",
+      "delete": "Remove"
+    },
+
+    "fields": {
+      "indicator": "Indicator",
+      "direction": "Direction",
+      "period": "Period",
+      "condition": "Condition",
+      "threshold": "Threshold",
+      "fast": "Fast",
+      "slow": "Slow",
+      "cross": "Cross",
+      "signal": "Signal",
+      "sigma": "σ",
+      "multiplier": "Multiplier",
+      "lookback": "Lookback",
+      "side": "Side"
+    },
+
+    "indicators": {
+      "rsi": "RSI",
+      "sma": "SMA",
+      "ema": "EMA",
+      "macd": "MACD",
+      "bbands": "Bollinger Bands",
+      "stoch": "Stochastic",
+      "adx": "ADX",
+      "cci": "CCI",
+      "vwap": "VWAP",
+      "supertrend": "SuperTrend",
+      "donchian": "Donchian",
+      "breakout": "Breakout"
+    },
+
+    "events": {
+      "cross_up": "Cross Up",
+      "cross_down": "Cross Down",
+      "above": "Golden Cross",
+      "below": "Dead Cross",
+      "above_zero": "Above Zero",
+      "below_zero": "Below Zero",
+      "gt": "Greater Than",
+      "lt": "Less Than",
+      "price_cross_above": "Price Cross Above",
+      "price_cross_below": "Price Cross Below",
+      "trend_up": "Uptrend",
+      "trend_down": "Downtrend"
+    },
+
+    "side": {
+      "high": "High",
+      "low": "Low"
+    }
+  },
+  "Exit": {
+  "title": "Exit Conditions",
+  "tabs": {
+    "long": "Long",
+    "short": "Short"
+  },
+  "logic": {
+    "and": "All conditions must be met",
+    "or": "Any condition can trigger"
+  },
+
+  "tpSl": {
+    "tp": "Take Profit (TP)",
+    "sl": "Stop Loss (SL)",
+    "unitPips": "pips"
+  },
+
+  "candleExit": {
+    "label": "Candlestick Reversal Exit",
+    "placeholder": "None selected",
+    "patterns": {
+      "pinbar": "Pin Bar",
+      "engulfing": "Engulfing Pattern",
+      "inside": "Inside Bar"
+    }
+  },
+
+  "equity": {
+    "tp": "Take Profit (%)",
+    "sl": "Stop Loss (%)",
+    "unit": "%"
+  },
+
+  "timeLimit": {
+    "tp": "Max Holding Time (Take Profit)",
+    "sl": "Max Holding Time (Stop Loss)",
+    "unit": "min"
+  },
+
+  "forcedExit": {
+    "start": "Forced Exit Start Time",
+    "end": "Forced Exit End Time"
+  },
+
+  "trailing": {
+    "title": "Trailing Stop",
+    "activate": "Activation Line",
+    "trail": "Trailing Distance",
+    "unit": "pips"
+  }
+},
+
+  "Notice": {
+    "title": "Important Notice",
+    "items": {
+      "backtest": "<strong>All backtest results are simulations based on historical data</strong> and do not guarantee future profits. Actual market conditions (fees, slippage, liquidity, trading restrictions, etc.) may differ.",
+      "timeframe": "<strong>For lower timeframes (M1, M5, M15), the data volume is extremely large</strong>, so backtesting and chart rendering may take longer. Please do not close the screen while processing.",
+      "engine": "This tool <strong>processes price movements bar by bar from entry to exit</strong> to calculate P&L, drawdown, win rate, and holding time. It does not use black-box AI inference, only verifiable \"price action + rule logic.\"",
+      "free": "The DELVER Backtest Engine is currently <strong>completely free to use.</strong> If any future pricing or limitations are introduced, we will notify you in advance.",
+      "contact": "If you encounter bugs, have feature requests, or questions, feel free to contact us at <strong>info@delvertrade.com</strong>."
+    }
+  },
+    "Charts": {
+    "AveragePLByOutcome": {
+      "win": "Win",
+      "draw": "Break-even",
+      "loss": "Loss",
+      "avgPL": "Average P/L"
+    },
+    "Drawdown": {
+      "dd": "Drawdown"
+    },
+        "DurationProfit": {
+      "xName": "Holding Time",
+      "xUnit": "min",
+      "yName": "Profit / Loss",
+      "win": "Winning Trades",
+      "loss": "Losing Trades"
+    },
+        "EquityByTradeType": {
+      "long": "Long",
+      "short": "Short"
+    },
+        "HourlyPerformance": {
+      "hourSuffix": ":00",
+      "profit": "Profit / Loss"
+    },
+        "ReturnDistribution": {
+      "count": "Number of Trades"
+    },
+        "Streak": {
+      "count": "Occurrences"
+    },
+    "TradeFrequency": {
+      "days": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      }
+    }
+  },
+    "ExecutionCondition": {
+    "title": "Execution Conditions",
+    "pair": "Pair",
+    "timeframe": "Timeframe"
+  },
+    "Performance": {
+    "loading": "Loading data...",
+    "shareToX": "Share on X",
+    "tabs": {
+      "equityCurve": "Equity Curve",
+      "drawdown": "Drawdown",
+      "weekday": "By Weekday",
+      "returns": "Return Distribution",
+      "hourly": "Hourly Performance",
+      "streak": "Winning / Losing Streaks",
+      "duration": "Holding Time vs P/L",
+      "heatmap": "Trade Frequency Heatmap",
+      "equityByType": "Equity by Trade Type"
+    }
+  },
+    "PerformanceHeader": {
+    "title": "Performance Analysis",
+    "subtitle": "Detailed analysis of backtest results",
+    "back": "Back"
+  },
+    "PerformanceSidebar": {
+    "items": {
+      "overview": "Overview",
+      "returns": "Return Distribution",
+      "hour": "Hourly Performance",
+      "heatmap": "Trade Frequency Heatmap",
+      "streak": "Winning / Losing Streaks",
+      "duration": "Holding Time vs P/L",
+      "equity": "Equity by Trade Type"
+    },
+    "back": {
+      "line1": "Back to",
+      "line2": "Trade Settings"
+    }
+  },
+    "KPI": {
+    "pf": {
+      "title": "Profit Factor",
+      "desc": "Total Profit ÷ Total Loss"
+    },
+    "winrate": {
+      "title": "Win Rate",
+      "desc": "Ratio of winning trades"
+    },
+    "maxdd": {
+      "title": "Max Drawdown",
+      "desc": "Maximum equity decline"
+    },
+    "trades": {
+      "title": "Number of Trades",
+      "desc": "Trades used in backtest",
+      "unit": "trades"
+    }
+  },
+    "Blog": {
+    "meta": {
+      "title": "Blog | Delver (FX Backtesting SaaS)",
+      "description": "A practical blog about FX and futures trading, covering strategy design, backtesting methodology, expectancy, win rate, and drawdown—based on real verification with Delver."
+    },
+    "badge": "Blog",
+    "headline": "Trade decisions based on numbers, not intuition",
+    "description": "This blog focuses on how to build trading strategies, how to verify them properly, and how to think about expectancy and risk management in FX and futures trading. Every article is written with practical backtesting on Delver in mind.",
+    "categories": {
+      "all": "All",
+      "strategy": "Strategy & Logic",
+      "indicator": "Indicators",
+      "risk": "Risk Management",
+      "analysis": "Analysis & Testing",
+      "other": "Other"
+    },
+    "empty": "No articles yet. More coming soon.",
+    "readTime": "{minutes} min read",
+    "readMore": "Read article",
+    "dateLocale": "en-US",
+    "aria": {
+      "categories": "Article categories",
+      "articles": "Article list"
+    },
+    "cta": {
+      "title": "Verify what you read directly on Delver",
+      "description": "The strategies and ideas explained in this blog can be backtested directly on Delver. Reading while verifying with real numbers significantly deepens your understanding.",
+      "button": "Backtest with Delver"
+    }
+  },
+    "BlogPost": {
+    "siteTitle": "Delver Blog",
+    "notFound": "Article not found | Delver",
+    "home": "Home",
+    "by": "By",
+    "published": "Published",
+    "readTime": "Read Time",
+    "minutes": "min",
+    "defaultAuthor": "Jack Sterling",
+    "prev": "Previous article",
+    "next": "Next article",
+    "cta": {
+      "title": "[Free, No Sign-up] Verify on Delver",
+      "description": "Run reproducible backtests without writing any code. Use Delver to verify your trading strategies right now.",
+      "button": "Backtest with Delver"
+    }
+  },
+    "AuthorSig": {
+    "label": "Article Author",
+    "nameJa": "Jack Sterling",
+    "nameEn": "Jack Sterling",
+    "imageAlt": "Jack Sterling",
+    "description": "Founder of Delver. He develops a backtesting engine using 25 years of market data. His expertise lies in eliminating intuition and ambiguity from trading and verifying expectancy based purely on objective data."
+  },
+  "Explanation": {
+    "title": "How to Use Delver (3 Steps)",
+    "description": "No sign-up required. Enter your conditions in the form above and click Run to start a backtest.",
+    "steps": [
+      { "title": "Set your conditions", "description": "Choose rules for pair, timeframe, entry, and exit. You can also set indicator thresholds and time filters." },
+      { "title": "Click Run", "description": "Click Run to start the backtest. It usually finishes in under a minute. You will be taken to the results page when done." },
+      { "title": "View and share results", "description": "Review the summary, equity curve, and trade list. You can copy a link to share your results." }
+    ]
+  }
+  }

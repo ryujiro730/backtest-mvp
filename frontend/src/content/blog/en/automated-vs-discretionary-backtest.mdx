@@ -1,0 +1,261 @@
+---
+slug: "automated-vs-discretionary-backtest"
+title: "Automated vs. Discretionary Trading: Which Wins? A Backtest Comparison"
+description: "Is automated or discretionary trading more profitable? We compare win rates, reproducibility, and risk structures under identical backtesting conditions."
+category: "analysis"
+publishedAt: "2026-01-25"
+readTimeMinutes: 10
+author: "Jack Sterling"
+---
+
+<BlogToc />
+
+## Introduction | Why the "Automated vs. Discretionary" Debate Never Ends
+
+"Which is more profitable: Automated or Discretionary trading?"
+
+This debate has been circling in the FX world for years.
+
+- Discretionary traders argue: "I can judge the market flexibly based on current context."
+- Automated traders argue: "Calculated execution without emotion ensures reproducibility."
+
+However, most of these discussions fail because **the underlying premises are never aligned.**
+
+Different rules, different markets, different periods. You can't reach a conclusion without a level playing field.
+
+Regarding the differences in verification environments, I’ve summarized them in the following article.
+
+<NextLink href="/blog/tradingview-replay-reproducibility-limit"
+  title="The Limits of TradingView Replay and Reproducibility"
+  image="/blog/tradingview-replay-reproducibility-limit/tv-replay-future-context-1.png"
+  width={1200}
+  height={700}
+/>
+
+---
+
+## "Discretionary FX" is Not a Monolith
+
+Discretionary trading generally falls into three categories:
+- Fundamental Discretionary
+- Discretionary Technical Analysis
+- Semi-Automated / Rule-Based Discretionary
+
+Among these, **only the latter two can be compared fairly via backtesting.**
+
+---
+
+## Defining "Discretionary" for This Comparison
+
+In this article, we define discretionary trading as follows:
+
+### Discretionary Technical / Semi-Automated
+- Base entry rules are defined.
+- Judgments are made based on chart patterns or indicators.
+- Human discretion is used to "skip" trades or fine-tune entry timing.
+
+This represents the majority of traders who follow "discretion with internal rules."
+
+---
+
+## Fundamentals are Excluded from This Comparison
+
+Discretionary trading based on interest rates, economic indicators, or macro-interpretations is excluded here.
+
+The reason is simple:
+- Criteria cannot be easily quantified.
+- It cannot be replicated under identical conditions.
+- It cannot be verified via backtesting.
+
+This isn't about which is better; it’s simply that **fundamentals do not fit into the same verification framework.**
+
+---
+
+## Premises of the Comparison: "Identical Conditions"
+
+For this comparison, we have aligned the following variables:
+- Identical currency pair and timeframe.
+- Identical entry rules.
+- Identical Take Profit and Stop Loss levels.
+- Identical historical price data.
+
+The only difference:
+- **Discretionary:** Skipping certain signals or making micro-adjustments based on "feel."
+- **Automated:** Executing every signal mechanically.
+
+We will examine how this single difference affects **performance and reproducibility.**
+
+As a side note, I have compiled a list of tools that allow you to perform backtests under these conditions below.
+
+<NextLink href="/blog/free-backtest-tools"
+  title="5 Best Free Backtesting Tools | Try These Before You Pay"
+  image="/blog/free-backtest-tools/sumnail.png"
+  width={1200}
+  height={700}
+/>
+
+---
+
+## The Conclusion
+
+When compared under identical conditions, clear trends emerge:
+- **Win Rate:** Discretionary sometimes appears slightly higher.
+- **Average R & Max DD:** Automated trading is significantly more stable.
+- **Sample Size:** As the number of trades increases, automated results converge to their true expectancy.
+
+Let's look at why this happens.
+
+---
+
+## Reason 1: Discretion Hides the "Trades Not Taken"
+
+### The Blind Spot of Discretionary Trading
+
+In discretionary trading, the following occurs daily:
+- "The setup appeared, but I skipped it."
+- "I don't feel like the market is right today."
+- "I just lost a trade, so I’ll sit this one out."
+
+These "decisions not to trade" are **rarely recorded.**
+
+Consequently:
+- Only the executed trades count toward performance.
+- Skipped signals are treated as if they never existed.
+
+### Automated Trading Records Everything
+
+In automated trading:
+- The wins,
+- The losses,
+- And the "ugly" trades,
+
+Are all executed and recorded equally. As a result, **the true expectancy is fully exposed.**
+
+<NextLink href="/blog/how-to-read-backtest-results"
+  title="How to Read Backtest Results | Judging Reproducibility Beyond Win Rate"
+  image="/blog/how-to-read-backtest-results/delver_results.png"
+  width={1200}
+  height={700}
+/>
+
+---
+
+## Reason 2: Differences Emerge with High Trade Volume
+
+### Discretionary Memory is Selective
+
+Traders tend to strongly remember:
+- Periods of winning streaks.
+- Markets where their "feel" was spot on.
+
+Conversely, they easily forget:
+- Periods of slow capital erosion.
+- Minor losses that occur over long stretches.
+
+### Automated Results Converge to the Mean
+
+In automated trading:
+- Trade count increases steadily.
+- Win rate and R-multiple approach their statistical average.
+- Performance becomes less volatile.
+
+For better or worse, **automated results do not lie.**
+
+---
+
+## Reason 3: Predictability of Maximum Drawdown (MDD)
+
+### Discretionary DD is Often "Unexpected"
+
+In discretionary trading, the pattern is predictable:
+- A drawdown occurs that is deeper than "felt."
+- The trader’s mentality breaks.
+- They lower their lot size or switch strategies mid-drawdown.
+
+### Automated DD Can Be Anticipated
+
+Through backtesting, you can know in advance:
+- Max Drawdown (MDD).
+- Frequency of DD.
+- Time to recovery.
+
+This allows you to **decide beforehand** if the strategy is tolerable and if your position sizing is appropriate.
+
+---
+
+## Reason 4: Detecting Environmental Changes
+
+### Discretion: "I'm Just Not Feeling It Recently"
+
+In discretion, market shifts appear as **vague, intuitive anomalies.**
+- "I feel like I haven't been winning lately."
+- "I feel like the market has changed."
+
+### Automated: Data-Driven Anomalies
+
+In automated trading, shifts appear as clear metrics:
+- Drop in Win Rate.
+- Decrease in Profit Factor (PF).
+- Expansion of Max Drawdown.
+
+This allows for **verification-based decisions** on whether to stop or adjust the system.
+
+---
+
+## Is Discretion at a Disadvantage?
+
+The answer is: Not necessarily.
+
+### Where Discretion Shines
+- Discovering new strategy hypotheses.
+- Observing market outliers.
+- Exploring initial trade ideas.
+
+Discretion is **extremely powerful in the pre-verification phase.**
+
+### The Problem: Stopping at Discretion
+
+The limit of pure discretion is that it:
+- Cannot be reproduced.
+- Cannot be passed on.
+- Cannot be systematically improved.
+
+I’ve summarized the biases that cause these issues in this article.
+
+<NextLink href="/blog/backtest-bias-false-reproducibility"
+  title="The 5 Sins of Backtesting | Biases That Destroy Reproducibility"
+  image="/blog/backtest-bias-false-reproducibility/backtest_self_inconsistency.png"
+  width={1200}
+  height={700}
+/>
+
+---
+
+## Final Conclusion | The Winner is "The Verified Structure"
+
+It is not that "automated" is inherently better than "discretionary."
+
+The advantage lies with **Reproducible Structures**:
+- Same rules.
+- Same conditions.
+- Same execution.
+
+In fact, the most successful discretionary traders are those whose decision-making process most closely resembles an automated system.
+
+Where does this "automated-like judgment" appear in backtest results? My next article explores how to judge trading skill beyond just the win rate.
+
+<NextLink href="/blog/how-to-read-backtest-results"
+  title="How to Read Backtest Results | Judging Reproducibility Beyond Win Rate"
+  image="/blog/how-to-read-backtest-results/delver_results.png"
+  width={1200}
+  height={700}
+/>
+
+---
+
+## Summary | What to Do Before You Hesitate
+
+- Before worrying about whether to go automated or discretionary:
+- **Backtest both under identical conditions.**
+
+Stop judging based on feelings; **judge based on numbers and structure.** That is the only shortcut to surviving the markets in the long run.

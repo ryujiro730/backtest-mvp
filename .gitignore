@@ -1,0 +1,80 @@
+############################
+# OS / Editor
+############################
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+############################
+# Node / Next.js
+############################
+node_modules/
+.next/
+out/
+dist/
+build/
+.turbo/
+
+# Backtest results
+results/
+
+
+############################
+# Env / Secrets
+############################
+.env
+.env.*
+!.env.example
+
+############################
+# Vercel
+############################
+.vercel/
+
+############################
+# Logs
+############################
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+############################
+# Backtest / Large Data（最重要）
+############################
+data/
+backtest-data/
+datasets/
+*.parquet
+*.csv
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+############################
+# Python（もし混在してる場合）
+############################
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+############################
+# Misc
+############################
+coverage/
+.tmp/
+.cache/
+structure.txt
+
+############################
+# Rust / Cargo
+############################
+/target/
+**/target/
+engine-rs/target/

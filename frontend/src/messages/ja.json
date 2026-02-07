@@ -1,0 +1,621 @@
+{
+  "Index": {
+    "title": "Delver - 25年のデータで勝つ検証ツール"
+  },
+  "Header": {
+    "blog": "ブログ",
+    "pricing": "料金",
+    "backtest": "バックテストツール",
+    "ruin": "バルサラの破産確率",
+    "expectedValue": "期待値判定ツール",
+    "menu": "メニュー"
+  },
+  "LP": {
+    "Hero": {
+      "title": "1万通りの嘘から、たった一つのエッジを抽出する。",
+      "subtitle": "FXトレーダー、暗号資産トレーダーのための完全無料シミュレーションツール。",
+      "cta": "まずは1戦略を審査する",
+      "blog": "検証を学ぶ",
+      "disclaimer": "ツールは日本語と英語に対応しています。"
+    },
+    "Sections": {
+      "entry": "エントリールールは資金管理から複数インジケータまで網羅",
+      "timezone": "あらゆるタイムゾーン、曜日で厳密にバックテストを実行し最適なタイミングを抽出",
+      "indicator": "複数のインジケータを組み合わせ、閾値を細かく設定しあらゆる市場状況に対応",
+      "priceAction": "既存のバックテストでは難しいプライスアクションでの自動バックテストを可能に",
+      "chartPattern": "人間の目では認識が難しいチャートパターンもキャッチしあらゆる状況に対応する条件設定",
+      "exit": "業界最大級のエグジットパターンを用い、信頼性の高いバックテストで検証"
+    },
+    "Features": {
+      "title": "Why Delver",
+      "speed": { "label": "爆速実行", "desc": "軽量ワーカーとキューでタスクを分散。待ち時間を最小化。" },
+      "parallel": { "label": "並列バックテスト", "desc": "複数パラメータを同時に実行、比較と学習を一気に。" },
+      "free": { "label": "完全無料", "desc": "当サイトのいかなるサービスを利用したとしても一切の料金は発生しません。" }
+    },
+    "HowItWorks": {
+      "title": "使い方（90秒）",
+      "step1": "「まずは1戦略を審査する」へ 移動",
+"step2": "条件を入力して <kbd>Run</kbd> で実行",
+      "step3": "結果を共有"
+    },
+      "Pricing": {
+      "title": "料金プラン",
+      "month": "月",
+      "free": {
+        "title": "Free",
+        "price": "$0",
+        "features": ["基本的なバックテスト", "結果グラフの閲覧", "制限付き実行回数"]
+      },
+      "starter": {
+        "title": "Starter",
+        "price": "$20",
+        "features": ["高速キュー", "1日あたり30回まで実行可能", "優先サポート"]
+      },
+      "pro": {
+        "title": "Pro",
+        "price": "$35",
+        "features": ["大規模並列・専用リソース", "実行回数 無制限", "専任サポート"]
+      }
+    },
+    "Footer": {
+      "copy": "Delver: 完全無料のFXと暗号資産トレードバックテスト & 資産運用シミュレーション",
+      "desc": "検証から学習まで、戦略づくりを最速に。",
+      "contact": "Contact Us",
+      "terms": "利用規約",
+      "newsletter": "最新情報をメールで受け取る"
+    },
+    "BetaSignup": {
+      "title": "ベータ版・先行応募",
+      "description": "このツールはベータ版です。先行利用のご希望はメールアドレスをご登録ください。",
+      "placeholder": "you@example.com",
+      "button": "先行応募する",
+      "sending": "送信中...",
+      "thanks": "登録しました",
+      "error": "送信に失敗しました"
+    },
+    "SeoCopy": {
+      "heading": "無料のFXバックテスト・検証ツールで、戦略を数値で検証する",
+      "body": "Delverは<strong>Product-Led Growth（PLG）</strong>で設計された、ログイン不要の<strong>無料FXバックテストツール</strong>です。MT4やMT5なしでブラウザから過去データを使った検証が可能で、<strong>破産確率・期待値・勝率・ドローダウン</strong>を自動算出します。聖杯探しではなく、<strong>再現性のある検証</strong>でトレード戦略の質を高めましょう。"
+    }
+  },
+  "Balsara": {
+    "Metadata": {
+      "title": "バルサラの破産確率シミュレーター｜Delver Tools",
+      "description": "勝率・RR・リスク率・試行回数から破産確率を即時計算。FXのリスク管理に。"
+    },
+    "title": "バルサラの破産確率シミュレーター",
+    "description": "勝率・RR・リスク率・試行回数から破産確率を推定します（クライアント計算）。ここでの「破産」は <ruinFrac>{ruinFrac}%</ruinFrac> 未満に資金が落ちることを指します。",
+    "cards": {
+      "inputs": "入力条件",
+      "chart": "リスク率に対する破産確率",
+      "currentRor": "現在の破産確率",
+      "reference": "参考"
+    },
+    "fields": {
+      "winRate": "勝率 p",
+      "rr": "RR（勝ち:負け）",
+      "riskRate": "リスク率 f（%）",
+      "trials": "試行回数 N",
+      "ruinLimit": "破産基準（初期資金の%）",
+      "probHint": "0〜1 または 0〜100%（例: 0.55 / 55%）"
+    },
+    "result": {
+      "limitLabel": "破産基準：初期資金の {val}% 未満",
+      "kelly": "Kelly：",
+      "disclaimer": "※ 近似：連敗ベース・独立試行・固定 f。教育目的の目安。",
+      "verdicts": {
+        "danger": "❌ 危険（長期で資金が残りにくい）",
+        "warning": "⚠ 注意（条件次第で破産）",
+        "safe": "✅ 許容範囲（前提が守られれば）"
+      }
+    },
+      "Chart": {
+    "title": "リスク率 f に対する破産確率（他パラメータ固定）",
+    "xLabel": "リスク率 f（%）",
+    "yLabel": "破産確率（%）",
+    "series": {
+      "ror": "破産確率"
+    },
+    "currentF": "現在 f={value}%",
+    "kelly": "Kelly {value}%",
+    "tooltip": {
+      "label": "f = {value}%",
+      "value": "破産確率"
+    },
+    "footnote": "近似: 連敗ベース・独立試行・固定f。ホバーで正確値を表示。"
+  },
+    "EV": {
+    "title": "FX 期待値（EV）判定ツール",
+    "subtitle": "勝率・RR・リスク率・コストから、1トレードあたりの期待値を算出します（R換算 / 口座%換算）。",
+
+    "cards": {
+      "inputs": "入力条件",
+      "verdict": "結論",
+      "cost": "コスト（R換算）",
+      "breakeven": "損益分岐",
+      "howto": "使い方"
+    },
+
+    "labels": {
+      "p": "勝率 p（0〜1 / 0〜100%）",
+      "rr": "RR（勝ち:負け）",
+      "f": "リスク率 f（%）",
+      "fee": "手数料（往復 bps）",
+      "slip": "スリッページ（往復 bps）"
+    },
+
+    "placeholders": {
+      "p": "0.55 / 55%",
+      "rr": "1.0",
+      "f": "2",
+      "fee": "5",
+      "slip": "1"
+    },
+
+    "result": {
+      "evPct": "期待値（口座換算）",
+      "perTrade": "% / trade",
+      "costR": "コスト",
+      "fee": "手数料(bps)",
+      "slip": "スリップ(bps)",
+      "risk": "リスク率 f",
+      "pBe": "損益分岐 勝率",
+      "rrBe": "損益分岐 RR"
+    },
+
+    "verdicts": {
+      "negative": "❌ 数学的に不利（期待値マイナス）",
+      "border": "⚠ ギリ（手数料・ブレで簡単に死ぬ）",
+      "positive": "✅ 検証価値あり（期待値プラス）"
+    },
+
+    "notes": {
+      "cost": "※ bpsコストを「R」に直すため、リスク率 f を使います（小さいほどコストRが重くなる）。",
+      "breakeven": "※ コスト込みの条件。これ未満なら数学的に負け。",
+      "howto1": "・EV < 0 の時点で、その戦略は「検証する価値なし」",
+      "howto2": "・EV が小さい場合、手数料・スリップ・実運用ブレで簡単にマイナス化"
+    }
+  }
+  },
+    "RunButton": {
+    "run": "実行",
+    "running": "計算中…",
+    "noEntry": "エントリー条件を1つ以上設定してください"
+  },
+    "RulesBuilder": {
+    "title": "エントリー／エグジットルールの定義",
+    "description": "バックテスト用の戦略ルールを定義します",
+
+    "sections": {
+      "trading": "取引条件",
+      "indicator": "インジケーター条件",
+      "time": "時間帯",
+      "price": "プライスアクション",
+      "chartPattern": "チャートパターン",
+      "exit": "エグジットルール"
+    }
+},
+  "TradingConditions": {
+    "title": "取引条件",
+
+    "fields": {
+      "allowPyramid": "積み増し（ピラミッディング）",
+      "allowPyramidDesc": "ON にすると、同じ方向のシグナルが続くたびに追加でエントリーします。OFF のときは1ポジションのみです。",
+      "balance": "初期残高",
+      "spread": "スプレッド",
+      "slippage": "スリッページ",
+      "swap": "スワップ",
+      "commission": "手数料",
+      "leverage": "レバレッジ",
+      "marginCall": "マージンコール水準",
+      "lotMode": "ロットモード",
+      "fixedLot": "固定ロット",
+      "fixedLotDesc": "口座残高に関係なく、常に一定ロットで取引します（例：0.1 lot）",
+      "dynamicLot": "動的ロット",
+      "dynamicLotDesc": "口座残高に応じてロットサイズが変動し、複利運用が可能になります",
+      "lotSize": "固定ロットサイズ",
+      "riskPct": "リスク（%）"
+    },
+
+    "units": {
+      "yen": "円",
+      "pips": "pips",
+      "yenPerLot": "円/lot",
+      "percent": "%"
+    }
+  },
+    "TimeZone": {
+    "title": "時間帯",
+
+    "period": {
+      "start": "バックテスト開始日",
+      "end": "バックテスト終了日"
+    },
+
+    "days": {
+      "label": "曜日",
+      "mon": "月",
+      "tue": "火",
+      "wed": "水",
+      "thu": "木",
+      "fri": "金",
+      "sat": "土",
+      "sun": "日"
+    },
+
+    "intraday": {
+      "label": "日中の時間帯のみ有効",
+      "from": "開始時刻",
+      "to": "終了時刻"
+    }
+  },
+"PriceAction": {
+  "title": "プライスアクション",
+  "tabs": {
+    "long": "ロング",
+    "short": "ショート"
+  },
+  "logic": {
+    "and": "すべて満たす",
+    "or": "いずれか"
+  },
+  "labels": {
+    "pattern": "パターン",
+    "signal": "シグナル方向",
+    "entry": "エントリー方向"
+  },
+  "patterns": {
+    "pinbar": "ピンバー",
+    "inside_bar": "インサイドバー",
+    "three_bar": "3バーリバーサル"
+  },
+  "signal": {
+    "bullish": "強気",
+    "bearish": "弱気"
+  },
+  "entry": {
+    "long": "ロング",
+    "short": "ショート"
+  },
+  "actions": {
+    "add": "+ パターンを追加",
+    "remove": "削除"
+  },
+  "patternName": "{value}"
+},
+    "ChartPattern": {
+    "title": "チャートパターン",
+    "tabs": {
+      "long": "ロング",
+      "short": "ショート"
+    },
+    "patterns": {
+      "head_and_shoulders": "ヘッド＆ショルダー",
+      "ascending_triangle": "アセンディングトライアングル",
+      "bear_flag": "ベアフラッグ"
+    },
+
+    "direction": {
+      "label": "方向",
+      "reversal": "反転",
+      "continuation": "継続"
+    },
+
+    "entry": {
+      "label": "エントリー",
+      "long": "ロング",
+      "short": "ショート"
+    },
+
+    "option": {
+      "label": "オプション",
+      "neckline": "ネックライン",
+      "tight": "タイトレンジ",
+      "none": "---"
+    },
+
+    "actions": {
+      "add": "+ パターンを追加"
+    }
+  },
+  "Indicator": {
+    "title": "インジケーター条件",
+    "tabs": {
+      "long": "ロング",
+      "short": "ショート"
+    },
+    "logic": {
+      "and": "すべて満たす",
+      "or": "いずれか"
+    },
+
+    "direction": {
+      "long": "ロング",
+      "short": "ショート"
+    },
+
+    "actions": {
+      "add": "+ インジケーターを追加",
+      "delete": "削除"
+    },
+
+    "fields": {
+      "indicator": "インジケーター",
+      "direction": "方向",
+      "period": "期間",
+      "condition": "条件",
+      "threshold": "しきい値",
+      "fast": "短期",
+      "slow": "長期",
+      "cross": "クロス",
+      "signal": "Signal",
+      "sigma": "σ",
+      "multiplier": "倍率",
+      "lookback": "期間",
+      "side": "方向"
+    },
+
+    "indicators": {
+      "rsi": "RSI",
+      "sma": "SMA（単純移動平均）",
+      "ema": "EMA（指数移動平均）",
+      "macd": "MACD",
+      "bbands": "ボリンジャーバンド",
+      "stoch": "ストキャスティクス",
+      "adx": "ADX",
+      "cci": "CCI",
+      "vwap": "VWAP",
+      "supertrend": "スーパートレンド",
+      "donchian": "ドンチャン",
+      "breakout": "ブレイクアウト"
+    },
+
+    "events": {
+      "cross_up": "上抜け",
+      "cross_down": "下抜け",
+      "above": "ゴールデンクロス",
+      "below": "デッドクロス",
+      "above_zero": "0以上",
+      "below_zero": "0以下",
+      "gt": "以上",
+      "lt": "以下",
+      "price_cross_above": "上抜け",
+      "price_cross_below": "下抜け",
+      "trend_up": "上昇トレンド",
+      "trend_down": "下降トレンド"
+    },
+
+    "side": {
+      "high": "高値",
+      "low": "安値"
+    }
+},
+    "Exit": {
+    "title": "エグジット条件",
+    "tabs": {
+      "long": "ロング",
+      "short": "ショート"
+    },
+    "logic": {
+      "and": "すべて満たす",
+      "or": "いずれか"
+    },
+
+    "tpSl": {
+      "tp": "テイクプロフィット（TP）",
+      "sl": "ストップロス（SL)",
+    "unitPips": "pips"
+    },
+
+    "candleExit": {
+      "label": "ローソク足反転によるエグジット",
+      "placeholder": "選択なし",
+      "patterns": {
+        "pinbar": "ピンバー",
+        "engulfing": "包み足",
+        "inside": "インサイドバー"
+      }
+    },
+
+    "equity": {
+      "tp": "利確（％）",
+      "sl": "損切り（％）",
+      "unit": "%"
+    },
+
+    "timeLimit": {
+      "tp": "最大保有時間（利確）",
+      "sl": "最大保有時間（損切り）",
+      "unit": "分"
+    },
+
+    "forcedExit": {
+      "start": "強制決済 開始時刻",
+      "end": "強制決済 終了時刻"
+    },
+
+    "trailing": {
+      "title": "トレーリングストップ",
+      "activate": "有効化ライン",
+      "trail": "追従幅",
+      "unit": "pips"
+    }
+  },
+    "Notice": {
+    "title": "ご利用上の注意",
+    "items": {
+      "backtest": "<strong>本ツールのバックテスト結果は過去データに基づくシミュレーション</strong>であり、将来の利益を保証するものではありません。実際の市場環境（手数料・スリッページ・流動性・取引制限など）とは異なる場合があります。",
+      "timeframe": "<strong>1時間足以下の時間足（M1・M5・M15）では、データ量が非常に多いため</strong>バックテストおよび各種グラフ描画に時間がかかる場合があります。処理が進行中は画面を閉じずにお待ちください。",
+      "engine": "本ツールでは、<strong>各エントリーが成立した時点から決済までの値動きを1本ずつ読み取り</strong>、損益・ドローダウン・勝率・保有時間などを逐次計算しています。特殊なAI推論やブラックボックス計算ではなく、誰でも検証可能な「値動き＋ルール条件」のみで構成されています。",
+      "free": "DELVER Backtest Engine は現在<strong>完全無料でご利用いただけます。</strong>将来的な有料化や制限の予定がある場合は、事前にお知らせします。",
+      "contact": "不具合・改善要望・ご質問などありましたら、<strong>info@delvertrade.com</strong> までお気軽にご連絡ください。"
+    }
+  },
+    "Charts": {
+    "AveragePLByOutcome": {
+      "win": "勝ち",
+      "draw": "引き分け",
+      "loss": "負け",
+      "avgPL": "平均損益"
+    }
+    ,
+        "Drawdown": {
+      "dd": "ドローダウン"
+    },
+        "DurationProfit": {
+      "xName": "保有時間",
+      "xUnit": "分",
+      "yName": "損益",
+      "win": "勝ちトレード",
+      "loss": "負けトレード"
+    },
+        "EquityByTradeType": {
+      "long": "ロング",
+      "short": "ショート"
+    },
+        "HourlyPerformance": {
+      "hourSuffix": "時",
+      "profit": "損益"
+    },
+        "ReturnDistribution": {
+      "count": "トレード数"
+    },
+        "Streak": {
+      "count": "発生回数"
+    },
+    "TradeFrequency": {
+      "days": {
+        "sun": "日",
+        "mon": "月",
+        "tue": "火",
+        "wed": "水",
+        "thu": "木",
+        "fri": "金",
+        "sat": "土"
+      }
+    }
+  },
+    "ExecutionCondition": {
+    "title": "実行条件",
+    "pair": "銘柄",
+    "timeframe": "時間足"
+  },
+    "Performance": {
+    "loading": "データ読込中...",
+    "shareToX": "Xでシェア",
+    "tabs": {
+      "equityCurve": "エクイティカーブ",
+      "drawdown": "ドローダウン",
+      "weekday": "曜日別",
+      "returns": "リターン分布",
+      "hourly": "時間別パフォーマンス",
+      "streak": "連勝・連敗",
+      "duration": "保有時間と損益",
+      "heatmap": "頻度ヒートマップ",
+      "equityByType": "トレード種別エクイティ推移"
+    }
+  },
+  "PerformanceHeader": {
+    "title": "パフォーマンス分析",
+    "subtitle": "バックテスト結果の詳細分析",
+    "back": "戻る"
+  },
+    "PerformanceSidebar": {
+    "items": {
+      "overview": "概要",
+      "returns": "リターン分布",
+      "hour": "時間別パフォーマンス",
+      "heatmap": "頻度ヒートマップ",
+      "streak": "連勝・連敗",
+      "duration": "保有時間と損益",
+      "equity": "トレード種別エクイティ推移"
+    },
+    "back": {
+      "line1": "トレード設定へ",
+      "line2": "戻る"
+    }
+  },
+    "KPI": {
+    "pf": {
+      "title": "プロフィットファクター",
+      "desc": "総利益 ÷ 総損失"
+    },
+    "winrate": {
+      "title": "勝率",
+      "desc": "勝ちトレードの割合"
+    },
+    "maxdd": {
+      "title": "最大ドローダウン",
+      "desc": "資金の最大下落率"
+    },
+    "trades": {
+      "title": "トレード数",
+      "desc": "検証に使った回数",
+      "unit": "回"
+    }
+  },
+
+  "Blog": {
+    "meta": {
+      "title": "検証ブログ | Delver（FXバックテストSaaS）",
+      "description": "FX・先物トレードの検証、バックテスト設計、期待値・勝率・ドローダウンの考え方など、Delverを使った実践的な検証ノウハウをまとめたブログです。"
+    },
+    "badge": "検証ブログ",
+    "headline": "勘ではなく、数字でトレードを判断するための読みもの",
+    "description": "FX・先物トレードにおける戦略の作り方、検証の考え方、期待値とリスク管理を中心に、「なぜその結果になるのか」を数値ベースで解説します。Delverでのバックテストと併用することを前提にした実践向けブログです。",
+    "categories": {
+      "all": "すべて",
+      "strategy": "戦略・ロジック",
+      "indicator": "インジケーター",
+      "risk": "リスク管理",
+      "analysis": "分析・検証",
+      "other": "その他"
+    },
+    "empty": "まだ記事がありません。順次追加予定です。",
+    "readTime": "読了 {minutes}分",
+    "readMore": "記事を読む",
+    "dateLocale": "ja-JP",
+    "aria": {
+      "categories": "記事カテゴリ",
+      "articles": "記事一覧"
+    },
+    "cta": {
+      "title": "読んだ内容を、そのまま Delver で検証する",
+      "description": "ブログで解説している戦略や考え方は、Delver 上でそのままバックテスト可能です。数字で確認しながら読むことで、理解の精度が一段上がります。",
+      "button": "Delver を使って検証する"
+    }
+  },
+    "BlogPost": {
+    "siteTitle": "Delver 検証ブログ",
+    "notFound": "記事が見つかりませんでした | Delver",
+    "home": "ホーム",
+    "by": "By",
+    "published": "公開日",
+    "readTime": "読了時間",
+    "minutes": "分",
+    "defaultAuthor": "Jack Sterling",
+    "prev": "前の記事へ",
+    "next": "次の記事へ",
+    "cta": {
+      "title": "[会員登録不要・無料] Delverで検証する",
+      "description": "再現性のあるバックテストを、プログラミング不要で実行可能です。Delverを使って、あなたのトレード戦略を今すぐ検証しましょう。",
+      "button": "Delverで検証する"
+    }
+  },
+    "AuthorSig": {
+    "label": "Article Author",
+    "nameJa": "Jack Sterling",
+    "nameEn": "Jack Sterling",
+    "imageAlt": "Jack Sterling",
+    "description": "Delver 創業者。25年分の市場データを活用したバックテスト・エンジンの開発を行っています。トレードにおける直感や曖昧さを排除し、客観的なデータに基づいて期待値を検証するための仕組み作りが専門です。"
+  },
+  "Explanation": {
+    "title": "Delverの使い方（3ステップ）",
+    "description": "ログイン不要です。上のフォームで条件を入力し「Run」を押すだけで、バックテストが開始されます。",
+    "steps": [
+      { "title": "条件を設定する", "description": "通貨ペア・時間足・エントリー・エグジットなどのルールを選択します。インジケータの閾値や時間帯フィルターも設定可能です。" },
+      { "title": "Run で実行する", "description": "「Run」ボタンでバックテストを開始。完了まで数十秒〜数分です。完了後は結果ページへ自動で移動します。" },
+      { "title": "結果を確認・共有する", "description": "成績サマリー・エクイティ曲線・トレード一覧を確認できます。リンクをコピーして共有することも可能です。" }
+    ]
+  }
+}

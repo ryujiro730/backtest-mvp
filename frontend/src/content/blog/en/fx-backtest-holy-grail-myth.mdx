@@ -1,0 +1,154 @@
+---
+slug: "fx-backtest-holy-grail-myth"
+title: "The Essence of FX Verification and Backtesting: The Single Holy Grail Doesn't Exist, but a Theoretical 'Winning Structure' Can Be Built"
+description: "Analyzing and explaining the winning structure in trading from a mathematical and statistical perspective. While a single Holy Grail may not exist, entries with mathematically high expectancy certainly do."
+category: "strategy"
+publishedAt: "2026-01-31"
+readTimeMinutes: 10
+author: "Jack Sterling"
+---
+
+<BlogToc />
+
+# Introduction
+
+In FX and stock trading, the term "Holy Grail" is frequently heard. Usually, it refers to a "strategy that never loses" or a "perfect timing for 100% success."
+Whether such a thing exists is a point I will skip, as I have never seen or been convinced by one.
+In this article, I will explain the true purpose of verification and backtesting, and how to conduct them so that the process actually becomes meaningful.
+
+---
+
+## What is the Purpose of Verification?
+
+When people hear about verification in FX or stocks, they likely imagine <InlineLink href="backtest-design-mistakes">manually rewinding charts</InlineLink>, writing and executing code, or purchasing EAs to see their automated trading performance.
+There are <InlineLink href="fx-backtest-how-to">various ways to backtest</InlineLink>, but for now, let's group them under the term "verification." But first, what is the goal?
+Most people think verification is simply "checking if the strategy is correct."
+However, that is insufficient.
+
+### Finding Winning Conditions
+You might think this is the same as "verifying a winning strategy," but it is entirely different.
+It means identifying **"under which conditions do I win?"**—such as specific days of the week, time zones, currency pairs, or market environments.
+If you cannot identify the winning conditions, the verification loses its purpose.
+
+### Finding Losing Conditions
+This is also extremely important.
+In fact, it is the most critical part of verification.
+Once you identify the conditions under which you lose, you can stop trading under those conditions forever.
+Theoretically, **the more losing conditions you know, the less you will lose.**
+It sounds obvious, but many traders who lose are simply repeating the same losing patterns over and over. I have done this many times myself.
+
+### Confirming Reproducibility
+<InlineLink href="discretionary-fx-backtest-no-reproducibility">Trading without reproducibility</InlineLink> is just gambling.
+Looking for a slot machine with positive expectancy is more rational and reproducible.
+For example, if a backtest shows a total profit for a strategy, look for the commonalities.
+If entries made when multiple filters align are winning, those filters are worth adopting in live trading.
+When you win every time all filters trigger, you have discovered true reproducibility.
+
+## The "Drip" Process
+
+Based on the points above, verification is the act of **layering various filters and "dripping" out the refined results.**
+This process is not based on intuition; it is the optimization of conditional probability.
+A simple rule like "buy when the Moving Average golden crosses" is a wasted opportunity.
+
+### Filtering by Day and Time
+These are crucial elements. It is widely said that Fridays and Mondays are risky due to market volatility. This is an excellent theme to exclude and verify.
+
+### Multi-layered Filtering via Price Action and Patterns
+In addition to numerical filtering with indicators, filtering by shape (patterns) is extremely effective.
+However, environments where you can strictly verify these are limited.
+For individual traders, using the pattern recognition engine in <InlineLink href="/">Delver</InlineLink> is the most efficient route. If you handle Python and want to pursue shape similarity at a higher level, libraries like **FAISS (Facebook AI Similarity Search)** allow you to rapidly extract specific chart shapes from millions of data points.
+
+### Examining Correlation with Interest Rates
+This is another great filter. For example, verifying a "no shorting" rule when US interest rates are higher than Japanese rates can yield valuable insights.
+
+### Verifying High Win Rates with Multiple Indicators
+Combine <InlineLink href="fx-rsi-not-working">RSI</InlineLink>, GMMA, MACD, and Bollinger Bands, and enter only when all indicators meet specific conditions.
+By doing this, even if the number of entries decreases, those that remain are likely to have very high expectancy.
+
+By layering these various filters, you achieve higher precision and, above all, highly reproducible trades.
+The key is to layer many filters to "drip" away the noise and find pure, clean conditions and environments.
+
+### The Secret of the Drip: The Mathematical Background of Conditional Probability
+Why can't you win with a "single indicator"? The answer lies in **"Conditional Probability"** in statistics. Let the win rate of a simple golden cross be $P(A)$. Now, let's layer filter $B$ (higher timeframe is in an uptrend) and filter $C$ (RSI is not oversold). The formula we need to know is:
+
+<div className="flex flex-col items-center justify-center font-serif my-12 text-2xl tracking-widest">
+  <div className="flex items-center space-x-4">
+    <span>P(A | B ∩ C) =</span>
+    <div className="flex flex-col items-center">
+      <div className="border-b-2 border-current px-4 pb-1">
+        P(A ∩ B ∩ C)
+      </div>
+      <div className="pt-1">
+        P(B ∩ C)
+      </div>
+    </div>
+  </div>
+</div>
+
+In other words, it is **"the probability that event A (winning) occurs given that conditions B and C are simultaneously met."**
+Verification is not just chasing signals. it is the work of identifying the points that maximize expectancy by optimizing the combination of "filters (conditions)" and dripping out the impurities. A strategy that has not undergone this mathematical process of "dripping away low-expectancy points" is just a "wish," not a strategy.
+
+## Manual Verification
+This refers to <InlineLink href="https://jp.tradingview.com/">TradingView's</InlineLink> Replay Mode.
+![Manual Verification Screen](/blog/tradingview-replay-reproducibility-limit/tv-replay-future-context-1.png)
+As mentioned, filtering multiple factors is key, but how do you do it manually?
+Rewinding charts to verify many filters manually is exhausting.
+However, in practice, you have to do it. So how?
+I won't discuss <InlineLink href="automated-vs-discretionary-backtest">whether discretion or automated trading is more advantageous</InlineLink> here, but I want to touch upon how to conduct <InlineLink href="backtest-design-mistakes">manual verification</InlineLink>.
+
+### Getting Used to Trading
+This is the biggest advantage of manual verification.
+In any field, **you don't get better without practice.**
+Just because you hear a winning logic from a world champion athlete doesn't mean you become a world champion by doing it.
+The same applies to business; hearing how to start a company doesn't make you a billionaire.
+You must get "used" to the act of trading.
+
+### Closing the Gap with Reality
+This is another major benefit.
+The strength of discretionary trading is the ability to trade while considering the "heat" of the moment or fundamentals.
+Manual verification allows you to trade with judgments only a human can make, by reading chart movements and looking back at past news.
+You might think this leads to non-reproducible trading, but that criticism is nonsense regarding fundamentals, as the world of news is irreversible and lacks literal reproducibility.
+Furthermore, there is a view that similar events or news tend to result in similar market trends.
+
+## Automated Verification
+Unlike manual verification, there are specific points to keep in mind.
+This is the method that maximizes the core benefits of backtesting.
+
+### Focus on Accuracy
+When running automated backtests with <InlineLink href="https://www.metatrader4.com">MT4</InlineLink> or Python, you first need to acquire price movement data.
+You must clean the data for missing values or outliers and then build the entry and exit programs.
+While a skilled engineer can do this accurately, it is risky for a non-programmer to use AI-generated code and apply the resulting data to live trading.
+With SaaS like <InlineLink href="/">Delver</InlineLink>, where you simply enter conditions into a form, non-engineers can ensure accuracy using pre-verified data.
+
+### Visualizing Results
+Let's look at a result summary like this one from <InlineLink href="/">Delver</InlineLink>.
+One must be careful with <InlineLink href="how-to-read-backtest-results">how to read the result summary</InlineLink>.
+First, suspect curve fitting. Then, look for patterns such as <InlineLink href="max-drawdown-risk-of-ruin">high win rates but high drawdowns</InlineLink>, which requires some skill to interpret.
+![Delver Result Screen](/blog/how-to-read-backtest-results/delver_results.png)
+
+## The Worst Choices
+So far, I've introduced the mindset for verification, but there are things you must absolutely never do.
+Getting data is good, but if that data is wrong, it's a disaster.
+
+### Suspect Curve Fitting?
+I'm not saying "suspect everything is <InlineLink href="winrate-pf-overfitting-trap">curve fitting</InlineLink>."
+In fact, as long as the data exists, "curve fitting" as a purely negative concept doesn't exist in the way people think.
+Think about it logically:
+- **You entered entry conditions.**
+- **It entered according to those conditions.**
+- **It exited according to those conditions.**
+The result is simply the truth for those conditions. It's not a "biased" result.
+Some say, "This strategy only works for this period, so it's curve fitting!" If that's the concern, just verify 25 years of data.
+The fact that a strategy worked during a specific period is extremely valuable data. You can assume that on days with similar conditions to that period, the win rate will be high.
+
+### "Slow Suicide" by Not Verifying
+No athlete goes into a match without practice. Yet, in trading, many people gamble their entire fortune on "intuition."
+There is zero benefit to not verifying. It is the statistical equivalent of sprinting through a minefield blindfolded—it is suicide.
+
+## Reduce Wasted Entries Through Verification
+For a trader, money is inventory.
+Throwing away money you worked hard for into a heartless, chaotic market without thought is hollow.
+At the very least, you should verify to avoid such wasted entries.
+Above all, it is clearly more logical to trade based on **numerically backed strategies** verified against 25 years of data than to rely on your own limited experience.
+There is no need to be the "Emperor with no clothes."
+There are plenty of <InlineLink href="free-backtest-tools">free verification tools</InlineLink> available. By <InlineLink href="fx-backtest-tools-comparison">comparing</InlineLink> them and using one that suits you, you can prevent **losses of hundreds of thousands or millions of yen.** Isn't it obvious that spending just 30 minutes a day on verification is the right choice?

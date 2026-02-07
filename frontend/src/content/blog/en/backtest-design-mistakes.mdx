@@ -1,0 +1,194 @@
+---
+slug: "backtest-design-mistakes"
+title: "3 Reasons Why You Can't Win Despite Backtesting | Fatal Flaws in Manual Verification"
+description: "Why doesn't manual backtesting on MT5 or TradingView lead to real-world profits? We break down three fatal design flaws in entry, exit, and recording with concrete examples."
+category: "analysis"
+publishedAt: "2026-01-25"
+readTimeMinutes: 10
+author: "Jack Sterling"
+---
+
+# 3 Reasons Why You Can't Win Despite Backtesting | Fatal Flaws in Manual Verification
+
+"I backtest properly, so why can't I win in the real market?"
+
+Many traders spend dozens or hundreds of hours using the replay functions of MT5 or TradingView, yet fail to see results in live trading. This is a common story.
+
+The truth is, **in most cases, the problem isn't the strategy—it's the 'Design of the Backtest' itself.**
+
+In this article, we will focus on the three most common fatal design flaws in manual (replay) backtesting.
+
+For recommended verification tools, please see the article below:
+<NextLink href="/blog/free-backtest-tools"
+  title="5 Best Free Backtesting Tools | Must-Try Verification Environments"
+  image="/blog/free-backtest-tools/sumnail.png"
+  width={1200}
+  height={700}
+/>
+
+---
+
+## Why So Many People "Backtest But Still Lose"
+
+### Confusing "Backtesting" with "Looking at Charts"
+
+When people hear the word "backtesting," they often think it means looking at historical charts and saying, "Ah, I would have won if I entered here."
+
+This is not backtesting; **this is just reflection.** There is zero reproducibility in this approach.
+
+### Intuitive Verification Destroys Reproducibility
+
+"This pattern looks strong."
+"The vibe feels like it's going to trend."
+
+The moment even one of these subjective judgments enters your process, your results become **impossible to replicate under the same conditions next time.**
+
+### The Cause is the "Design," Not the "Strategy"
+
+Most people conclude that "this strategy didn't work." However, in reality:
+- Conditions were vague.
+- Exits were inconsistent.
+- Records were non-existent.
+
+Because of these factors, **the data wasn't in an evaluable format to begin with.**
+
+---
+
+## Design Flaw #1: Vague Entry Conditions
+
+### Can You Describe the Entry in Writing?
+
+First, ask yourself:
+> "Can I explain this entry condition to someone else in writing?"
+
+- Which timeframe?
+- At the exact moment which candle closes?
+- What exactly needs to happen immediately before?
+
+If you cannot verbalize this, the condition is **unverifiable.**
+
+### Lack of Fixed Parameters for Candles, Time, and Context
+
+For example:
+- What is the required wick length?
+- What is the body-to-wick ratio?
+- Is the setup treated the same in the Tokyo session as in London?
+
+Without fixing these variables, you will produce a mass of trades that **look similar but are fundamentally different.**
+
+### Discretion Kills the Data
+
+"The conditions are a bit weak this time, but let's try entering anyway."
+
+The moment you allow this, **your entire dataset becomes unreliable.** In backtesting, the goal isn't to "trade well." The goal is to **do the exact same thing mechanically, every single time.**
+
+---
+
+## Design Flaw #2: Changing Exits Every Time
+
+### Backtesting Without Fixed R-Multiples is Meaningless
+
+Do you decide where to take profit based on the chart every time you enter? That is not backtesting; **that is just discretionary trading on a past chart.**
+
+- How many pips (or what R) for the Stop Loss (SL)?
+- What is the target R for Take Profit (TP)?
+- Do you use partial exits?
+
+Without these rules, your win rate and Profit Factor (PF) become **impossible to evaluate.**
+
+### "Letting it Run Because it Looks Strong" is Not Backtesting
+
+"It looked like it would trend, so I held for more profit."
+
+Doing this creates a bias where:
+- Winning trades are glorified.
+- Losing trades are left as they are.
+
+As a result, your results **look better than they would actually be in real-time.**
+
+### Ignoring "Time-Based Exits"
+
+In real markets:
+- Prices often go sideways for hours.
+- Nothing happens after an entry.
+
+If your design doesn't include time-based exits (e.g., exit after X candles), you will face **unexpected losses and immense stress in live execution.**
+
+---
+
+## Design Flaw #3: Failure to Record and Aggregate Results
+
+### Looking Only at Win Rate, Ignoring PF and Drawdown
+
+"A 60% win rate looks good." This is extremely dangerous.
+
+- Profit Factor (PF)
+- Maximum Drawdown (MDD)
+- Maximum Consecutive Losses
+
+Without these metrics, you **cannot make any informed decisions regarding risk management.**
+
+<NextLink href="/blog/how-to-read-backtest-results"
+  title="How to Read Backtest Results | 5 Metrics to Watch Beyond Win Rate"
+  image="/blog/how-to-read-backtest-results/delver_results.png"
+  width={1200}
+  height={700}
+/>
+
+---
+
+### Failure to Categorize Losing Trades
+
+Do you categorize your losses into:
+- Entry errors?
+- Market environment mismatch?
+- "Standard" losses within the system?
+
+If not, **the points that need improvement will remain invisible forever.**
+
+### No Logs = Repeating the Same Mistakes Forever
+
+Backtesting without records **does not accumulate as experience.** You will find yourself trapped in an endless loop of "I feel like I've lost in this exact spot before."
+
+---
+
+## The Limits of Manual Backtesting and "The Next Step"
+
+### What Manual Backtesting Can and Cannot Tell You
+
+Manual verification is good for:
+- Getting a feel for the conditions.
+- Filtering out obviously bad strategies.
+
+However, it is **fundamentally unsuitable** for:
+- Long-term performance tracking.
+- Measuring Max Drawdown.
+- Comparative fine-tuning of parameters.
+
+### Transition to Automated Backtesting
+
+Once you reach the stage where:
+- You can describe your conditions in writing.
+- Your exit rules are fixed.
+- You have finished over 100 manual tests.
+
+There is no reason to stick to manual testing.
+
+<NextLink href="/blog/free-backtest-tools"
+  title="5 Best Free Backtesting Tools | Must-Try Verification Environments"
+  image="/blog/free-backtest-tools/sumnail.png"
+  width={1200}
+  height={700}
+/>
+
+---
+
+## Conclusion
+
+The reason you aren't winning despite backtesting is usually found in your **Design, not your Trading Skill.**
+
+1. Fix your conditions.
+2. Fix your exits.
+3. Keep detailed records.
+
+Only when these three are aligned does backtesting truly become meaningful.

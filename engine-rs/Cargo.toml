@@ -1,0 +1,13 @@
+[package]
+name = "engine-rs"
+version = "0.1.0"
+edition = "2021"
+description = "Delver backtest engine core (Rust), callable from Python"
+
+[lib]
+name = "engine_rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.23", features = ["extension-module"] }
+numpy = "0.23"

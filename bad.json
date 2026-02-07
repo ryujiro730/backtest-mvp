@@ -1,0 +1,8 @@
+{
+  "pair": "EURUSD",
+  "timeframe": "H1",
+  "date_range": { "from": "2023-01-01", "to": "2025-01-01", "tz": "UTC" },
+  "direction": "long",
+  "entry": [ { "type": "ema_cross", "fast": 20, "slow": 50, "cross": "above", "slippage_bps": "abc" } ],
+  "exit": {}
+}

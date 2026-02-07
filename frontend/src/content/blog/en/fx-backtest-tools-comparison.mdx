@@ -1,0 +1,247 @@
+---
+slug: "fx-backtest-tools-comparison"
+title: "Detailed Comparison of Free FX Backtesting Tools (2026) | Start Here"
+description: "Choosing the right tool determines the outcome of reproducible discretionary FX verification. We compare free backtesting environments like TradingView and MT4/MT5 from the perspective of identical conditions and reproducibility."
+category: "analysis"
+publishedAt: "2026-01-29"
+readTimeMinutes: 10
+author: "Jack Sterling"
+---
+
+{/* Hub */}
+
+<BlogToc />
+
+## Why Is Choosing an FX Verification Tool So Confusing?
+
+When practicing discretionary FX, many people hit the same wall:
+
+- They don't understand the reason they are losing.
+- Despite verifying, their results remain inconsistent.
+- They use tools but can't judge if their verification is correct.
+
+It is easy to think the problem lies with indicators or methods, but the most common cause is actually the **verification environment itself.**
+
+The tool you choose changes the "quality of verification" entirely.
+
+In this article, we compare free FX verification tools with a singular focus: **achieving reproducibility in discretionary trading.**
+
+---
+
+## Conclusion: Popularity and Feature Count Are Not What Matters
+
+When choosing a verification tool, people often prioritize these points:
+
+- Large variety of indicators
+- Rich, polished visuals
+- High popularity and large user base
+
+However, in discretionary FX verification, these are not the essence.
+
+**What truly matters is whether you can reproduce the exact same conditions over and over again.**
+
+Verification results that cannot be reproduced are either a fluke or numbers that only worked in the past.
+
+<NextLink href="/blog/backtest-design-mistakes"
+title="3 Reasons Why You Lose Despite Verifying | Fatal Mistakes in Manual Testing Done by 90%"
+image="/blog/backtest-design-mistakes/thumbnail.png"
+/>
+
+---
+
+## Prerequisite: Minimum Conditions for Reproducibility in Discretionary FX
+
+If you are verifying discretionary trades, you must meet at least these conditions:
+
+1. Entry conditions can be fixed without ambiguity.
+2. Exit conditions (TP, SL, Time, etc.) can be clearly specified.
+3. You can re-verify the same conditions multiple times.
+4. Results show numerical data beyond win rate, such as R-multiples and Drawdowns.
+5. You can compare differences when conditions are changed.
+
+In this article, we evaluate each tool based on **these 5 criteria.**
+
+---
+
+## Target FX Verification Tools (All Free)
+
+We compare the environments most commonly used by discretionary traders:
+
+- TradingView (Strategy Tester)
+- MT4 / MT5 (Strategy Tester)
+- Other free backtesting tools
+- Delver
+
+We evaluate these not based on ease of use or personal preference, but **solely from the perspective of reproducibility.**
+
+---
+
+## Comparison Axis | Key Points Evaluated
+
+<table>
+  <thead>
+    <tr>
+      <th>Perspective</th>
+      <th>What is Checked</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Fixed Conditions</td>
+      <td>Can you verify with the exact same rules every time?</td>
+    </tr>
+    <tr>
+      <td>Discretionary Support</td>
+      <td>Can you input discretionary judgments as fixed rules?</td>
+    </tr>
+    <tr>
+      <td>Verification Efficiency</td>
+      <td>Are condition changes and re-verification realistic?</td>
+    </tr>
+    <tr>
+      <td>Result Visualization</td>
+      <td>Can metrics other than win rate be confirmed?</td>
+    </tr>
+    <tr>
+      <td>Reproducibility</td>
+      <td>Can others or different periods yield the same verification?</td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
+## Tool Evaluations
+
+### TradingView
+
+**What it can do**
+- Intuitive confirmation on the chart.
+- Convenient for verifying automated trading logic.
+
+**Pitfalls in Discretionary Verification**
+- Difficult to strictly fix discretionary judgments.
+- Comparison between changed conditions is hard to perform.
+
+**Reproducibility Perspective**
+- Suited for automated trading.
+- Conditions tend to drift in discretionary verification.
+
+Official TradingView site: <InlineLink href="https://www.tradingview.com/">here</InlineLink>.
+
+---
+
+### MT4 / MT5
+
+**Strengths**
+- Same environment as actual live trading.
+- Capable of verifying automated trading (EAs).
+
+**Limits**
+- Requires programming for discretionary verification.
+- High hurdle for changing conditions and making comparisons.
+
+**Reproducibility Perspective**
+- Strong as an environment.
+- Difficult for non-engineers to handle.
+
+Official MT4 site: <InlineLink href="https://www.metatrader4.com/">here</InlineLink>.
+
+---
+
+### Other Free Backtesting Tools
+
+**Common Characteristics**
+- Easy to try.
+- Limited functionality.
+
+**Why They Aren't Suited for Discretionary Verification**
+- Conditions cannot be fully fixed.
+- Result analysis is shallow.
+
+---
+
+### Delver
+
+Delver is designed **specifically for verifying discretionary trading.**
+
+- Entry and exit conditions can be fixed as rules.
+- You can verify the same conditions over and over.
+- Check R-multiples, DD, distributions, and more—not just win rate.
+
+The most significant difference is that **the professional backtesting processes usually written in Python can be entered via screen operations without any programming.**
+
+It occupies a unique position: a professional verification engine made accessible to non-engineers.
+
+Official Delver site: <InlineLink href="/">here</InlineLink>.
+
+---
+
+## Comparison Summary: Which One Meets the Conditions for Reproducibility?
+
+When organized by the 5 conditions of reproducibility, the options for discretionary FX verification become quite narrow.
+
+Most free tools:
+
+- Allow chart confirmation or one-off verification.
+- Are suited for automated trading backtests.
+
+On the other hand, they have constraints such as:
+
+- Discretionary judgments cannot be fixed as rules.
+- Comparing results after changing conditions is difficult.
+- Structures beyond win rate are hard to see.
+
+Because of this, it is easy to fall into the state of **"thinking you are verifying while the conditions drift every time."**
+
+To meet all 5 conditions, simple chart replays or EA testers are not enough.
+
+- Capability to input discretionary judgments.
+- Ability to run tests repeatedly with fixed conditions.
+- Ability to confirm results through structures like R-multiples and DD.
+
+Environments that allow these **without programming** are rare.
+
+In that sense, Delver is positioned as a "tool designed from the start with the necessary conditions for discretionary verification as its premise."
+
+It is not just about having many features; the decisive difference from other free tools is its **singular focus on "verifying discretionary FX in a reproducible form."**
+
+<BlogCta 
+  title="Try an Environment for Verifying Under Identical Conditions"
+  description="Experience how the visualization of results changes when you fix your discretionary trading conditions and verify them."
+  href="/"
+  buttonLabel="Launch Delver"
+/>
+
+---
+
+## What You Should Do First
+
+Regardless of which tool you use, the first steps are the same:
+
+1. Decide on one set of conditions.
+2. Verify multiple periods with those same conditions.
+3. Change the conditions slightly and compare the results.
+
+What matters is changing the **"quality" of verification**, not the "quantity."
+
+---
+
+## Conclusion: The Biggest Mistake in Choosing a Tool
+
+- Choosing based solely on the number of features.
+- Using a tool just because it is famous.
+- Settling for results that cannot be reproduced.
+
+In discretionary FX, **the choice of tool itself determines the verification result.**
+
+Using an environment that can reproduce the same conditions is the first step toward the shortest path without detours.
+
+Detailed instructions on how to actually execute a backtest are summarized here—please refer to them.
+
+<NextLink href="/blog/fx-backtest-how-to"
+  title="How to Backtest FX (2026) | Exposed: The Truth Behind Win Rates with Zero-Setup Verification"
+  image="/blog/fx-backtest-how-to/thumbnail.png"
+  width={1200}
+  height={700}
+/>

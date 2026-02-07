@@ -1,0 +1,139 @@
+/* blog.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.blog-scope {
+  background: #f8fafc; /* slate-50 */
+  color: #0f172a;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+
+/* 記事本文だけ prose 制御 */
+.blog-scope .prose {
+  color: #0f172a;
+}
+
+.blog-scope .prose p {
+  color: #334155;
+}
+
+.blog-scope .prose h2,
+.blog-scope .prose h3 {
+  color: #020617;
+}
+
+
+@layer components {
+/* prose を触るのは blog-article だけ */
+.blog-article {
+  @apply prose prose-neutral max-w-none;
+}
+
+.blog-article h2 {
+  @apply mt-12 mb-4 text-2xl font-bold border-b border-slate-300 pb-2;
+}
+
+.blog-article h3 {
+  @apply mt-8 mb-3 text-xl font-semibold;
+}
+
+/* p は margin を絶対に上書きしない */
+.blog-article p {
+  @apply text-slate-800 mb-6 leading-relaxed; /* mb-6（下の余白）と leading-relaxed（行間）を追加 */
+}
+
+  .blog-article strong {
+    @apply text-slate-100 font-semibold;
+  }
+
+  .blog-article a {
+    @apply text-emerald-400 underline hover:text-emerald-300;
+  }
+
+  .blog-article blockquote {
+    @apply border-l-4 border-emerald-500/60 bg-slate-900/50 px-4 py-2 text-slate-300;
+  }
+
+  /* ブログ全体の背景 */
+  .blog-root {
+    background: white;
+    color: #0f172a;
+  }
+
+  .blog-root .prose h2 {
+    margin-top: 3.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+/* 見出しを「ちゃんと記事」にする */
+.blog-root .prose h2 {
+  margin-top: 3.5rem;
+  margin-bottom: 1rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #020617; /* slate-950 */
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.4rem;
+}
+
+.blog-root .prose h3 {
+  margin-top: 2.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #020617;
+}
+
+/* リスト */
+.blog-root .prose ul {
+  padding-left: 1.25rem;
+}
+
+/* ===== ブログヘッダー ===== */
+
+.blog-root header time {
+  color: #475569; /* slate-600 */
+}
+
+.blog-root header p {
+  color: #334155; /* slate-700 */
+}
+
+/* breadcrumb（ホーム / 検証ブログ / ...） */
+.blog-root nav {
+  color: #64748b; /* slate-500 */
+}
+
+.blog-root nav a {
+  color: #475569; /* slate-600 */
+}
+
+.blog-root nav a:hover {
+  color: #0f172a; /* slate-900 */
+}
+
+/* ===== breadcrumb（パンくず） ===== */
+.blog-root nav {
+  color: #64748b; /* slate-500 */
+}
+
+.blog-root nav a {
+  color: #475569; /* slate-600 */
+  text-decoration: none;
+}
+
+.blog-root nav a:hover {
+  color: #0f172a; /* slate-900 */
+  text-decoration: underline;
+}
+
+.blog-root nav span {
+  color: #334155; /* slate-700 */
+  font-weight: 500;
+}
+
+
+}
