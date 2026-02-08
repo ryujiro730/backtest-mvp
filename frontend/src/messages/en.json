@@ -416,8 +416,8 @@
   },
 
   "tpSl": {
-    "tp": "Take Profit (TP)",
-    "sl": "Stop Loss (SL)",
+    "tp": "Take Profit (pips)",
+    "sl": "Stop Loss (pips)",
     "unitPips": "pips"
   },
 
@@ -432,8 +432,8 @@
   },
 
   "equity": {
-    "tp": "Take Profit (%)",
-    "sl": "Stop Loss (%)",
+    "tp": "Take Profit (% of balance)",
+    "sl": "Stop Loss (% of balance)",
     "unit": "%"
   },
 

@@ -69,6 +69,7 @@ export type WeekdayPoint = { day: string; profit: number };
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"] as const;
 
 export function buildWeekdaySeries(trades: TradeRaw[]): WeekdayPoint[] {
+  if (!Array.isArray(trades)) return [];
   const agg = new Map<string, number>();
 
   for (const tr of trades) {
@@ -88,6 +89,7 @@ export function buildWeekdaySeries(trades: TradeRaw[]): WeekdayPoint[] {
 export type HourlyPoint = { hour: number; profit: number };
 
 export function buildHourlySeries(trades: TradeRaw[]): HourlyPoint[] {
+  if (!Array.isArray(trades)) return [];
   const agg = new Map<number, number>();
 
   for (const tr of trades) {
@@ -108,11 +110,17 @@ export function buildHourlySeries(trades: TradeRaw[]): HourlyPoint[] {
 export type ReturnBin = { range: string; count: number };
 
 export function buildReturnHistogram(trades: TradeRaw[], binCount = 20): ReturnBin[] {
-  if (trades.length === 0) return [];
+  if (!Array.isArray(trades) || trades.length === 0) return [];
 
   const values = trades.map((t) => t.pnl);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
+  let min = Infinity;
+  let max = -Infinity;
+  for (const v of values) {
+    if (v < min) min = v;
+    if (v > max) max = v;
+  }
+  if (min === Infinity) min = 0;
+  if (max === -Infinity) max = 0;
 
   if (min === max) {
     return [
@@ -149,6 +157,7 @@ export function buildReturnHistogram(trades: TradeRaw[], binCount = 20): ReturnB
 export type StreakPoint = { streak: string; count: number };
 
 export function buildLosingStreakSeries(trades: TradeRaw[]): StreakPoint[] {
+  if (!Array.isArray(trades)) return [];
   // entry_time 順にソート（安全のため）
   const sorted = [...trades].sort(
     (a, b) => parseDate(a.entry_time).getTime() - parseDate(b.entry_time).getTime()
@@ -189,6 +198,7 @@ export type DurationScatterPoint = {
 };
 
 export function buildDurationScatter(trades: TradeRaw[]): DurationScatterPoint[] {
+  if (!Array.isArray(trades)) return [];
   return trades.map((tr) => {
     const entry = parseDate(tr.entry_time);
     const exit = parseDate(tr.exit_time);
@@ -204,6 +214,7 @@ export function buildDurationScatter(trades: TradeRaw[]): DurationScatterPoint[]
 }
 
 export function buildTradeTypeEquitySeries(trades: TradeRaw[]) {
+  if (!Array.isArray(trades)) return [];
   let long = 0;
   let short = 0;
   const result = [];
@@ -230,8 +241,9 @@ export function buildTradeTypeEquitySeries(trades: TradeRaw[]) {
 }
 
 
-export function buildTradeFrequency(trades) {
-  const freq = {};
+export function buildTradeFrequency(trades: TradeRaw[] | unknown) {
+  if (!Array.isArray(trades)) return {};
+  const freq: Record<string, number> = {};
 
   for (const t of trades) {
     const d = new Date(t.entry_time.replace(" ", "T"));

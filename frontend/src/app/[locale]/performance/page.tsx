@@ -52,19 +52,20 @@ export default function PerformancePage() {
       .then(r => r.json())
       .then(t => {
         console.log("[PerformancePage] trades loaded");
-        setTrades(t);
-      });
+        setTrades(Array.isArray(t) ? t : Array.isArray(t?.trades) ? t.trades : []);
+      })
+      .catch(() => setTrades([]));
   }, []);
 
   // ✅ これだけ残す（統合は1回だけ）
   useEffect(() => {
-    if (!summary || !equity || !trades) return;
+    if (!summary || !equity || trades === null) return;
 
+    const tradesList = Array.isArray(trades) ? trades : [];
     const merged: PerformanceRaw = {
-      summary: summary.summary,
-      stats: summary.stats,
-      equity,
-      trades,
+      summary: summary?.summary ?? { pf: 0, winrate: 0, maxdd: 0, trades: 0 },
+      equity: Array.isArray(equity) ? equity : [],
+      trades: tradesList,
     };
 
     setData(merged);

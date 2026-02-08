@@ -194,6 +194,69 @@ ON CONFLICT (run_id) DO NOTHING;
 def api_catalog():
     return _catalog()
 
+
+def _chart_data_from_parquet(pair: str, timeframe: str, limit: int, before: int | None = None) -> List[Dict[str, Any]]:
+    """Parquet から OHLC を読み、チャート用 JSON で返す。before があればその時刻より前の limit 本。"""
+    import pandas as pd
+    dataset_hash = _resolve_dataset_hash(pair, timeframe)
+    path = f"{BASE}/{dataset_hash}.parquet"
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="parquet_not_found")
+    df = pd.read_parquet(path)
+    # 日時列: 列にあればそのまま、なければインデックスを列に
+    time_col = None
+    for c in ("timestamp", "datetime", "date", "time"):
+        if c in df.columns:
+            time_col = c
+            break
+    if time_col is None and hasattr(df.index, "dtype") and pd.api.types.is_datetime64_any_dtype(df.index):
+        df = df.reset_index()
+        time_col = df.columns[0]
+    if time_col is None and df.index.name in ("datetime", "timestamp", "date"):
+        df = df.reset_index()
+        time_col = df.index.name if df.index.name in df.columns else df.columns[0]
+    if time_col is None:
+        raise HTTPException(status_code=500, detail="parquet missing timestamp/datetime column")
+    df = df.rename(columns={time_col: "timestamp"})
+    for col in ("open", "high", "low", "close"):
+        if col not in df.columns:
+            raise HTTPException(status_code=500, detail=f"parquet missing column: {col}")
+    df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
+    df = df.dropna(subset=["timestamp", "open", "high", "low", "close"]).sort_values("timestamp").reset_index(drop=True)
+    if before is not None:
+        before_ts = pd.Timestamp(int(before), unit="s")
+        df = df[df["timestamp"] < before_ts]
+        df = df.tail(int(limit))
+    else:
+        df = df.tail(int(limit))
+    out = []
+    for i in range(len(df)):
+        row = df.iloc[i]
+        ts = row["timestamp"]
+        unix_sec = int(ts.timestamp()) if hasattr(ts, "timestamp") else int(pd.Timestamp(ts).timestamp())
+        out.append({
+            "time": unix_sec,
+            "open": float(row["open"]),
+            "high": float(row["high"]),
+            "low": float(row["low"]),
+            "close": float(row["close"]),
+        })
+    return out
+
+
+@app.get("/api/chart-data")
+def api_chart_data(pair: str = "EURUSD", timeframe: str = "H1", limit: int = 10000, before: int | None = None):
+    """チャート表示用。before なし＝直近 limit 本。before=Unix秒 あり＝その時刻より前の limit 本（スクロール用）。"""
+    if limit <= 0 or limit > 100_000:
+        raise HTTPException(status_code=422, detail="limit must be 1..100000")
+    try:
+        return _chart_data_from_parquet(pair, timeframe, limit, before)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception("chart-data failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/api/run", status_code=202)
 async def api_run(request: Request, idem_key: str = Header(..., alias="Idempotency-Key")):
     try:
