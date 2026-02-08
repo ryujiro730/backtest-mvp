@@ -2,10 +2,17 @@
 import { NextResponse } from "next/server";
 
 const API = process.env.FASTAPI_BASE_URL ?? "http://localhost:8000";
+const TIMEOUT_MS = 15_000;
 
 export async function GET() {
+  const controller = new AbortController();
+  const to = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const res = await fetch(`${API}/api/catalog`, { cache: "no-store" });
+    const res = await fetch(`${API}/api/catalog`, {
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    clearTimeout(to);
     const text = await res.text();
     return new NextResponse(text, {
       status: res.status,
@@ -14,6 +21,7 @@ export async function GET() {
       },
     });
   } catch (e: any) {
+    clearTimeout(to);
     const msg =
       process.env.FASTAPI_BASE_URL
         ? `Backend unreachable: ${e?.message ?? String(e)}`

@@ -235,7 +235,7 @@ tradingConditions: {
 
 exit: {
   enabled: false,
-  logic: "AND",
+  logic: "OR",
 
   tpPips: null,
   slPips: null,

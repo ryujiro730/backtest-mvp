@@ -80,8 +80,23 @@ services:
       - ../results:/delver/results
       - ../data:/delver/data
 
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # 設定は Caddyfile/ ディレクトリ内の Caddyfile ファイル
+      - ./Caddyfile/Caddyfile:/etc/caddy/Caddyfile:ro
+    networks: [appnet]
+    depends_on:
+      - api
+
 volumes:
   pg_data:
 
 networks:
   appnet: {}
+
+
