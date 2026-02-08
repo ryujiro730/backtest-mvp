@@ -145,8 +145,15 @@ def _thin_equity(
 def _catalog() -> Dict[str, Any]:
     items = []
     pairs, tfs = set(), set()
-
-    for fn in os.listdir(BASE):
+    if not os.path.isdir(BASE):
+        logging.warning("Catalog: BASE %s does not exist or is not a directory; returning empty catalog.", BASE)
+        return {"items": [], "pairs": [], "timeframes": []}
+    try:
+        names = os.listdir(BASE)
+    except OSError as e:
+        logging.warning("Catalog: cannot listdir(%s): %s; returning empty catalog.", BASE, e)
+        return {"items": [], "pairs": [], "timeframes": []}
+    for fn in names:
         if not fn.endswith(".parquet"):
             continue
         base = fn[:-8]  # EURUSD_M15

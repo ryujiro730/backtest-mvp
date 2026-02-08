@@ -1,6 +1,8 @@
 # worker/engine/engine.py
+import json
 import sys
 import time
+import concurrent.futures
 import pandas as pd
 import numpy as np
 
@@ -282,6 +284,33 @@ def _can_use_rust(exit_cfg: dict, pyramid: bool) -> bool:
     return True
 
 
+def _can_use_rust_native(cfg: dict) -> bool:
+    """Rust 側で指標計算する native API を使える条件: 1ブロックで全条件が rsi_threshold / ema_cross のみ"""
+    blocks = cfg.get("entry_blocks") or []
+    if len(blocks) != 1:
+        return False
+    entries = blocks[0].get("entries", []) if isinstance(blocks[0], dict) else []
+    if not entries:
+        return False
+    allowed = {"rsi_threshold", "ema_cross"}
+    for e in entries:
+        typ = (e.get("type") or "").lower().strip()
+        if typ not in allowed:
+            return False
+    return True
+
+
+def _entries_config_json(cfg: dict, direction: str) -> str:
+    """指定 direction 用のエントリー条件だけを抽出し JSON 文字列で返す（Rust native 用）"""
+    blocks = cfg.get("entry_blocks") or []
+    if not blocks:
+        entries = cfg.get("entries", [])
+    else:
+        entries = blocks[0].get("entries", []) if isinstance(blocks[0], dict) else []
+    filtered = [e for e in entries if e.get("side") in (None, direction)]
+    return json.dumps(filtered)
+
+
 def run_engine(df, cfg):
     t0 = time.perf_counter()
     trading = cfg.get("trading", {}) or {}
@@ -332,10 +361,191 @@ def run_engine(df, cfg):
     close = df["close"].astype(float)
 
     if direction == "both":
+        exit_cfg = cfg.get("exit", {}) or {}
+        exit_long = cfg.get("exit_long") or exit_cfg
+        exit_short = cfg.get("exit_short") or exit_cfg
+        if HAS_ENGINE_RS and _can_use_rust(exit_cfg, pyramid):
+            try:
+                entry_blocks = cfg.get("entry_blocks")
+                entries = cfg.get("entries", [])
+                t_entry = time.perf_counter()
+                with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
+                    f_long = ex.submit(build_entry_mask, df, entries, "long", entry_blocks, "long")
+                    f_short = ex.submit(build_entry_mask, df, entries, "short", entry_blocks, "short")
+                    pos_long = f_long.result()
+                    pos_short = f_short.result()
+                pos_long.iloc[:5] = False
+                pos_short.iloc[:5] = False
+                t_entry_done = time.perf_counter()
+                sl_pips = None
+                if exit_long.get("sl_fixed_pips") is not None:
+                    sl_pips = float(exit_long["sl_fixed_pips"])
+                tp_r = exit_long.get("tp_r_multiple")
+                if tp_r is not None:
+                    tp_r = float(tp_r)
+                tsb = exit_long.get("time_stop_bars")
+                if tsb is not None:
+                    tsb = int(tsb)
+                sl_tsb = exit_long.get("sl_time_stop_bars")
+                if sl_tsb is not None:
+                    sl_tsb = int(sl_tsb)
+                tp_tsb = exit_long.get("tp_time_stop_bars")
+                if tp_tsb is not None:
+                    tp_tsb = int(tp_tsb)
+                opp_exit = bool(exit_cfg.get("opposite_signal_exit", False))
+                commission_rt = 2.0 * float(trading.get("commission", 7))
+                open_arr = np.ascontiguousarray(openp.astype(np.float64), dtype=np.float64)
+                high_arr = np.ascontiguousarray(df["high"].astype(np.float64), dtype=np.float64)
+                low_arr = np.ascontiguousarray(df["low"].astype(np.float64), dtype=np.float64)
+                close_arr = np.ascontiguousarray(close.astype(np.float64), dtype=np.float64)
+                em_long = np.ascontiguousarray(pos_long.astype(np.uint8), dtype=np.uint8)
+                em_short = np.ascontiguousarray(pos_short.astype(np.uint8), dtype=np.uint8)
+                equity_rust, trades_rust = engine_rs.run_engine_core_bidirectional(
+                    open_arr,
+                    high_arr,
+                    low_arr,
+                    close_arr,
+                    em_long,
+                    em_short,
+                    lot_size,
+                    pip_size,
+                    spread_pips,
+                    slippage_pips,
+                    sl_pips,
+                    tp_r,
+                    tsb,
+                    sl_tsb,
+                    tp_tsb,
+                    opp_exit,
+                    initial_balance,
+                    commission_rt,
+                )
+                equity = pd.Series(equity_rust, index=df.index)
+                pnls = [float(t[2]) for t in trades_rust]
+                gp = sum(p for p in pnls if p > 0)
+                gl = -sum(p for p in pnls if p < 0)
+                pf = (gp / gl) if gl > 0 else (float("inf") if gp > 0 else 0.0)
+                winrate = (sum(1 for p in pnls if p > 0) / len(pnls)) if pnls else 0.0
+                maxdd = _max_drawdown(equity)
+                trades = [
+                    {
+                        "entry_time": str(ts.iat[int(t[0])]),
+                        "exit_time": str(ts.iat[int(t[1])]),
+                        "entry": float(t[3]),
+                        "exit": float(t[4]),
+                        "pnl": float(t[2]),
+                    }
+                    for t in trades_rust
+                ]
+                total = time.perf_counter() - t0
+                print(
+                    f"[perf] run_engine(both/Rust) total={total:.3f}s entry_mask={t_entry_done-t_entry:.3f}s",
+                    file=sys.stderr,
+                    flush=True,
+                )
+                return {
+                    "summary": {"pf": round(pf, 4), "winrate": round(winrate, 4), "maxdd": round(maxdd, 4), "trades": len(trades)},
+                    "equity": _equity_list_for_response(ts, equity),
+                    "trades": trades,
+                }
+            except Exception as e:
+                print(f"[engine] Rust bidirectional failed, falling back to Python: {e}", file=sys.stderr, flush=True)
         return _run_engine_bidirectional(df, cfg)
 
     t_entry = time.perf_counter()
     entry_blocks = cfg.get("entry_blocks")
+
+    # Rust native パス: 指標を Rust で計算し、エントリー判定も Rust。ゼロコピー + Rayon 並列。
+    if HAS_ENGINE_RS and _can_use_rust(exit_cfg, pyramid) and _can_use_rust_native(cfg):
+        try:
+            sl_pips = exit_cfg.get("sl_fixed_pips")
+            if sl_pips is not None:
+                sl_pips = float(sl_pips)
+            tp_r = exit_cfg.get("tp_r_multiple")
+            if tp_r is not None:
+                tp_r = float(tp_r)
+            tsb = exit_cfg.get("time_stop_bars")
+            if tsb is not None:
+                tsb = int(tsb)
+            sl_tsb = exit_cfg.get("sl_time_stop_bars")
+            if sl_tsb is not None:
+                sl_tsb = int(sl_tsb)
+            tp_tsb = exit_cfg.get("tp_time_stop_bars")
+            if tp_tsb is not None:
+                tp_tsb = int(tp_tsb)
+            opp_exit = bool(exit_cfg.get("opposite_signal_exit", False))
+            commission_rt = 2.0 * float(trading.get("commission", 7))
+
+            entries_json = _entries_config_json(cfg, direction)
+            opposite_json = _entries_config_json(cfg, "short" if direction == "long" else "long")
+
+            t_prep = time.perf_counter()
+            open_arr = np.ascontiguousarray(openp.astype(np.float64), dtype=np.float64)
+            high_arr = np.ascontiguousarray(df["high"].astype(np.float64), dtype=np.float64)
+            low_arr = np.ascontiguousarray(df["low"].astype(np.float64), dtype=np.float64)
+            close_arr = np.ascontiguousarray(close.astype(np.float64), dtype=np.float64)
+            t_prep_done = time.perf_counter()
+
+            equity_rust, trades_rust = engine_rs.run_engine_core_native(
+                open_arr,
+                high_arr,
+                low_arr,
+                close_arr,
+                entries_json,
+                opposite_json,
+                direction == "long",
+                lot_size,
+                pip_size,
+                spread_pips,
+                slippage_pips,
+                sl_pips,
+                tp_r,
+                tsb,
+                sl_tsb,
+                tp_tsb,
+                opp_exit,
+                initial_balance,
+                commission_rt,
+            )
+            t_rust_done = time.perf_counter()
+
+            equity = pd.Series(equity_rust, index=df.index)
+            pnls = [float(t[2]) for t in trades_rust]
+            gp = sum(p for p in pnls if p > 0)
+            gl = -sum(p for p in pnls if p < 0)
+            pf = (gp / gl) if gl > 0 else (float("inf") if gp > 0 else 0.0)
+            winrate = (sum(1 for p in pnls if p > 0) / len(pnls)) if pnls else 0.0
+            maxdd = _max_drawdown(equity)
+            trades = [
+                {
+                    "entry_time": str(ts.iat[int(t[0])]),
+                    "exit_time": str(ts.iat[int(t[1])]),
+                    "entry": float(t[3]),
+                    "exit": float(t[4]),
+                    "pnl": float(t[2]),
+                }
+                for t in trades_rust
+            ]
+            total = time.perf_counter() - t0
+            print(
+                f"[perf] run_engine(Rust native) total={total:.3f}s prep={t_prep_done-t_prep:.3f}s rust={t_rust_done-t_prep_done:.3f}s",
+                file=sys.stderr,
+                flush=True,
+            )
+            return {
+                "summary": {
+                    "pf": round(pf, 4),
+                    "winrate": round(winrate, 4),
+                    "maxdd": round(maxdd, 4),
+                    "trades": len(trades),
+                },
+                "equity": _equity_list_for_response(ts, equity),
+                "trades": trades,
+            }
+        except Exception as e:
+            print(f"[engine] Rust native path failed, falling back: {e}", file=sys.stderr, flush=True)
+
+    # Python でマスク構築
     pos_mask = build_entry_mask(
         df, cfg.get("entries", []), direction,
         entry_blocks=entry_blocks,
@@ -351,7 +561,7 @@ def run_engine(df, cfg):
     pos_mask_opposite.iloc[:5] = False
     t_entry_done = time.perf_counter()
 
-    # Rust パス: inds は使わないのでスキップし、numpy をそのまま渡してコピー削減
+    # Rust パス（マスク受け取り）: ゼロコピー
     if HAS_ENGINE_RS and _can_use_rust(exit_cfg, pyramid):
         try:
             sl_pips = exit_cfg.get("sl_fixed_pips")

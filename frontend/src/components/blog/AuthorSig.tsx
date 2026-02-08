@@ -20,9 +20,8 @@ export default function AuthorSig() {
     const data = {
       "@context": "https://schema.org",
       "@type": "Person",
-      // ここを本名から Jack Sterling へ
-      name: "Jack Sterling",
-      alternateName: "Jack", // 日本語名も一旦「ジャック」等にするよう翻訳ファイルを修正
+      name: "David Miller",
+      alternateName: "David",
       image: PERSON_IMAGE,
       sameAs: [...SAME_AS],
       description: t("description"),
@@ -72,7 +71,6 @@ export default function AuthorSig() {
             </span>
 
             <h3 className="text-xl font-bold text-slate-900 tracking-tight" itemProp="name">
-              {/* 翻訳ファイル側の nameJa と nameEn も Jack Sterling 系に書き換えてください */}
               {t("nameJa")}
               <span className="text-sm font-normal text-slate-400 ml-2">
                 {t("nameEn")}

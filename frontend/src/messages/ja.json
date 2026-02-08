@@ -64,6 +64,10 @@
       "terms": "利用規約",
       "newsletter": "最新情報をメールで受け取る"
     },
+    "TryEngine": {
+      "subtitle": "ログイン不要。この場でバックテストを体験してください。",
+      "engineCopy": "業界最速。Rust 製コアエンジンで数百万本の足を数秒で処理。ブラウザからその速さを体感できます。"
+    },
     "BetaSignup": {
       "title": "ベータ版・先行応募",
       "description": "このツールはベータ版です。先行利用のご希望はメールアドレスをご登録ください。",
@@ -598,7 +602,7 @@
     "published": "公開日",
     "readTime": "読了時間",
     "minutes": "分",
-    "defaultAuthor": "Jack Sterling",
+    "defaultAuthor": "David Miller",
     "prev": "前の記事へ",
     "next": "次の記事へ",
     "cta": {
@@ -609,9 +613,9 @@
   },
     "AuthorSig": {
     "label": "Article Author",
-    "nameJa": "Jack Sterling",
-    "nameEn": "Jack Sterling",
-    "imageAlt": "Jack Sterling",
+    "nameJa": "David Miller",
+    "nameEn": "David Miller",
+    "imageAlt": "David Miller",
     "description": "Delver 創業者。25年分の市場データを活用したバックテスト・エンジンの開発を行っています。トレードにおける直感や曖昧さを排除し、客観的なデータに基づいて期待値を検証するための仕組み作りが専門です。"
   },
   "Explanation": {

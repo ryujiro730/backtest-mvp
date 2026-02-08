@@ -63,6 +63,10 @@
       "terms": "Terms of Service",
       "newsletter": "Get the latest updates via email"
     },
+    "TryEngine": {
+      "subtitle": "No login required. Experience backtesting right here.",
+      "engineCopy": "Fastest in the industry. Rust-powered core engine processes millions of bars in seconds—feel it in your browser."
+    },
     "BetaSignup": {
       "title": "Beta · Early Access",
       "description": "This tool is in beta. Enter your email to join the early access list.",
@@ -602,7 +606,7 @@
     "published": "Published",
     "readTime": "Read Time",
     "minutes": "min",
-    "defaultAuthor": "Jack Sterling",
+    "defaultAuthor": "David Miller",
     "prev": "Previous article",
     "next": "Next article",
     "cta": {
@@ -613,9 +617,9 @@
   },
     "AuthorSig": {
     "label": "Article Author",
-    "nameJa": "Jack Sterling",
-    "nameEn": "Jack Sterling",
-    "imageAlt": "Jack Sterling",
+    "nameJa": "David Miller",
+    "nameEn": "David Miller",
+    "imageAlt": "David Miller",
     "description": "Founder of Delver. He develops a backtesting engine using 25 years of market data. His expertise lies in eliminating intuition and ambiguity from trading and verifying expectancy based purely on objective data."
   },
   "Explanation": {

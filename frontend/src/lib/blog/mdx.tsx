@@ -92,7 +92,7 @@ const buildIndex = async (locale: "ja" | "en") => {
         publishedAt: (frontmatter as any)?.publishedAt ?? "",
         readTimeMinutes: (frontmatter as any)?.readTimeMinutes ?? 0,
         heroImage: (frontmatter as any)?.heroImage,
-        author: (frontmatter as any)?.author ?? "Jack Sterling",
+        author: (frontmatter as any)?.author ?? "David Miller",
       } satisfies BlogMeta;
     })
   );

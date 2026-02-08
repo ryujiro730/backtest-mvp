@@ -4,6 +4,7 @@ import Explanation from "@/components/explanation";
 import { RunPanel } from "@/components/run/RunPanel";
 import NoticeCard from "@/components/NoticeCard";
 import BetaSignupCard from "@/components/BetaSignupCard";
+import { getTranslations } from "next-intl/server";
 import { Metadata } from "next";
 
 const SOFTWARE_APP_JSON_LD = {
@@ -23,7 +24,12 @@ export const metadata: Metadata = {
   robots: "index, follow",
 };
 
-export default function Page() {
+type PageProps = { params: Promise<{ locale: string }> };
+
+export default async function Page({ params }: PageProps) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "LP" });
+
   return (
     <div className="flex flex-col min-h-screen">
       <script
@@ -39,7 +45,8 @@ export default function Page() {
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 md:gap-8 mb-6 items-start">
             <div className="text-center md:text-left">
               <h2 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight mb-2">TRY THE ENGINE</h2>
-              <p className="text-slate-600">ログイン不要。この場でバックテストを体験してください。</p>
+              <p className="text-slate-600">{t("TryEngine.subtitle")}</p>
+              <p className="mt-1 text-sm text-slate-500">{t("TryEngine.engineCopy")}</p>
             </div>
             <div className="flex justify-center md:justify-end min-w-0 max-w-sm md:max-w-none md:w-72 mx-auto md:mx-0">
               <BetaSignupCard />

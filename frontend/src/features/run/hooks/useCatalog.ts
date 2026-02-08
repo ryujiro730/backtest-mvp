@@ -2,8 +2,7 @@
 import { useEffect, useState } from "react";
 import type { Catalog } from "@/src/features/run/types";
 
-const API = process.env.NEXT_PUBLIC_API_BASE!;
-
+// 同一オリジンの Next API ルート経由でプロキシ（Vercel でも VPS バックエンドに届く）
 export function useCatalog() {
   const [catalog, setCatalog] = useState<Catalog>({ pairs: [], timeframes: [], items: [] });
   const [catalogError, setCatalogError] = useState<string | null>(null);
@@ -12,7 +11,7 @@ export function useCatalog() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`${API}/api/catalog`, { cache: 'no-store' });
+        const res = await fetch("/api/catalog", { cache: 'no-store' });
         if (!res.ok) throw new Error(`GET /api/catalog ${res.status}`);
         const data = await res.json();
         if (!cancelled) setCatalog({

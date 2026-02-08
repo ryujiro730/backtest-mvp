@@ -58,6 +58,8 @@ services:
     volumes:
       - ..:/delver
       - ../results:/delver/results
+      # プロジェクト直下の data/ → ローカル・VPSどちらも「リポジトリの data/」を参照（VPS では /opt/delver/data に parquet を置く）
+      - ../data:/delver/data
 
   worker:                            # ← これも services: の下
     networks: [appnet]
@@ -75,8 +77,8 @@ services:
         redis: { condition: service_started }
     volumes:
       - ..:/delver
-      - /home/tsujiryujiro/dev/delver/results:/delver/results
-      
+      - ../results:/delver/results
+      - ../data:/delver/data
 
 volumes:
   pg_data:
