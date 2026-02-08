@@ -517,10 +517,10 @@ def build_entry_mask(
 ) -> pd.Series:
     """
     entry_blocks が渡された場合: 各ブロック内は logic (AND/OR) で結合、ブロック間は常に AND。
-    side_filter が "long" / "short" のときは、ブロック全体が成立したうえで「その方向のルールが
-    少なくとも1つトリガーした」バーだけマスクを true にする（direction=both で AND/OR を正しくするため）。
+    side_filter が "long" / "short" のときは、ブロック内でその side の条件だけを AND/OR してマスクを出す（direction=both 用）。
     entry_blocks が無い場合: entries をすべて AND で結合（従来どおり）。
     """
+    print(f"[ENTRY] building mask direction={direction} side_filter={side_filter}", flush=True)
     if entry_blocks:
         block_masks = []
         for bi, block in enumerate(entry_blocks):
@@ -528,19 +528,18 @@ def build_entry_mask(
             logic = (block.get("logic", "AND") if isinstance(block, dict) else getattr(block, "logic", "AND")).upper()
             if not block_entries:
                 continue
+            # direction=both のとき: ロング用マスクはロング条件だけ、ショート用はショート条件だけでブロック内 AND/OR
+            if side_filter in ("long", "short"):
+                block_entries = [e for e in block_entries if e.get("side") in (None, side_filter)]
+            if not block_entries:
+                block_masks.append(pd.Series(False, index=df.index))
+                continue
             masks = []
             for i, e in enumerate(block_entries):
                 m = _single_entry_mask(df, e, direction)
                 print(f"[ENTRY] block#{bi+1} cond#{i+1} type={str(e.get('type','')).lower()} true={int(m.sum())}", flush=True)
                 masks.append(m)
             block_mask = _combine_masks(masks, logic)
-            if side_filter in ("long", "short"):
-                # このブロックで「side_filter 側のルールが1つでも true」のマスク
-                side_ok = pd.Series(False, index=df.index)
-                for j, e in enumerate(block_entries):
-                    if e.get("side") in (None, side_filter):
-                        side_ok = side_ok | masks[j]
-                block_mask = block_mask & side_ok
             block_masks.append(block_mask)
         if not block_masks:
             return pd.Series(False, index=df.index)

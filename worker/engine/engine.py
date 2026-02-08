@@ -88,6 +88,187 @@ def _max_drawdown(equity):
     return maxdd
 
 
+def _run_engine_bidirectional(df, cfg):
+    """1本のバックテストでロング・ショート両方にエントリー（反対シグナルで決済→反転）。"""
+    t0 = time.perf_counter()
+    trading = cfg.get("trading", {}) or {}
+    initial_balance = float(trading.get("balance", 100000))
+    spread_pips = float(trading.get("spread", 1.5))
+    slippage_pips = float(trading.get("slippage", 0.5))
+    commission = float(trading.get("commission", 7))
+    lot_size = float(trading.get("lot_size", 0.1))
+    if lot_size <= 0:
+        lot_size = 0.01
+    pair = str(cfg.get("pair", "EURUSD"))
+    timeframe = str(cfg.get("timeframe", "H1"))
+    pip_size = _pip_size(pair)
+    bar_minutes = _bar_minutes(timeframe)
+    ts = df["timestamp"]
+    openp = df["open"].astype(float)
+    high = df["high"].astype(float)
+    low = df["low"].astype(float)
+    close = df["close"].astype(float)
+    exit_long = cfg.get("exit_long") or {}
+    exit_short = cfg.get("exit_short") or {}
+    entries = cfg.get("entries", [])
+    entry_blocks = cfg.get("entry_blocks")
+
+    t_entry = time.perf_counter()
+    pos_long = build_entry_mask(df, entries, "long", entry_blocks, "long")
+    pos_short = build_entry_mask(df, entries, "short", entry_blocks, "short")
+    pos_long.iloc[:5] = False
+    pos_short.iloc[:5] = False
+    t_entry_done = time.perf_counter()
+
+    cost_pips = (spread_pips + slippage_pips) * pip_size
+    strat_ret = pd.Series(0.0, index=df.index, dtype=float)
+    balance_ref = [initial_balance]
+    trades = []
+    position = None  # None | {"side": "long"|"short", "entry_idx", "entry_px", "stop", "tp", "balance_at_entry", "position_notional"}
+
+    def close_position(exit_px: float, exit_bar_i: int):
+        nonlocal position
+        if position is None:
+            return
+        po = position
+        position = None
+        ep = po["entry_px"]
+        ei = po["entry_idx"]
+        ls = po["side"] == "long"
+        if ls:
+            price_return = exit_px / ep - 1.0
+        else:
+            price_return = ep / exit_px - 1.0
+        balance_at_entry = po["balance_at_entry"]
+        position_notional = po["position_notional"]
+        lots = position_notional / CONTRACT_SIZE
+        commission_money = 2.0 * commission * lots
+        bars_held = exit_bar_i - ei + 1
+        days_held = bars_held * bar_minutes / (24.0 * 60.0)
+        swap = float(trading.get("swap", 0))
+        swap_amount = swap * lots * max(0.0, days_held)
+        pnl_money = price_return * position_notional - commission_money + swap_amount
+        balance_ref[0] += pnl_money
+        pnl_for_equity = (pnl_money / balance_at_entry) if balance_at_entry > 0 else 0.0
+        trades.append({
+            "entry_time": str(ts.iat[ei]),
+            "exit_time": str(ts.iat[exit_bar_i + 1]),
+            "entry": float(ep),
+            "exit": float(exit_px),
+            "pnl": float(pnl_for_equity),
+        })
+        strat_ret.iat[exit_bar_i + 1] += pnl_for_equity
+
+    for i in range(1, len(df) - 1):
+        prev_long = int(pos_long.iat[i - 1])
+        curr_long = int(pos_long.iat[i])
+        prev_short = int(pos_short.iat[i - 1])
+        curr_short = int(pos_short.iat[i])
+        hi = float(high.iat[i])
+        lo = float(low.iat[i])
+        next_open = float(openp.iat[i + 1])
+
+        # === エントリー（ポジションなしのとき）===
+        if position is None:
+            if prev_long == 0 and curr_long == 1:
+                entry_px = next_open + cost_pips
+                exit_cfg = exit_long
+                sl, R = _initial_r_and_sl(entry_px, "long", df, i, exit_cfg.get("sl_atr"), exit_cfg.get("sl_fixed_pips"))
+                tp = _tp_price(entry_px, "long", R, exit_cfg.get("tp_r_multiple"), None)
+                position_notional = lot_size * CONTRACT_SIZE
+                position = {
+                    "side": "long", "entry_idx": i, "entry_px": entry_px,
+                    "stop": sl, "tp": tp, "balance_at_entry": balance_ref[0],
+                    "position_notional": position_notional,
+                }
+                continue
+            if prev_short == 0 and curr_short == 1:
+                entry_px = next_open - cost_pips
+                exit_cfg = exit_short
+                sl, R = _initial_r_and_sl(entry_px, "short", df, i, exit_cfg.get("sl_atr"), exit_cfg.get("sl_fixed_pips"))
+                tp = _tp_price(entry_px, "short", R, exit_cfg.get("tp_r_multiple"), None)
+                position_notional = lot_size * CONTRACT_SIZE
+                position = {
+                    "side": "short", "entry_idx": i, "entry_px": entry_px,
+                    "stop": sl, "tp": tp, "balance_at_entry": balance_ref[0],
+                    "position_notional": position_notional,
+                }
+                continue
+            continue
+
+        # === 決済・反転（ポジションあり）===
+        slip_rate = (slippage_pips * pip_size) / max(position["entry_px"], 1e-9)
+        if position["side"] == "long":
+            mkt_px = next_open * (1.0 - slip_rate)
+            exit_cfg = exit_long
+            bars_held = i - position["entry_idx"]
+            # 反対シグナル（ショート）→ 決済してショートエントリー
+            if exit_cfg.get("opposite_signal_exit") and curr_short == 1:
+                close_position(mkt_px, i)
+                entry_px = next_open - cost_pips
+                sl, R = _initial_r_and_sl(entry_px, "short", df, i, exit_short.get("sl_atr"), exit_short.get("sl_fixed_pips"))
+                tp = _tp_price(entry_px, "short", R, exit_short.get("tp_r_multiple"), None)
+                position = {
+                    "side": "short", "entry_idx": i, "entry_px": entry_px,
+                    "stop": sl, "tp": tp, "balance_at_entry": balance_ref[0],
+                    "position_notional": lot_size * CONTRACT_SIZE,
+                }
+                continue
+            # 時間ストップ
+            tsb = exit_cfg.get("time_stop_bars"); sl_tsb = exit_cfg.get("sl_time_stop_bars"); tp_tsb = exit_cfg.get("tp_time_stop_bars")
+            if (tsb is not None and bars_held >= int(tsb)) or (sl_tsb is not None and bars_held >= int(sl_tsb)) or (tp_tsb is not None and bars_held >= int(tp_tsb)):
+                close_position(mkt_px, i)
+                continue
+            # SL
+            if position.get("stop") is not None and lo <= position["stop"]:
+                close_position(position["stop"] * (1.0 - slip_rate), i)
+                continue
+            # TP
+            if position.get("tp") is not None and hi >= position["tp"]:
+                close_position(position["tp"] * (1.0 - slip_rate), i)
+                continue
+        else:
+            mkt_px = next_open * (1.0 + slip_rate)
+            exit_cfg = exit_short
+            bars_held = i - position["entry_idx"]
+            if exit_cfg.get("opposite_signal_exit") and curr_long == 1:
+                close_position(mkt_px, i)
+                entry_px = next_open + cost_pips
+                sl, R = _initial_r_and_sl(entry_px, "long", df, i, exit_long.get("sl_atr"), exit_long.get("sl_fixed_pips"))
+                tp = _tp_price(entry_px, "long", R, exit_long.get("tp_r_multiple"), None)
+                position = {
+                    "side": "long", "entry_idx": i, "entry_px": entry_px,
+                    "stop": sl, "tp": tp, "balance_at_entry": balance_ref[0],
+                    "position_notional": lot_size * CONTRACT_SIZE,
+                }
+                continue
+            tsb = exit_cfg.get("time_stop_bars"); sl_tsb = exit_cfg.get("sl_time_stop_bars"); tp_tsb = exit_cfg.get("tp_time_stop_bars")
+            if (tsb is not None and bars_held >= int(tsb)) or (sl_tsb is not None and bars_held >= int(sl_tsb)) or (tp_tsb is not None and bars_held >= int(tp_tsb)):
+                close_position(mkt_px, i)
+                continue
+            if position.get("stop") is not None and hi >= position["stop"]:
+                close_position(position["stop"] * (1.0 + slip_rate), i)
+                continue
+            if position.get("tp") is not None and lo <= position["tp"]:
+                close_position(position["tp"] * (1.0 + slip_rate), i)
+                continue
+
+    equity = (1 + strat_ret).cumprod()
+    pnls = [t["pnl"] for t in trades]
+    gp = sum(p for p in pnls if p > 0)
+    gl = -sum(p for p in pnls if p < 0)
+    pf = (gp / gl) if gl > 0 else (float("inf") if gp > 0 else 0.0)
+    winrate = (sum(1 for p in pnls if p > 0) / len(pnls)) if pnls else 0.0
+    maxdd = _max_drawdown(equity)
+    total = time.perf_counter() - t0
+    print(f"[perf] run_engine(both) total={total:.3f}s entry_mask={t_entry_done-t_entry:.3f}s", file=sys.stderr, flush=True)
+    return {
+        "summary": {"pf": round(pf, 4), "winrate": round(winrate, 4), "maxdd": round(maxdd, 4), "trades": len(trades)},
+        "equity": _equity_list_for_response(ts, equity),
+        "trades": trades,
+    }
+
+
 def _can_use_rust(exit_cfg: dict, pyramid: bool) -> bool:
     """Rust パスを使える条件: 積み増しなし・SL固定pips・TP R倍・反対/時間ストップのみ"""
     if pyramid:
@@ -149,6 +330,9 @@ def run_engine(df, cfg):
     ts = df["timestamp"]
     openp = df["open"].astype(float)
     close = df["close"].astype(float)
+
+    if direction == "both":
+        return _run_engine_bidirectional(df, cfg)
 
     t_entry = time.perf_counter()
     entry_blocks = cfg.get("entry_blocks")

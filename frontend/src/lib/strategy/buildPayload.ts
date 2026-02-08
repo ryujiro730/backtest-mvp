@@ -38,8 +38,8 @@ function buildEntriesFromIndicators(rule: StrategyRule) {
     buildEntry(
       mapIndicatorToEntryType(r.indicator),
       { params: r.params },
-      meta.direction === "both" ? r.direction : "single",
-      meta.direction
+      r.direction,
+      "both"
     )
   );
 }
@@ -280,9 +280,15 @@ base.trading = {
     ...chartPatternEntries,
   ].filter(Boolean);
 
+  const hasLong = allEntries.some((e: any) => e.side === "long");
+  const hasShort = allEntries.some((e: any) => e.side === "short");
+  const effectiveDirection: Direction =
+    hasLong && hasShort ? "both" : hasLong ? "long" : hasShort ? "short" : "long";
+
+  base.direction = effectiveDirection;
   const normalizeEntry = (e: any) => ({
     ...e,
-    side: normalizeSide(e.side, meta.direction),
+    side: normalizeSide(e.side, effectiveDirection),
   });
 
   if (allEntries.length > 0) {

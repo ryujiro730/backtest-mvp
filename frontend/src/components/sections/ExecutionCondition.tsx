@@ -23,7 +23,7 @@ export function ExecutionCondition() {
 
   const { catalog, hasCatalog } = useCatalog();
 
-  const { pair, timeframe, direction } = rule.meta;
+  const { pair, timeframe } = rule.meta;
 
   return (
     <Card>

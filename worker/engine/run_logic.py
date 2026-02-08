@@ -85,6 +85,17 @@ def run_backtest_logic(run_id, sid, seed, code_hash, dataset_hash):
           f"entry_blocks={n_blocks} (AND/ORはentry_blocksがあるときのみ有効) "
           f"entries={len(raw.get('entry', []))}",
           flush=True)
+    # 読み込んだエントリー条件とブロック logic をログ（AND/OR の確認用）
+    if entry_blocks_raw and len(entry_blocks_raw) > 0:
+        first_block = entry_blocks_raw[0]
+        block_logic = first_block.get("logic", "AND") if isinstance(first_block, dict) else "AND"
+        print(f"[STRAT] block#1 logic={block_logic!r} (AND=3条件すべて成立, OR=いずれか1つ成立)", flush=True)
+        block_entries = first_block.get("entries", []) if isinstance(first_block, dict) else []
+        if block_entries:
+            for i, e in enumerate(block_entries[:5]):
+                typ = e.get("type", "")
+                level = e.get("level"); length = e.get("length"); event = e.get("event")
+                print(f"[STRAT] block#1 cond#{i+1} type={typ} level={level} length={length} event={event}", flush=True)
 
     if raw.get("pair") == "__FAIL__":
         raise RuntimeError("forced failure for test")
@@ -125,54 +136,12 @@ def run_backtest_logic(run_id, sid, seed, code_hash, dataset_hash):
     df = _load_prices(dataset_hash)
     t_load_done = time.perf_counter()
 
-    # --- 4) direction = both の場合は2回実行して合成 ---
-    # entry_blocks は side で分割しない。AND は「同ブロック内の全条件が同時成立」なので、
-    # RSI long と RSI short を AND にすると同時成立はあり得ずトレード0になる。分割すると
-    # 各 run が単一条件になり 325 トレードなどになる不具合を防ぐ。
+    # --- 4) direction = both の場合は1本のバックテストでロング・ショート両方エントリー ---
     if direction == "both":
-        long_entries  = [e for e in entries if (e.get("side") in (None, "long"))]
-        short_entries = [e for e in entries if (e.get("side") in (None, "short"))]
-
-        cfg_long  = {**engine_cfg, "direction": "long", "entries": long_entries, "exit": normalize_exit(raw.get("exit"), "long")}
-        cfg_short = {**engine_cfg, "direction": "short", "entries": short_entries, "exit": normalize_exit(raw.get("exit"), "short")}
-        if entry_blocks_raw:
-            cfg_long["entry_blocks"] = entry_blocks_raw
-            cfg_short["entry_blocks"] = entry_blocks_raw
-
-        out_long  = run_engine(df, cfg_long)
-        out_short = run_engine(df, cfg_short)
-
-        trades = out_long["trades"] + out_short["trades"]
-
-        eq_long  = {e["t"]: e["e"] for e in out_long["equity"]}
-        eq_short = {e["t"]: e["e"] for e in out_short["equity"]}
-        merged = [{"t": t, "e": eq_long[t] * eq_short.get(t, 1.0)} for t in eq_long.keys()]
-
-        # --- summary 再計算 ---
-        pnls = [t["pnl"] for t in trades]
-        gp = sum(p for p in pnls if p > 0)
-        gl = -sum(p for p in pnls if p < 0)
-        pf = (gp / gl) if gl > 0 else (float("inf") if gp > 0 else 0.0)
-        winrate = (sum(1 for p in pnls if p > 0) / len(pnls)) if pnls else 0.0
-
-        peak = 0.0
-        maxdd = 0.0
-        for row in merged:
-            peak = max(peak, row["e"])
-            if peak > 0:
-                maxdd = max(maxdd, 1 - (row["e"] / peak))
-
-        summary = {
-            "pf": round(pf, 4),
-            "winrate": round(winrate, 4),
-            "maxdd": round(maxdd, 4),
-            "trades": len(trades)
-        }
-
-        out = {"summary": summary, "equity": merged, "trades": trades}
-
+        engine_cfg["exit_long"] = normalize_exit(raw.get("exit"), "long")
+        engine_cfg["exit_short"] = normalize_exit(raw.get("exit"), "short")
+        out = run_engine(df, engine_cfg)
     else:
-        # --- 通常の long または short のみ ---
         out = run_engine(df, engine_cfg)
 
     t_engine_done = time.perf_counter()

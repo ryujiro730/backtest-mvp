@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
+import { ArrowRight } from "lucide-react";
 
 export default function BalsaraClient() {
   const t = useTranslations("Balsara");
@@ -88,6 +90,30 @@ export default function BalsaraClient() {
         </CardHeader>
         <CardContent>
           <RuinChart p={p} rr={rr} n={n} ruinFrac={ruinFrac} f={f} fMaxPct={30} height={300} />
+        </CardContent>
+      </Card>
+
+      <Card className="overflow-hidden border-slate-200 bg-slate-50 shadow-sm transition-shadow hover:shadow-md">
+        <CardContent className="p-0">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="p-6 md:p-8 md:pr-4">
+              <h2 className="text-lg font-bold text-slate-900 md:text-xl">
+                {t("cta.title")}
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                {t("cta.description")}
+              </p>
+            </div>
+            <div className="bg-white p-6 md:bg-transparent md:p-8 md:pl-0 shrink-0">
+              <Link
+                href="/app"
+                className="group inline-flex w-full md:w-auto items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-lg md:min-w-[200px]"
+              >
+                {t("cta.button")}
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

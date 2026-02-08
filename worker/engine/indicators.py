@@ -79,12 +79,12 @@ def vwap(df: pd.DataFrame):
         vol = pd.to_numeric(df["volume"], errors="coerce").fillna(0.0)
         cum_vol = vol.cumsum().replace(0, np.nan)
         cum_tp_vol = (tp * vol).cumsum()
-        return (cum_tp_vol / cum_vol).fillna(method="bfill").fillna(method="ffill")
+        return (cum_tp_vol / cum_vol).bfill().ffill()
     else:
         return tp.expanding(min_periods=1).mean()
 
 def supertrend(df: pd.DataFrame, length=10, multiplier=3.0):
-    _atr = atr(df, length).fillna(method="bfill")
+    _atr = atr(df, length).bfill()
     hl2 = (df["high"] + df["low"]) / 2.0
     upper = hl2 + float(multiplier) * _atr
     lower = hl2 - float(multiplier) * _atr

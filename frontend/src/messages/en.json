@@ -108,6 +108,11 @@
         "safe": "✅ Acceptable (If assumptions are maintained)"
       }
     },
+    "cta": {
+      "title": "Verify risk of ruin with real backtests",
+      "description": "Get win rate, R/R, and drawdown from a backtest, then cross-check with this calculator. Delver runs free backtests with no login.",
+      "button": "Run free backtest on Delver"
+    },
   "Chart": {
     "title": "Risk of Ruin vs Risk Fraction f (other parameters fixed)",
     "xLabel": "Risk fraction f (%)",

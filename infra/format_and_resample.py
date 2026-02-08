@@ -93,7 +93,7 @@ def fill_m1(df: pd.DataFrame) -> pd.DataFrame:
 
     out = base.reset_index().rename(columns={"index":"timestamp"})
     for c in ["open","high","low","close","volume"]:
-        out[c] = _numify(out[c]).fillna(method="ffill").fillna(0)
+        out[c] = _numify(out[c]).ffill().fillna(0)
     return out
 
 def resample(df: pd.DataFrame, rule: str) -> pd.DataFrame:
