@@ -12,13 +12,18 @@ export function useCatalog() {
     (async () => {
       try {
         const res = await fetch("/api/catalog", { cache: 'no-store' });
-        if (!res.ok) throw new Error(`GET /api/catalog ${res.status}`);
-        const data = await res.json();
-        if (!cancelled) setCatalog({
-          pairs: Array.isArray(data?.pairs) ? data.pairs : [],
-          timeframes: Array.isArray(data?.timeframes) ? data.timeframes : [],
-          items: Array.isArray(data?.items) ? data.items : [],
-        });
+        const data = await res.json().catch(() => ({}));
+        if (!cancelled && res.ok) {
+          setCatalog({
+            pairs: Array.isArray(data?.pairs) ? data.pairs : [],
+            timeframes: Array.isArray(data?.timeframes) ? data.timeframes : [],
+            items: Array.isArray(data?.items) ? data.items : [],
+          });
+          setCatalogError(null);
+        } else if (!cancelled && !res.ok) {
+          setCatalog({ pairs: [], timeframes: [], items: [] });
+          setCatalogError(data?.detail ?? `GET /api/catalog ${res.status}`);
+        }
       } catch (e: any) {
         if (!cancelled) {
           setCatalog({ pairs: [], timeframes: [], items: [] });

@@ -21,7 +21,7 @@ export function ExecutionCondition() {
   const rule = useRuleStore((s) => s.rule);
   const update = useRuleStore((s) => s.update);
 
-  const { catalog, hasCatalog } = useCatalog();
+  const { catalog, hasCatalog, catalogError } = useCatalog();
 
   const { pair, timeframe } = rule.meta;
 
@@ -32,6 +32,11 @@ export function ExecutionCondition() {
       </CardHeader>
 
       <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {catalogError && (
+          <p className="col-span-full text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+            {catalogError}
+          </p>
+        )}
         {/* ================= Pair ================= */}
         <div className="space-y-1">
           <Label>{t("pair")}</Label>
