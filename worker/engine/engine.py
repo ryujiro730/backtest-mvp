@@ -369,7 +369,8 @@ def run_engine(df, cfg):
                 entry_blocks = cfg.get("entry_blocks")
                 entries = cfg.get("entries", [])
                 t_entry = time.perf_counter()
-                with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
+                # ProcessPool で GIL を避け、long/short を別コアで並列構築（ThreadPool は GIL で逆に遅くなりがち）
+                with concurrent.futures.ProcessPoolExecutor(max_workers=2) as ex:
                     f_long = ex.submit(build_entry_mask, df, entries, "long", entry_blocks, "long")
                     f_short = ex.submit(build_entry_mask, df, entries, "short", entry_blocks, "short")
                     pos_long = f_long.result()
