@@ -458,6 +458,8 @@
 
   "Notice": {
     "title": "Important Notice",
+    "tapToExpand": "Tap to expand",
+    "tapToCollapse": "Tap to collapse",
     "items": {
       "backtest": "<strong>All backtest results are simulations based on historical data</strong> and do not guarantee future profits. Actual market conditions (fees, slippage, liquidity, trading restrictions, etc.) may differ.",
       "timeframe": "<strong>For lower timeframes (M1, M5, M15), the data volume is extremely large</strong>, so backtesting and chart rendering may take longer. Please do not close the screen while processing.",
