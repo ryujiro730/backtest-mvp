@@ -36,13 +36,25 @@ def entry_ema_cross(df, e, direction):
 
 
 def entry_rsi_threshold(df: pd.DataFrame, cfg: dict, direction: str) -> pd.Series:
-    period = int(cfg.get("period", 14)); level = float(cfg.get("level", 50))
-    mode = str(cfg.get("mode", "above")).lower()  # above/below
+    period = int(cfg.get("period", 14))
+    level = float(cfg.get("level", 50))
+    event = str(cfg.get("event", cfg.get("mode", "above"))).lower()
     x = rsi(df["close"], period)
-    if direction == "short":
-        cond = (x > level) if mode == "above" else (x < level)  # symmetric for MVP
+    prev = x.shift(1)
+    cond = (x > level)  # default
+    if event in ("cross_down", "below_cross", "dead", "bear"):
+        # 境界を下に跨いだ1本だけ: 前足は level 以上、当足は level 未満
+        cond = (prev >= level) & (x < level)
+    elif event in ("cross_up", "above_cross", "golden", "bull"):
+        # 境界を上に跨いだ1本だけ: 前足は level 以下、当足は level 超
+        cond = (prev <= level) & (x > level)
     else:
-        cond = (x > level) if mode == "above" else (x < level)
+        # above / below: 当足だけで判定（従来どおり）
+        mode = "above" if event in ("above", "gt", ">", ">=") else "below"
+        if direction == "short":
+            cond = (x > level) if mode == "above" else (x < level)
+        else:
+            cond = (x > level) if mode == "above" else (x < level)
     cond.iloc[: period + 1] = False
     return cond
 
@@ -464,8 +476,7 @@ def _single_entry_mask(df: pd.DataFrame, e: dict, direction: str) -> pd.Series:
         period = int(e.get("period", e.get("length", 14)))
         level  = float(e.get("level", 50))
         ev = str(e.get("event", e.get("mode", "above"))).lower()
-        mode = "above" if ev in ("cross_up", "above", "gt", ">", ">=") else "below"
-        m = entry_rsi_threshold(df, {"period": period, "level": level, "mode": mode}, direction)
+        m = entry_rsi_threshold(df, {"period": period, "level": level, "event": ev}, direction)
     elif typ == "breakout":
         m = entry_breakout(df, e, direction)
     elif typ == "sma_cross":

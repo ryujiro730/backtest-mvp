@@ -18,6 +18,8 @@ export type TradeRaw = {
   entry: number;
   exit: number;
   pnl: number;
+  /** バックエンドが返す "long" | "short"。未設定の場合は価格から推測（後方互換） */
+  side?: "long" | "short";
 };
 
 export type PerformanceRaw = {

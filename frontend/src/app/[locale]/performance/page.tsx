@@ -19,6 +19,7 @@ export default function PerformancePage() {
     | "equity"
   >("overview");
 
+  const [runId, setRunId] = useState<string | null>(null);
   const [summary, setSummary] = useState<any | null>(null);
   const [equity, setEquity] = useState<any[] | null>(null);
   const [trades, setTrades] = useState<any[] | null>(null);
@@ -26,11 +27,12 @@ export default function PerformancePage() {
   const [data, setData] = useState<PerformanceRaw | null>(null);
 
   useEffect(() => {
-    const runId = localStorage.getItem("last_run_id");
-    if (!runId) return;
+    const id = localStorage.getItem("last_run_id");
+    if (!id) return;
+    setRunId(id);
 
     // ① summary（軽い）
-    fetch(`/api/reports/${runId}/summary`, { cache: "no-store" })
+    fetch(`/api/reports/${id}/summary`, { cache: "no-store" })
       .then(r => r.json())
       .then(s => {
         console.log("[PerformancePage] summary loaded");
@@ -39,7 +41,7 @@ export default function PerformancePage() {
 
     // ② equity（重い）
     setTimeout(() => {
-      fetch(`/api/reports/${runId}/equity`, { cache: "no-store" })
+      fetch(`/api/reports/${id}/equity`, { cache: "no-store" })
         .then(r => r.json())
         .then(eq => {
           console.log("[PerformancePage] equity loaded");
@@ -48,7 +50,7 @@ export default function PerformancePage() {
     }, 0);
 
     // ③ trades（中）
-    fetch(`/api/reports/${runId}/trades`, { cache: "no-store" })
+    fetch(`/api/reports/${id}/trades`, { cache: "no-store" })
       .then(r => r.json())
       .then(t => {
         console.log("[PerformancePage] trades loaded");
@@ -85,7 +87,7 @@ export default function PerformancePage() {
           />
 
           <main className="flex-1 overflow-auto p-6 bg-background">
-            <PerformanceContent tab={tab} data={data} />
+            <PerformanceContent tab={tab} data={data} runId={runId} />
           </main>
         </div>
       </div>

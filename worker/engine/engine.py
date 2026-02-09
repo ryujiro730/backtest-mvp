@@ -98,9 +98,14 @@ def _run_engine_bidirectional(df, cfg):
     spread_pips = float(trading.get("spread", 1.5))
     slippage_pips = float(trading.get("slippage", 0.5))
     commission = float(trading.get("commission", 7))
+    lot_mode = str(trading.get("lot_mode", "fixed")).lower()
+    if lot_mode not in ("fixed", "dynamic"):
+        lot_mode = "fixed"
     lot_size = float(trading.get("lot_size", 0.1))
     if lot_size <= 0:
         lot_size = 0.01
+    risk_pct = float(trading.get("risk_pct", 1.0))
+    leverage = float(trading.get("leverage", 100))
     pair = str(cfg.get("pair", "EURUSD"))
     timeframe = str(cfg.get("timeframe", "H1"))
     pip_size = _pip_size(pair)
@@ -127,6 +132,20 @@ def _run_engine_bidirectional(df, cfg):
     balance_ref = [initial_balance]
     trades = []
     position = None  # None | {"side": "long"|"short", "entry_idx", "entry_px", "stop", "tp", "balance_at_entry", "position_notional"}
+
+    def _notional_for_entry(balance_at_entry: float, entry_px: float, R: float | None) -> float:
+        """lot_mode に応じた position_notional。fixed=指定ロット。dynamic=残高の risk_pct% をリスクにするサイズ（SL の R から逆算）。"""
+        if lot_mode == "fixed":
+            notional = lot_size * CONTRACT_SIZE
+        else:
+            # 動的: 残高の risk_pct% を「SL に当たったときの損失」にする → notional = risk_money * entry_px / R
+            if R is None or R <= 0:
+                notional = lot_size * CONTRACT_SIZE  # SL なし時は固定ロットにフォールバック
+            else:
+                risk_money = balance_at_entry * (risk_pct / 100.0)
+                notional = risk_money * entry_px / R
+        max_notional = balance_at_entry * leverage
+        return max(0.0, min(notional, max_notional))
 
     def close_position(exit_px: float, exit_bar_i: int):
         nonlocal position
@@ -158,6 +177,7 @@ def _run_engine_bidirectional(df, cfg):
             "entry": float(ep),
             "exit": float(exit_px),
             "pnl": float(pnl_for_equity),
+            "side": po["side"],
         })
         strat_ret.iat[exit_bar_i + 1] += pnl_for_equity
 
@@ -177,7 +197,7 @@ def _run_engine_bidirectional(df, cfg):
                 exit_cfg = exit_long
                 sl, R = _initial_r_and_sl(entry_px, "long", df, i, exit_cfg.get("sl_atr"), exit_cfg.get("sl_fixed_pips"))
                 tp = _tp_price(entry_px, "long", R, exit_cfg.get("tp_r_multiple"), None)
-                position_notional = lot_size * CONTRACT_SIZE
+                position_notional = _notional_for_entry(balance_ref[0], entry_px, R)
                 position = {
                     "side": "long", "entry_idx": i, "entry_px": entry_px,
                     "stop": sl, "tp": tp, "balance_at_entry": balance_ref[0],
@@ -189,7 +209,7 @@ def _run_engine_bidirectional(df, cfg):
                 exit_cfg = exit_short
                 sl, R = _initial_r_and_sl(entry_px, "short", df, i, exit_cfg.get("sl_atr"), exit_cfg.get("sl_fixed_pips"))
                 tp = _tp_price(entry_px, "short", R, exit_cfg.get("tp_r_multiple"), None)
-                position_notional = lot_size * CONTRACT_SIZE
+                position_notional = _notional_for_entry(balance_ref[0], entry_px, R)
                 position = {
                     "side": "short", "entry_idx": i, "entry_px": entry_px,
                     "stop": sl, "tp": tp, "balance_at_entry": balance_ref[0],
@@ -213,7 +233,7 @@ def _run_engine_bidirectional(df, cfg):
                 position = {
                     "side": "short", "entry_idx": i, "entry_px": entry_px,
                     "stop": sl, "tp": tp, "balance_at_entry": balance_ref[0],
-                    "position_notional": lot_size * CONTRACT_SIZE,
+                    "position_notional": _notional_for_entry(balance_ref[0], entry_px, R),
                 }
                 continue
             # 時間ストップ
@@ -241,7 +261,7 @@ def _run_engine_bidirectional(df, cfg):
                 position = {
                     "side": "long", "entry_idx": i, "entry_px": entry_px,
                     "stop": sl, "tp": tp, "balance_at_entry": balance_ref[0],
-                    "position_notional": lot_size * CONTRACT_SIZE,
+                    "position_notional": _notional_for_entry(balance_ref[0], entry_px, R),
                 }
                 continue
             tsb = exit_cfg.get("time_stop_bars"); sl_tsb = exit_cfg.get("sl_time_stop_bars"); tp_tsb = exit_cfg.get("tp_time_stop_bars")
@@ -369,12 +389,9 @@ def run_engine(df, cfg):
                 entry_blocks = cfg.get("entry_blocks")
                 entries = cfg.get("entries", [])
                 t_entry = time.perf_counter()
-                # ProcessPool で GIL を避け、long/short を別コアで並列構築（ThreadPool は GIL で逆に遅くなりがち）
-                with concurrent.futures.ProcessPoolExecutor(max_workers=2) as ex:
-                    f_long = ex.submit(build_entry_mask, df, entries, "long", entry_blocks, "long")
-                    f_short = ex.submit(build_entry_mask, df, entries, "short", entry_blocks, "short")
-                    pos_long = f_long.result()
-                    pos_short = f_short.result()
+                # Celery 等の daemonic プロセスでは子プロセスを spawn できないため、メインプロセスで構築
+                pos_long = build_entry_mask(df, entries, "long", entry_blocks, "long")
+                pos_short = build_entry_mask(df, entries, "short", entry_blocks, "short")
                 pos_long.iloc[:5] = False
                 pos_short.iloc[:5] = False
                 t_entry_done = time.perf_counter()
@@ -435,8 +452,9 @@ def run_engine(df, cfg):
                         "entry": float(t[3]),
                         "exit": float(t[4]),
                         "pnl": float(t[2]),
+                        "side": "long" if (idx % 2 == 0) else "short",
                     }
-                    for t in trades_rust
+                    for idx, t in enumerate(trades_rust)
                 ]
                 total = time.perf_counter() - t0
                 print(
@@ -524,6 +542,7 @@ def run_engine(df, cfg):
                     "entry": float(t[3]),
                     "exit": float(t[4]),
                     "pnl": float(t[2]),
+                    "side": direction,
                 }
                 for t in trades_rust
             ]
@@ -629,6 +648,7 @@ def run_engine(df, cfg):
                     "entry": float(t[3]),
                     "exit": float(t[4]),
                     "pnl": float(t[2]),
+                    "side": direction,
                 }
                 for t in trades_rust
             ]
@@ -713,6 +733,7 @@ def run_engine(df, cfg):
             "entry": float(ep),
             "exit": float(exit_px),
             "pnl": float(pnl_for_equity),
+            "side": po["side"],
         })
         positions = [p for p in positions if p is not po]
         strat_ret.iat[exit_bar_i + 1] += pnl_for_equity
@@ -740,7 +761,12 @@ def run_engine(df, cfg):
                 if lot_mode == "fixed":
                     position_notional = lot_size * CONTRACT_SIZE
                 else:
-                    position_notional = lot_size * CONTRACT_SIZE * (balance_at_entry / initial_balance)
+                    # 動的: 残高の risk_pct% を SL 時の損失にする → notional = risk_money * entry_px / R
+                    if R is None or R <= 0:
+                        position_notional = lot_size * CONTRACT_SIZE
+                    else:
+                        risk_money = balance_at_entry * (risk_pct / 100.0)
+                        position_notional = risk_money * entry_px / R
                 max_notional = balance_at_entry * leverage
                 position_notional = min(position_notional, max_notional)
                 position_notional = max(0.0, position_notional)

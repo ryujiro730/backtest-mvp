@@ -504,6 +504,9 @@ async function handleRun() {
     // 従来どおりサーバー実行
     const { run_id, plan } = await executeRun(payload, { idem: genIdemKey() });
     setRunId(run_id);
+    localStorage.setItem("last_run_id", run_id);
+    localStorage.setItem("last_run_pair", pair);
+    localStorage.setItem("last_run_timeframe", timeframe);
     if (typeof setCurrentPlan === "function") setCurrentPlan(plan as any);
 
     const data = await pollReport(run_id);

@@ -41,13 +41,9 @@ export function RunButton({
 
     if (data?.run_id) {
       console.log("[RunButton] new runId =", data.run_id);
-
       localStorage.setItem("last_run_id", data.run_id);
-      console.log(
-        "[RunButton] localStorage last_run_id =",
-        localStorage.getItem("last_run_id")
-      );
-
+      localStorage.setItem("last_run_pair", rule.meta.pair);
+      localStorage.setItem("last_run_timeframe", rule.meta.timeframe);
       onRunStarted(data.run_id);
     } else {
       console.error("[RunButton] run_id not found", data);

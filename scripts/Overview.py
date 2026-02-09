@@ -1,6 +1,6 @@
 import pandas as pd
 
-df = pd.read_parquet("/home/tsujiryujiro/dev/backtest-mvp/data/EURUSD_H1.parquet")
+df = pd.read_parquet("/home/tsujiryujiro/dev/delver/data/EURUSD_M5.parquet")
 # 基本情報
 print("=== Data Overview ===")
 print(df.info())
