@@ -35,7 +35,7 @@
     "framer-motion": "^12.29.0",
     "gray-matter": "^4.0.3",
     "katex": "^0.16.28",
-    "lightweight-charts": "^4.2.0",
+    "lightweight-charts": "^5.1.0",
     "lucide-react": "^0.562.0",
     "marked": "^16.2.1",
     "mixpanel-browser": "^2.69.1",

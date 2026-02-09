@@ -4,6 +4,7 @@ import Explanation from "@/components/explanation";
 import { RunPanel } from "@/components/run/RunPanel";
 import NoticeCard from "@/components/NoticeCard";
 import BetaSignupCard from "@/components/BetaSignupCard";
+import { ChartVerificationCtaLink } from "@/components/ChartVerificationCta";
 import { getTranslations } from "next-intl/server";
 import { Metadata } from "next";
 
@@ -59,6 +60,13 @@ export default async function Page({ params }: PageProps) {
 
           <div className="rounded-xl border border-slate-200/80 bg-slate-50/50 p-6 shadow-sm">
             <RunPanel />
+          </div>
+
+          <div className="mt-8 flex flex-col items-center gap-2 text-center">
+            <p className="text-sm font-medium text-amber-700/90">目視でエントリーを検証</p>
+            <ChartVerificationCtaLink href={`/${locale}/chart`} variant="manual">
+              手動検証モード — チャートで勝ち筋を確認
+            </ChartVerificationCtaLink>
           </div>
         </div>
       </section>

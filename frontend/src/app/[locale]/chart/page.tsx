@@ -1,6 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
+import Link from "next/link";
 import {
   Search,
   Rewind,
@@ -14,6 +17,7 @@ import {
   PanelRightOpen,
   PanelRightClose,
   X,
+  Scissors,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,6 +70,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import type { CandlestickBar } from "@/components/chart/ChartArea";
+import type { TradeRaw } from "@/lib/performance/transform";
 
 const TIMEFRAMES = [
   { label: "1m", value: "M1" },
@@ -77,6 +82,27 @@ const TIMEFRAMES = [
   { label: "1D", value: "D1" },
   { label: "1W", value: "W1" },
 ] as const;
+
+/** ユニークIDを生成。crypto.randomUUID が使えない環境（古い Android WebView 等）でも動作する */
+function generateInstanceId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  const hex = "0123456789abcdef";
+  let id = "";
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    for (let i = 0; i < 16; i++) {
+      id += hex[bytes[i]! >> 4] + hex[bytes[i]! & 15];
+    }
+  } else {
+    for (let i = 0; i < 32; i++) {
+      id += hex[Math.floor(Math.random() * 16)];
+    }
+  }
+  return `${id.slice(0, 8)}-${id.slice(8, 12)}-4${id.slice(12, 16)}-a${id.slice(16, 20)}-${id.slice(20, 32)}`;
+}
 
 const PLAY_INTERVAL_MS = 400;
 /** M1 リプレイで 1 分進める間隔（ms）。小さくすると早送り */
@@ -109,6 +135,11 @@ export type ClosedTrade = Position & { exitPrice: number; exitTime: number };
 
 /** 1ロットあたりの契約サイズ（MT5/TradingView の標準。通貨単位の損益にする） */
 const CONTRACT_SIZE = 100_000;
+
+/** バックテストトレードの日時文字列を Unix 秒に */
+function parseTradeTime(s: string): number {
+  return Math.floor(new Date(s.replace(" ", "T")).getTime() / 1000);
+}
 
 function computeUnrealizedPnl(pos: Position, currentPrice: number): number {
   const diff = currentPrice - pos.entryPrice;
@@ -151,10 +182,33 @@ function checkTpSlHit(
   return null;
 }
 
-export default function ChartPage() {
+function ChartPageInner() {
+  const t = useTranslations("Chart");
+  const locale = useLocale();
   const { catalog, hasCatalog } = useCatalog();
+  const searchParams = useSearchParams();
+  const runIdFromUrl = searchParams.get("runId");
+  const urlSymbol = searchParams.get("symbol");
+  const urlTimeframe = searchParams.get("timeframe");
+
   const [symbol, setSymbol] = useState("EURUSD");
   const [timeframe, setTimeframe] = useState("H1");
+  const [runTrades, setRunTrades] = useState<TradeRaw[] | null>(null);
+
+  /** URL で runId + symbol + timeframe が渡されたとき、銘柄・時間足を合わせてトレード取得 */
+  useEffect(() => {
+    if (!runIdFromUrl) {
+      setRunTrades(null);
+      return;
+    }
+    if (urlSymbol) setSymbol(urlSymbol);
+    if (urlTimeframe) setTimeframe(urlTimeframe);
+    fetch(`/api/reports/${runIdFromUrl}/trades`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((t) => setRunTrades(Array.isArray(t) ? t : Array.isArray(t?.trades) ? t.trades : []))
+      .catch(() => setRunTrades([]));
+  }, [runIdFromUrl, urlSymbol, urlTimeframe]);
+
   const { bars: barsFromApi, loading, error, reachedStart, loadMore } = useChartData(symbol, timeframe);
 
   /** M1 リプレイ用: 表示足の範囲（直近 M1_REPLAY_MAX_BARS 本） */
@@ -195,16 +249,19 @@ export default function ChartPage() {
     });
   }, [useM1Replay, m1Range]);
 
-  /** API の銘柄一覧が取れたら、現在値が一覧に含まれていなければ先頭に合わせる */
+  /** API の銘柄一覧が取れたら、現在値が一覧に含まれていなければ先頭に合わせる（runId で開いたときは URL の銘柄を優先） */
   useEffect(() => {
+    if (runIdFromUrl && urlSymbol) return;
     if (catalog.pairs.length > 0) {
       setSymbol((prev) => (catalog.pairs.includes(prev) ? prev : catalog.pairs[0]));
     }
-  }, [catalog.pairs]);
+  }, [catalog.pairs, runIdFromUrl, urlSymbol]);
 
   /** 再生位置は「現在の足の時刻」で保持。loadMore で先頭に足が追加されても同じ足を指す */
   const [replayTime, setReplayTime] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  /** TradingView リプレイ風: ON のときチャートの足をクリックするとその位置までスキップ */
+  const [skipReplayMode, setSkipReplayMode] = useState(false);
   const [positions, setPositions] = useState<Position[]>([]);
   /** TP/SL で決済した履歴（巻き戻しで復元するため exitTime で紐付け） */
   const [closedTrades, setClosedTrades] = useState<ClosedTrade[]>([]);
@@ -316,6 +373,8 @@ export default function ChartPage() {
   const [quickEntryQty, setQuickEntryQty] = useState("1");
   /** 下パネル（Position/Order History）の高さ（px）。リサイズハンドルで変更可能 */
   const [panelHeightPx, setPanelHeightPx] = useState(220);
+  /** バックテスト run のエントリー・決済マーカーを非表示にするか（ボタンで切り替え） */
+  const [hideRunMarkers, setHideRunMarkers] = useState(false);
   const contentWrapperRef = useRef<HTMLDivElement>(null);
   const chartAreaRef = useRef<ChartAreaHandle>(null);
   const resizeStartYRef = useRef(0);
@@ -490,6 +549,21 @@ export default function ChartPage() {
     });
   }, [bars, useM1Replay, m1Range]);
 
+  /** リプレイ地点選択: クリックした足をリプレイ先頭にし、その足および左側だけ表示（未来を消す）。選択後はモードを自動OFF */
+  const handleBarClickForSkip = useCallback(
+    (barIndex: number) => {
+      if (bars.length === 0 || barIndex < 0 || barIndex >= bars.length) return;
+      const barTime = bars[barIndex]!.time;
+      setReplayTime(barTime);
+      setIsPlaying(false);
+      setSkipReplayMode(false);
+      if (useM1Replay) {
+        setReplayHeadM1(barTime);
+      }
+    },
+    [bars, useM1Replay]
+  );
+
   const startHoldRepeat = useCallback(
     (handler: () => void) => {
       clearHoldRepeat();
@@ -601,15 +675,41 @@ export default function ChartPage() {
           .filter((t) => t.exitTime <= currentBar.time)
           .reduce((s, t) => s + computeRealizedPnlMoney(t, t.exitPrice), 0)
       : 0);
-  /** エントリーマーカー用: オープン＋決済済みすべて（決済後もマーカー残す） */
+  /** トレードの向き: API の side を優先し、無い場合は価格で推測（後方互換） */
+  const tradeSide = useCallback((t: TradeRaw): "Long" | "Short" => {
+    if (t.side === "long") return "Long";
+    if (t.side === "short") return "Short";
+    return (t.entry < t.exit ? "Long" : "Short") as "Long" | "Short";
+  }, []);
+  /** バックテスト run のトレードからエントリー・決済マーカー（runId で開いたとき用） */
+  const runEntryMarkers = useMemo((): { time: number; side: "Long" | "Short" }[] => {
+    if (!runTrades || runTrades.length === 0) return [];
+    return runTrades.map((t) => ({
+      time: parseTradeTime(t.entry_time),
+      side: tradeSide(t),
+    }));
+  }, [runTrades, tradeSide]);
+  const runExitMarkers = useMemo((): { time: number; side: "Long" | "Short" }[] => {
+    if (!runTrades || runTrades.length === 0) return [];
+    return runTrades.map((t) => ({
+      time: parseTradeTime(t.exit_time),
+      side: tradeSide(t) === "Long" ? "Short" : "Long",
+    }));
+  }, [runTrades, tradeSide]);
+
+  /** エントリーマーカー用: run 表示時は run のトレード（非表示オプションあり）、それ以外はオープン＋決済済み */
   const entryMarkersList = useMemo(() => {
+    if (runTrades && runTrades.length > 0) {
+      if (hideRunMarkers) return [];
+      return runEntryMarkers;
+    }
     const all = [...positions, ...closedTrades];
     return currentBar
       ? all
           .filter((p) => p.entryTime <= currentBar.time)
           .map((p) => ({ time: p.entryTime, side: p.side }))
       : [];
-  }, [positions, closedTrades, currentBar]);
+  }, [runTrades, runEntryMarkers, hideRunMarkers, positions, closedTrades, currentBar]);
   /** 価格軸オーバーレイ用・下部オシレーター用に振り分けたインジケータ系列（インスタンスから展開） */
   const { overlaySeries, oscillatorSeries } = useMemo(() => {
     const visibleBars =
@@ -635,8 +735,12 @@ export default function ChartPage() {
     return { overlaySeries: overlay, oscillatorSeries: oscillator };
   }, [bars, replayToIndex, indicatorInstances]);
 
-  /** 決済マーカー: 決済した足に逆ポジションの矢印（ロング決済＝赤▼、ショート決済＝青▲） */
+  /** 決済マーカー: run 表示時は run の決済（非表示オプションあり）、それ以外は手動決済履歴 */
   const exitMarkersList = useMemo((): { time: number; side: "Long" | "Short" }[] => {
+    if (runTrades && runTrades.length > 0) {
+      if (hideRunMarkers) return [];
+      return runExitMarkers;
+    }
     return currentBar
       ? closedTrades
           .filter((t) => t.exitTime <= currentBar.time)
@@ -645,7 +749,7 @@ export default function ChartPage() {
             side: (t.side === "Long" ? "Short" : "Long") as "Long" | "Short",
           }))
       : [];
-  }, [closedTrades, currentBar]);
+  }, [runTrades, runExitMarkers, hideRunMarkers, closedTrades, currentBar]);
 
   /** 手動決済: 現在価格でクローズして約定履歴へ */
   const handleClosePosition = useCallback(
@@ -671,6 +775,20 @@ export default function ChartPage() {
       <header className="flex shrink-0 flex-col gap-2 border-b px-3 py-2 sm:gap-0 sm:px-4">
         <div className="flex min-w-0 items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
+            {searchParams.get("from") === "performance" && (
+              <Link
+                href={`/${locale}/performance`}
+                className="shrink-0 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs font-medium shadow-sm transition hover:bg-accent hover:text-accent-foreground"
+              >
+                {t("backToPerformance")}
+              </Link>
+            )}
+            <Link
+              href={`/${locale}`}
+              className="shrink-0 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs font-medium shadow-sm transition hover:bg-accent hover:text-accent-foreground"
+            >
+              {t("backToBacktest")}
+            </Link>
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
             <Select
               value={symbol}
@@ -678,7 +796,7 @@ export default function ChartPage() {
               disabled={!hasCatalog}
             >
               <SelectTrigger className="w-[5.5rem] font-mono sm:w-28">
-                <SelectValue placeholder={hasCatalog ? "銘柄" : "読込中…"} />
+                <SelectValue placeholder={hasCatalog ? t("symbolPlaceholder") : t("symbolLoading")} />
               </SelectTrigger>
               <SelectContent>
                 {(catalog.pairs.length > 0 ? catalog.pairs : ["EURUSD"]).map((p: string) => (
@@ -701,13 +819,13 @@ export default function ChartPage() {
             >
               <TabsList className="h-8">
                 <TabsTrigger value="indicators" className="text-xs">
-                  Indicators
+                  {t("tabs.indicators")}
                 </TabsTrigger>
                 <TabsTrigger value="rules" className="text-xs">
-                  Rules
+                  {t("tabs.rules")}
                 </TabsTrigger>
                 <TabsTrigger value="mode" className="text-xs">
-                  Mode
+                  {t("tabs.mode")}
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -717,7 +835,7 @@ export default function ChartPage() {
               variant={rightMargin ? "secondary" : "ghost"}
               size="icon"
               className="h-8 w-8"
-              title={rightMargin ? "右余白 ON（MT5風）" : "右余白 OFF"}
+              title={rightMargin ? t("rightMarginOn") : t("rightMarginOff")}
               onClick={() => setRightMargin((m) => !m)}
             >
               {rightMargin ? (
@@ -726,10 +844,10 @@ export default function ChartPage() {
                 <PanelRightClose className="h-4 w-4" />
               )}
             </Button>
-            <Button variant="ghost" size="icon" className="hidden h-8 w-8 sm:flex" title="定規">
+            <Button variant="ghost" size="icon" className="hidden h-8 w-8 sm:flex" title={t("ruler")}>
               <Ruler className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="hidden h-8 w-8 sm:flex" title="描画">
+            <Button variant="ghost" size="icon" className="hidden h-8 w-8 sm:flex" title={t("draw")}>
               <Pencil className="h-4 w-4" />
             </Button>
             <DropdownMenu>
@@ -739,8 +857,8 @@ export default function ChartPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>アカウント</DropdownMenuItem>
-                <DropdownMenuItem>設定</DropdownMenuItem>
+                <DropdownMenuItem>{t("account")}</DropdownMenuItem>
+                <DropdownMenuItem>{t("settings")}</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -750,7 +868,7 @@ export default function ChartPage() {
             variant="outline"
             size="icon"
             className="h-8 w-8 shrink-0"
-            title="早戻し（10本）・長押しで連続"
+            title={t("rewindFast")}
             onClick={handleRewindFast}
             onPointerDown={() => bars.length > 0 && startHoldRepeat(handleRewindFast)}
             onPointerUp={clearHoldRepeat}
@@ -763,7 +881,7 @@ export default function ChartPage() {
             variant="outline"
             size="icon"
             className="h-8 w-8 shrink-0"
-            title="1本戻る・長押しで連続"
+            title={t("rewindOne")}
             onClick={handleRewind}
             onPointerDown={() => bars.length > 0 && startHoldRepeat(handleRewind)}
             onPointerUp={clearHoldRepeat}
@@ -776,7 +894,7 @@ export default function ChartPage() {
             variant="outline"
             size="icon"
             className="h-8 w-8 shrink-0"
-            title={isPlaying ? "一時停止" : "再生"}
+            title={isPlaying ? t("pause") : t("play")}
             onClick={() => setIsPlaying((p) => !p)}
             disabled={bars.length === 0}
           >
@@ -786,17 +904,27 @@ export default function ChartPage() {
             variant="outline"
             size="icon"
             className="h-8 w-8 shrink-0"
-            title="再生停止"
+            title={t("stop")}
             onClick={() => setIsPlaying(false)}
             disabled={!isPlaying}
           >
             <Square className="h-4 w-4" />
           </Button>
           <Button
+            variant={skipReplayMode ? "secondary" : "outline"}
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            title={t("skipReplayModeTitle")}
+            onClick={() => setSkipReplayMode((v) => !v)}
+            disabled={bars.length === 0}
+          >
+            <Scissors className="h-4 w-4" />
+          </Button>
+          <Button
             variant="outline"
             size="icon"
             className="h-8 w-8 shrink-0"
-            title="1本進む・長押しで連続"
+            title={t("forwardOne")}
             onClick={handleForward}
             onPointerDown={() => bars.length > 0 && startHoldRepeat(handleForward)}
             onPointerUp={clearHoldRepeat}
@@ -809,7 +937,7 @@ export default function ChartPage() {
             variant="outline"
             size="icon"
             className="h-8 w-8 shrink-0"
-            title="早送り（10本）・長押しで連続"
+            title={t("forwardFast")}
             onClick={handleForwardFast}
             onPointerDown={() => bars.length > 0 && startHoldRepeat(handleForwardFast)}
             onPointerUp={clearHoldRepeat}
@@ -844,7 +972,7 @@ export default function ChartPage() {
         <div className="relative min-h-0 flex-1 overflow-hidden">
           {loading ? (
             <div className="flex h-full items-center justify-center text-muted-foreground">
-              読み込み中...
+              {t("loading")}
             </div>
           ) : error ? (
             <div className="flex h-full items-center justify-center text-destructive">
@@ -852,93 +980,117 @@ export default function ChartPage() {
             </div>
           ) : bars.length > 0 ? (
             <>
-              <ChartArea
-                ref={chartAreaRef}
-                bars={bars}
-                replayToIndex={replayToIndex}
-                replayTime={replayTime}
-                rightMargin={rightMargin}
-                entryMarkers={entryMarkersList}
-                exitMarkers={exitMarkersList}
-                indicatorSeries={overlaySeries}
-                oscillatorSeries={oscillatorSeries}
-                onLoadMore={onLoadMore}
-                className="h-full w-full"
-              />
-              {/* チャート左上: 追加済みインジケータ名（クリックで設定を開く） */}
-              {indicatorInstances.filter((i) => i.params.enabled).length > 0 && (
-                <div className="absolute left-2 top-2 z-10 flex flex-wrap gap-1.5 sm:left-4 sm:top-4">
-                  {indicatorInstances
-                    .filter((i) => i.params.enabled)
-                    .map((inst) => {
-                      const typeInfo = UNIQUE_INDICATOR_TYPES.find((t) => t.id === inst.typeId);
-                      const parts = [inst.params.period];
-                      if (inst.params.period2 != null) parts.push(inst.params.period2);
-                      if (inst.params.period3 != null) parts.push(inst.params.period3);
-                      const label = typeInfo ? `${typeInfo.name} (${parts.join(", ")})` : inst.typeId;
-                      return (
-                        <button
-                          key={inst.instanceId}
-                          type="button"
-                          onClick={() => setIndicatorSettingsInstanceId(inst.instanceId)}
-                          className="rounded border border-border/80 bg-background/95 px-2 py-1 text-xs font-medium shadow-sm transition hover:bg-muted"
-                          style={{
-                            borderLeftWidth: 3,
-                            borderLeftColor: inst.color ?? "#64748b",
-                          }}
-                        >
-                          {label}
-                        </button>
-                      );
-                    })}
-                </div>
-              )}
-              {currentPrice > 0 && (
-                <div
-                  className={cn(
-                    "absolute left-2 z-10 flex items-center gap-1.5 sm:left-4 sm:gap-2",
-                    indicatorInstances.some((i) => i.params.enabled)
-                      ? "top-10 sm:top-12"
-                      : "top-2 sm:top-4"
-                  )}
-                >
-                  <button
-                    type="button"
-                    onClick={() => handleQuickEntry("Short")}
-                    className="flex flex-col rounded-md border-2 border-red-500 bg-white px-2 py-1.5 text-left shadow-[0_2px_0_0_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.9)] transition-all hover:brightness-[0.98] active:translate-y-[1px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.06),inset_0_2px_2px_rgba(0,0,0,0.08)] sm:rounded-lg sm:px-4 sm:py-2.5 sm:shadow-[0_3px_0_0_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.9)] sm:active:translate-y-[2px] sm:active:shadow-[0_1px_0_0_rgba(0,0,0,0.06),inset_0_2px_3px_rgba(0,0,0,0.08)]"
-                    title="ショートで即約定"
-                  >
-                    <span className="text-sm font-semibold tabular-nums text-red-600 sm:text-lg">
-                      {currentPrice.toFixed(5)}
-                    </span>
-                    <span className="text-xs font-medium text-red-600 sm:text-sm">売り</span>
-                  </button>
-                  <div className="flex flex-col items-center gap-0.5">
-                    <Input
-                      type="number"
-                      min={0.01}
-                      step={0.01}
-                      value={quickEntryQty}
-                      onChange={(e) => setQuickEntryQty(e.target.value)}
-                      className="h-8 w-14 border border-input bg-background px-1 text-center text-sm font-mono tabular-nums sm:w-16"
-                      title="ロット数"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                    <span className="text-[10px] text-muted-foreground">ロット</span>
+              <div
+                className={cn(
+                  "relative h-full min-h-0 w-full overflow-hidden",
+                  skipReplayMode && "cursor-crosshair"
+                )}
+              >
+                <ChartArea
+                  ref={chartAreaRef}
+                  bars={bars}
+                  replayToIndex={replayToIndex}
+                  replayTime={replayTime}
+                  rightMargin={rightMargin}
+                  entryMarkers={entryMarkersList}
+                  exitMarkers={exitMarkersList}
+                  indicatorSeries={overlaySeries}
+                  oscillatorSeries={oscillatorSeries}
+                  onLoadMore={onLoadMore}
+                  onBarClick={skipReplayMode ? handleBarClickForSkip : undefined}
+                  className="h-full w-full"
+                />
+              </div>
+              {/* チャート左上: 縦積みで重ならない順 → クイックエントリー → インジケータ表示 → マーカーを消す */}
+              <div className="absolute left-2 top-2 z-10 flex flex-col gap-3 sm:left-4 sm:top-4">
+                {/* 1. クイックエントリー */}
+                {currentPrice > 0 && (
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleQuickEntry("Short")}
+                      className="flex flex-col rounded-md border-2 border-red-500 bg-white px-2 py-1.5 text-left shadow-[0_2px_0_0_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.9)] transition-all hover:brightness-[0.98] active:translate-y-[1px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.06),inset_0_2px_2px_rgba(0,0,0,0.08)] sm:rounded-lg sm:px-4 sm:py-2.5 sm:shadow-[0_3px_0_0_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.9)] sm:active:translate-y-[2px] sm:active:shadow-[0_1px_0_0_rgba(0,0,0,0.06),inset_0_2px_3px_rgba(0,0,0,0.08)]"
+                      title={t("quickShort")}
+                    >
+                      <span className="text-sm font-semibold tabular-nums text-red-600 sm:text-lg">
+                        {currentPrice.toFixed(5)}
+                      </span>
+                      <span className="text-xs font-medium text-red-600 sm:text-sm">{t("sell")}</span>
+                    </button>
+                    <div className="flex flex-col items-center gap-0.5">
+                      <Input
+                        type="number"
+                        min={0.01}
+                        step={0.01}
+                        value={quickEntryQty}
+                        onChange={(e) => setQuickEntryQty(e.target.value)}
+                        className="h-8 w-14 border border-input bg-background px-1 text-center text-sm font-mono tabular-nums sm:w-16"
+                        title={t("lotTitle")}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <span className="text-[10px] text-muted-foreground">{t("lot")}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleQuickEntry("Long")}
+                      className="flex flex-col rounded-md border-2 border-blue-500 bg-white px-2 py-1.5 text-left shadow-[0_2px_0_0_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.9)] transition-all hover:brightness-[0.98] active:translate-y-[1px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.06),inset_0_2px_2px_rgba(0,0,0,0.08)] sm:rounded-lg sm:px-4 sm:py-2.5 sm:shadow-[0_3px_0_0_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.9)] sm:active:translate-y-[2px] sm:active:shadow-[0_1px_0_0_rgba(0,0,0,0.06),inset_0_2px_3px_rgba(0,0,0,0.08)]"
+                      title={t("quickLong")}
+                    >
+                      <span className="text-sm font-semibold tabular-nums text-blue-600 sm:text-lg">
+                        {currentPrice.toFixed(5)}
+                      </span>
+                      <span className="text-xs font-medium text-blue-600 sm:text-sm">{t("buy")}</span>
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleQuickEntry("Long")}
-                    className="flex flex-col rounded-md border-2 border-blue-500 bg-white px-2 py-1.5 text-left shadow-[0_2px_0_0_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.9)] transition-all hover:brightness-[0.98] active:translate-y-[1px] active:shadow-[0_1px_0_0_rgba(0,0,0,0.06),inset_0_2px_2px_rgba(0,0,0,0.08)] sm:rounded-lg sm:px-4 sm:py-2.5 sm:shadow-[0_3px_0_0_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.9)] sm:active:translate-y-[2px] sm:active:shadow-[0_1px_0_0_rgba(0,0,0,0.06),inset_0_2px_3px_rgba(0,0,0,0.08)]"
-                    title="ロングで即約定"
-                  >
-                    <span className="text-sm font-semibold tabular-nums text-blue-600 sm:text-lg">
-                      {currentPrice.toFixed(5)}
-                    </span>
-                    <span className="text-xs font-medium text-blue-600 sm:text-sm">買い</span>
-                  </button>
-                </div>
-              )}
+                )}
+                {/* 2. インジケータ表示テキスト */}
+                {indicatorInstances.filter((i) => i.params.enabled).length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {indicatorInstances
+                      .filter((i) => i.params.enabled)
+                      .map((inst) => {
+                        const typeInfo = UNIQUE_INDICATOR_TYPES.find((t) => t.id === inst.typeId);
+                        const parts = [inst.params.period];
+                        if (inst.params.period2 != null) parts.push(inst.params.period2);
+                        if (inst.params.period3 != null) parts.push(inst.params.period3);
+                        const label = typeInfo ? `${typeInfo.name} (${parts.join(", ")})` : inst.typeId;
+                        return (
+                          <button
+                            key={inst.instanceId}
+                            type="button"
+                            onClick={() => setIndicatorSettingsInstanceId(inst.instanceId)}
+                            className="rounded border border-border/80 bg-background/95 px-2 py-1 text-xs font-medium shadow-sm transition hover:bg-muted"
+                            style={{
+                              borderLeftWidth: 3,
+                              borderLeftColor: inst.color ?? "#64748b",
+                            }}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
+                  </div>
+                )}
+                {/* 3. バックテスト Run のマーカー（Run ID 表示でどの run か確認可能） */}
+                {(runTrades && runTrades.length > 0) && (
+                  <div className="flex flex-col gap-1">
+                    {runIdFromUrl && (
+                      <span className="text-[10px] text-muted-foreground" title={t("runLabelHint")}>
+                        {t("runLabel")}: {runIdFromUrl}
+                      </span>
+                    )}
+                    <Button
+                      type="button"
+                      variant={hideRunMarkers ? "secondary" : "outline"}
+                      size="sm"
+                      className="h-8 w-fit text-xs shadow-sm"
+                      onClick={() => setHideRunMarkers((v) => !v)}
+                    >
+                      {hideRunMarkers ? t("showMarkers") : t("hideMarkers")}
+                    </Button>
+                  </div>
+                )}
+              </div>
             </>
           ) : null}
         </div>
@@ -951,18 +1103,18 @@ export default function ChartPage() {
           {/* 境界線：パネルの最上部に absolute で浮かせる */}
           <div
             role="separator"
-            aria-label="パネル高さを変更"
+            aria-label={t("panelResize")}
             onMouseDown={handleResizeStart}
             className="absolute -top-1 left-0 z-50 h-2 w-full cursor-ns-resize transition-colors hover:bg-primary/30"
-            title="ドラッグしてリサイズ"
+            title={t("panelResizeTitle")}
           />
           {/* パネルの中身 */}
           <div className="h-full overflow-auto">
           <Tabs defaultValue="position" className="flex min-h-0 w-full flex-1 flex-col min-w-0">
           <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 border-b px-2 pt-2 sm:px-4">
             <TabsList className="h-8 shrink-0">
-              <TabsTrigger value="position">Position</TabsTrigger>
-              <TabsTrigger value="orders">Order History</TabsTrigger>
+              <TabsTrigger value="position">{t("position")}</TabsTrigger>
+              <TabsTrigger value="orders">{t("orderHistory")}</TabsTrigger>
             </TabsList>
             <Button
               size="sm"
@@ -970,10 +1122,10 @@ export default function ChartPage() {
               className="shrink-0 gap-1"
               onClick={() => setEntryOpen(true)}
               disabled={!currentBar}
-              title="現在の足で手動エントリー"
+              title={t("manualEntryTitle")}
             >
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">手動エントリー</span>
+              <span className="hidden sm:inline">{t("manualEntry")}</span>
             </Button>
           </div>
           <div className="min-w-0 px-2 py-2 sm:px-4">
@@ -982,7 +1134,7 @@ export default function ChartPage() {
               key={`balance-${replayTime ?? 0}`}
               className="mb-2 flex items-center justify-between border-b pb-2 text-sm"
             >
-              <span className="text-muted-foreground">資産残高</span>
+              <span className="text-muted-foreground">{t("balance")}</span>
               <span className="font-mono text-base font-semibold tabular-nums">
                 ${balance.toFixed(2)}
               </span>
@@ -994,25 +1146,25 @@ export default function ChartPage() {
             >
               <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
                 <div className="flex justify-between gap-2">
-                  <span className="text-muted-foreground">再生位置</span>
+                  <span className="text-muted-foreground">{t("replayPosition")}</span>
                   <span className="font-mono tabular-nums">
                     {bars.length > 0 ? `${currentBarIndex + 1} / ${bars.length}` : "—"}
                   </span>
                 </div>
                 {timeframe !== "M1" && m1Range != null && (
                   <span className="text-[10px] text-muted-foreground sm:ml-2">
-                    {useM1Replay ? "M1リプレイ" : m1Loading ? "M1リプレイ準備中…" : null}
+                    {useM1Replay ? t("m1Replay") : m1Loading ? t("m1ReplayPreparing") : null}
                   </span>
                 )}
               </div>
               <div className="flex justify-between gap-2">
-                <span className="text-muted-foreground">現在価格</span>
+                <span className="text-muted-foreground">{t("currentPrice")}</span>
                 <span className="font-mono tabular-nums">
                   {currentPrice > 0 ? currentPrice.toFixed(5) : "—"}
                 </span>
               </div>
               <div className="flex justify-between gap-2">
-                <span className="text-muted-foreground">Unrealized P&L</span>
+                <span className="text-muted-foreground">{t("unrealizedPnl")}</span>
                 <span
                   className={cn(
                     "font-mono tabular-nums",
@@ -1025,21 +1177,21 @@ export default function ChartPage() {
             </div>
             <TabsContent value="position" className="mt-0">
               <Card>
-                <CardHeader className="py-2 text-sm font-medium">ポジション</CardHeader>
+                <CardHeader className="py-2 text-sm font-medium">{t("positions")}</CardHeader>
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Symbol</TableHead>
-                        <TableHead className="text-right">Unrealized P&L</TableHead>
-                        <TableHead className="text-right">Quantity</TableHead>
-                        <TableHead>Long/Short</TableHead>
-                        <TableHead>Take Profit</TableHead>
-                        <TableHead>Stop Loss</TableHead>
-                        <TableHead className="text-right">Current</TableHead>
-                        <TableHead className="text-right">Executed</TableHead>
-                        <TableHead>Leverage</TableHead>
+                        <TableHead>{t("symbol")}</TableHead>
+                        <TableHead className="text-right">{t("unrealizedPnl")}</TableHead>
+                        <TableHead className="text-right">{t("quantity")}</TableHead>
+                        <TableHead>{t("longShort")}</TableHead>
+                        <TableHead>{t("takeProfit")}</TableHead>
+                        <TableHead>{t("stopLoss")}</TableHead>
+                        <TableHead className="text-right">{t("current")}</TableHead>
+                        <TableHead className="text-right">{t("executed")}</TableHead>
+                        <TableHead>{t("leverage")}</TableHead>
                         <TableHead className="w-10 text-right"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1047,7 +1199,7 @@ export default function ChartPage() {
                       {visiblePositions.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={10} className="text-center text-muted-foreground">
-                            ポジションはありません（手動エントリーで追加）
+                            {t("noPositions")}
                           </TableCell>
                         </TableRow>
                       ) : (
@@ -1089,7 +1241,7 @@ export default function ChartPage() {
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                  title="決済（現在価格でクローズ）"
+                                  title={t("closePosition")}
                                   onClick={() => handleClosePosition(pos.id)}
                                 >
                                   <X className="h-4 w-4" />
@@ -1107,26 +1259,26 @@ export default function ChartPage() {
             </TabsContent>
             <TabsContent value="orders" className="mt-0">
               <Card>
-                <CardHeader className="py-2 text-sm font-medium">注文履歴（約定）</CardHeader>
+                <CardHeader className="py-2 text-sm font-medium">{t("orderHistoryHeader")}</CardHeader>
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>決済日時</TableHead>
-                        <TableHead>Symbol</TableHead>
-                        <TableHead>Side</TableHead>
-                        <TableHead className="text-right">Entry</TableHead>
-                        <TableHead className="text-right">Exit</TableHead>
-                        <TableHead className="text-right">Quantity</TableHead>
-                        <TableHead className="text-right">P&L</TableHead>
+                        <TableHead>{t("exitTime")}</TableHead>
+                        <TableHead>{t("symbol")}</TableHead>
+                        <TableHead>{t("side")}</TableHead>
+                        <TableHead className="text-right">{t("entry")}</TableHead>
+                        <TableHead className="text-right">{t("exit")}</TableHead>
+                        <TableHead className="text-right">{t("quantity")}</TableHead>
+                        <TableHead className="text-right">{t("pnl")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {closedTrades.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={7} className="text-center text-muted-foreground">
-                            TP/SL で決済された履歴がここに表示されます
+                            {t("noClosedTrades")}
                           </TableCell>
                         </TableRow>
                       ) : (
@@ -1185,11 +1337,11 @@ export default function ChartPage() {
       <Dialog open={entryOpen} onOpenChange={setEntryOpen}>
         <DialogContent className="max-h-[90dvh] w-[calc(100vw-1.5rem)] max-w-md overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>手動エントリー</DialogTitle>
+            <DialogTitle>{t("entryDialogTitle")}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label>方向</Label>
+              <Label>{t("direction")}</Label>
               <div className="flex gap-2">
                 <Button
                   type="button"
@@ -1210,7 +1362,7 @@ export default function ChartPage() {
               </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="qty">数量</Label>
+              <Label htmlFor="qty">{t("qty")}</Label>
               <Input
                 id="qty"
                 type="number"
@@ -1220,39 +1372,39 @@ export default function ChartPage() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="tp">Take Profit（任意）</Label>
+              <Label htmlFor="tp">{t("tpOptional")}</Label>
               <Input
                 id="tp"
                 type="number"
                 step="any"
-                placeholder="例: 1.10000"
+                placeholder={t("tpPlaceholder")}
                 value={entryTp}
                 onChange={(e) => setEntryTp(e.target.value)}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="sl">Stop Loss（任意）</Label>
+              <Label htmlFor="sl">{t("slOptional")}</Label>
               <Input
                 id="sl"
                 type="number"
                 step="any"
-                placeholder="例: 1.08000"
+                placeholder={t("slPlaceholder")}
                 value={entrySl}
                 onChange={(e) => setEntrySl(e.target.value)}
               />
             </div>
             {currentBar && (
               <p className="text-xs text-muted-foreground">
-                エントリー価格: {currentBar.close.toFixed(5)}（現在の足の終値）
+                {t("entryPriceNote", { price: currentBar.close.toFixed(5) })}
               </p>
             )}
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setEntryOpen(false)}>
-              キャンセル
+              {t("cancel")}
             </Button>
             <Button type="button" onClick={handleAddPosition} disabled={!currentBar}>
-              エントリー
+              {t("entryButton")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1261,11 +1413,11 @@ export default function ChartPage() {
       <Dialog open={rulesDialogOpen} onOpenChange={setRulesDialogOpen}>
         <DialogContent className="max-h-[90dvh] w-[calc(100vw-1.5rem)] max-w-md overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>環境設定（Rules）</DialogTitle>
+            <DialogTitle>{t("rulesDialogTitle")}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="env-balance">証拠金残高</Label>
+              <Label htmlFor="env-balance">{t("marginBalance")}</Label>
               <Input
                 id="env-balance"
                 type="number"
@@ -1273,11 +1425,11 @@ export default function ChartPage() {
                 step={100}
                 value={envBalance}
                 onChange={(e) => setEnvBalance(e.target.value)}
-                placeholder="例: 10000"
+                placeholder={t("balancePlaceholder")}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="env-spread">スプレッド（pips）</Label>
+              <Label htmlFor="env-spread">{t("spreadPips")}</Label>
               <Input
                 id="env-spread"
                 type="number"
@@ -1285,27 +1437,27 @@ export default function ChartPage() {
                 step={0.1}
                 value={envSpread}
                 onChange={(e) => setEnvSpread(e.target.value)}
-                placeholder="例: 1"
+                placeholder={t("spreadPlaceholder")}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="env-leverage">レバレッジ</Label>
+              <Label htmlFor="env-leverage">{t("leverageLabel")}</Label>
               <Input
                 id="env-leverage"
                 type="number"
                 min={1}
                 value={envLeverage}
                 onChange={(e) => setEnvLeverage(e.target.value)}
-                placeholder="例: 100"
+                placeholder={t("leveragePlaceholder")}
               />
             </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setRulesDialogOpen(false)}>
-              キャンセル
+              {t("cancel")}
             </Button>
             <Button type="button" onClick={() => setRulesDialogOpen(false)}>
-              保存
+              {t("save")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1314,10 +1466,10 @@ export default function ChartPage() {
       <Dialog open={indicatorsDialogOpen} onOpenChange={setIndicatorsDialogOpen}>
         <DialogContent className="max-h-[90dvh] w-[calc(100vw-1.5rem)] max-w-sm overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>インジケータ</DialogTitle>
+            <DialogTitle>{t("indicatorsDialogTitle")}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            追加するインジケータをクリックしてください。デフォルト設定でチャートに追加され、左上の名前をクリックすると設定を変更できます。
+            {t("indicatorsDialogDesc")}
           </p>
           <div className="grid gap-1 py-4">
             {UNIQUE_INDICATOR_TYPES.map((t) => {
@@ -1330,7 +1482,7 @@ export default function ChartPage() {
                     setIndicatorInstances((prev) => [
                       ...prev,
                       {
-                        instanceId: crypto.randomUUID(),
+                        instanceId: generateInstanceId(),
                         typeId: t.id,
                         params: getDefaultParamsForTypeId(t.id),
                         color: firstDef?.color,
@@ -1370,9 +1522,9 @@ export default function ChartPage() {
               return (
                 <>
                   <DialogHeader>
-                    <DialogTitle>インジケータ設定</DialogTitle>
+                    <DialogTitle>{t("indicatorSettingsTitle")}</DialogTitle>
                   </DialogHeader>
-                  <p className="text-sm text-muted-foreground">インスタンスが見つかりません。</p>
+                  <p className="text-sm text-muted-foreground">{t("indicatorNotFound")}</p>
                 </>
               );
             }
@@ -1387,14 +1539,14 @@ export default function ChartPage() {
                 </DialogHeader>
                 <Tabs value={indicatorSettingsTab} onValueChange={(v) => setIndicatorSettingsTab(v as typeof indicatorSettingsTab)} className="w-full">
                   <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="params">パラメーター</TabsTrigger>
-                    <TabsTrigger value="style">スタイル</TabsTrigger>
-                    <TabsTrigger value="visibility">可視性</TabsTrigger>
+                    <TabsTrigger value="params">{t("paramsTab")}</TabsTrigger>
+                    <TabsTrigger value="style">{t("styleTab")}</TabsTrigger>
+                    <TabsTrigger value="visibility">{t("visibilityTab")}</TabsTrigger>
                   </TabsList>
                   <TabsContent value="params" className="space-y-4 pt-4">
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                       <div className="space-y-1">
-                        <Label className="text-xs">期間</Label>
+                        <Label className="text-xs">{t("period")}</Label>
                         <Input
                           type="number"
                           min={1}
@@ -1406,7 +1558,7 @@ export default function ChartPage() {
                       </div>
                       {firstDef.period2 != null && (
                         <div className="space-y-1">
-                          <Label className="text-xs">期間2</Label>
+                          <Label className="text-xs">{t("period2")}</Label>
                           <Input
                             type="number"
                             min={1}
@@ -1438,7 +1590,7 @@ export default function ChartPage() {
                       )}
                       {firstDef.mult != null && (
                         <div className="space-y-1">
-                          <Label className="text-xs">乗数</Label>
+                          <Label className="text-xs">{t("mult")}</Label>
                           <Input
                             type="number"
                             min={0.1}
@@ -1457,7 +1609,7 @@ export default function ChartPage() {
                   </TabsContent>
                   <TabsContent value="style" className="space-y-4 pt-4">
                     <div className="space-y-1">
-                      <Label className="text-xs">色</Label>
+                      <Label className="text-xs">{t("color")}</Label>
                       <div className="flex items-center gap-2">
                         <input
                           type="color"
@@ -1483,7 +1635,7 @@ export default function ChartPage() {
                         }
                       />
                       <label htmlFor="ind-visibility" className="text-sm font-medium">
-                        チャートに表示する
+                        {t("showOnChart")}
                       </label>
                     </div>
                   </TabsContent>
@@ -1521,5 +1673,22 @@ export default function ChartPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function ChartPageFallback() {
+  const t = useTranslations("Chart");
+  return (
+    <div className="flex h-screen items-center justify-center">
+      {t("loadingChart")}
+    </div>
+  );
+}
+
+export default function ChartPage() {
+  return (
+    <Suspense fallback={<ChartPageFallback />}>
+      <ChartPageInner />
+    </Suspense>
   );
 }

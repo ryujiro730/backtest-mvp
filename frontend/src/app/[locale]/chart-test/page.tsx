@@ -35,7 +35,7 @@ export default function ChartTestPage() {
     if (!chartContainerRef.current || typeof window === "undefined") return;
 
     let cancelled = false;
-    let candlestickSeries: InstanceType<ReturnType<typeof import("lightweight-charts").createChart>["addCandlestickSeries"]> | null = null;
+    let candlestickSeries: ReturnType<ReturnType<typeof import("lightweight-charts").createChart>["addSeries"]> | null = null;
     let unsub: (() => void) | null = null;
 
     (async () => {
@@ -52,7 +52,7 @@ export default function ChartTestPage() {
       allBarsRef.current = bars;
       if (!cancelled) setStatus(`${bars.length} 本表示（左にスクロールで Parquet の古いデータを追加読み込み）`);
 
-      const { createChart, ColorType } = await import("lightweight-charts");
+      const { createChart, CandlestickSeries, ColorType } = await import("lightweight-charts");
       const ch = createChart(chartContainerRef.current, {
         layout: {
           background: { type: ColorType.Solid, color: "#0f172a" },
@@ -75,7 +75,7 @@ export default function ChartTestPage() {
         },
       });
 
-      candlestickSeries = ch.addCandlestickSeries({
+      candlestickSeries = ch.addSeries(CandlestickSeries, {
         upColor: "#22c55e",
         downColor: "#ef4444",
         borderDownColor: "#ef4444",

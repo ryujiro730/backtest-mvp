@@ -24,15 +24,21 @@ import {
   buildTradeFrequency,
   type PerformanceRaw,
 } from "@/lib/performance/transform";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { useRouter } from "next/navigation";
+import { ChartVerificationCtaButton } from "@/components/ChartVerificationCta";
 
 type Props = {
   tab: string;
   data: PerformanceRaw | null;
+  /** 表示中の Run ID（チャートで確認ボタンはこの run を開く。別タブで新規実行してもずれない） */
+  runId?: string | null;
 };
 
-export function PerformanceContent({ tab, data }: Props) {
+export function PerformanceContent({ tab, data, runId: runIdProp }: Props) {
   const t = useTranslations("Performance");
+  const locale = useLocale();
+  const router = useRouter();
 
   const derived = useMemo(() => {
     if (!data) return null;
@@ -109,6 +115,18 @@ export function PerformanceContent({ tab, data }: Props) {
 
           <div className="flex flex-wrap items-center gap-3">
             <PerformanceXShareButton pf={data.summary.pf} ruinPct={null} />
+            <ChartVerificationCtaButton
+              onClick={() => {
+                const runId = runIdProp ?? (typeof window !== "undefined" ? localStorage.getItem("last_run_id") : null);
+                const symbol = typeof window !== "undefined" ? localStorage.getItem("last_run_pair") || "EURUSD" : "EURUSD";
+                const timeframe = typeof window !== "undefined" ? localStorage.getItem("last_run_timeframe") || "H1" : "H1";
+                if (!runId) return;
+                const params = new URLSearchParams({ runId, symbol, timeframe, from: "performance" });
+                router.push(`/${locale}/chart?${params.toString()}`);
+              }}
+            >
+              {t("openChartToVerifyEntries")}
+            </ChartVerificationCtaButton>
           </div>
 
           <Card>

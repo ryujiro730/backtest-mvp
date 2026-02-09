@@ -5,17 +5,14 @@ import { routing } from './i18n/routing';
 
 const COOKIE = 'anon_id';
 
-// next-intl のミドルウェアを作成
 const intlMiddleware = createMiddleware(routing);
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // ① すべての静的アセットは intl を通さない
   if (pathname.match(/\.(png|jpg|jpeg|gif|webp|svg|ico)$/)) {
     return NextResponse.next();
   }
-
   if (
     pathname === '/robots.txt' ||
     /^\/sitemap(\-\d+)?\.xml(\.gz)?$/.test(pathname) ||
@@ -24,7 +21,6 @@ export function middleware(req: NextRequest) {
   ) {
     return NextResponse.next();
   }
-
   if (pathname.startsWith('/api') || pathname.startsWith('/auth')) {
     const res = NextResponse.next();
     attachAnonCookie(req, res);
@@ -32,12 +28,28 @@ export function middleware(req: NextRequest) {
   }
 
   const res = intlMiddleware(req);
-  attachAnonCookie(req, res);
-  return res;
+
+  // ロケールなし→/ja 等へのリダイレクトを 301（恒久）にして SEO 評価を引き継ぐ
+  if (res.status >= 300 && res.status < 400) {
+    const loc = res.headers.get('Location');
+    if (loc && (res.status === 307 || res.status === 308)) {
+      const permanent = NextResponse.redirect(loc, 301);
+      attachAnonCookie(req, permanent);
+      return permanent;
+    }
+    attachAnonCookie(req, res);
+    return res;
+  }
+
+  // ページ応答時のみ x-pathname を付与（generateMetadata で canonical 用）
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set('x-pathname', pathname);
+  const out = NextResponse.next({ request: { headers: requestHeaders } });
+  res.headers.forEach((value, key) => out.headers.set(key, value));
+  attachAnonCookie(req, out);
+  return out;
 }
 
-
-// Cookie 付与関数（既存のまま）
 function attachAnonCookie(req: NextRequest, res: NextResponse) {
   if (!req.cookies.get(COOKIE)?.value) {
     res.cookies.set({
@@ -47,17 +59,12 @@ function attachAnonCookie(req: NextRequest, res: NextResponse) {
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
       path: '/',
-      maxAge: 60 * 60 * 24 * 365, // 1年
+      maxAge: 60 * 60 * 24 * 365,
     });
   }
 }
 
-// matcher 設定
-// middleware.ts
+// next-intl 推奨: ページ系のみ（api / _next / 静的ファイルを除く）
 export const config = {
-  matcher: [
-    '/',
-    '/(ja|en)/:path*',
-    '/((?!api|_next|_vercel|.*\\..*).*)', // ←これ
-  ],
+  matcher: ['/((?!api|auth|_next|_vercel|robots.txt|sitemap|fonts|.*\\..*).*)'],
 };
