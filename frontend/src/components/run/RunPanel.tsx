@@ -78,15 +78,16 @@ export function RunPanel() {
   return (
     <>
       <RulesBuilder />
-      
 
-      <RunButton
+      <div className="mt-14 md:mt-16">
+        <RunButton
         running={uiRunning}
         onRunStarted={(id) => {
           setUiRunning(true); // 押した瞬間にON
           setRunId(id);
         }}
       />
+      </div>
     </>
   );
 }

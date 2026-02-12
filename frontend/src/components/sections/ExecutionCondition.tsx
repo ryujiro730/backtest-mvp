@@ -9,11 +9,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
+import { Coins, Clock } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useCatalog } from "@/features/run/hooks/useCatalog";
 import { useRuleStore } from "@/rules/store";
-import type { Direction } from "@/features/run/types";
 
 export function ExecutionCondition() {
   const t = useTranslations("ExecutionCondition");
@@ -26,33 +25,32 @@ export function ExecutionCondition() {
   const { pair, timeframe } = rule.meta;
 
   return (
-    <Card>
+    <Card className="rounded-xl border border-slate-200/80 shadow-sm">
       <CardHeader>
         <CardTitle>{t("title")}</CardTitle>
       </CardHeader>
 
-      <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {catalogError && (
-          <p className="col-span-full text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+          <p className="col-span-full text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
             {catalogError}
           </p>
         )}
-        {/* ================= Pair ================= */}
-        <div className="space-y-1">
-          <Label>{t("pair")}</Label>
+        <div className="space-y-1.5">
+          <Label className="text-xs font-medium uppercase tracking-wider text-slate-500 flex items-center gap-2">
+            <Coins className="h-3.5 w-3.5" />
+            {t("pair")}
+          </Label>
           <Select
             value={pair}
             disabled={!hasCatalog}
             onValueChange={(v) =>
               update({
-                meta: {
-                  ...rule.meta,
-                  pair: v,
-                },
+                meta: { ...rule.meta, pair: v },
               })
             }
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full max-w-[200px] rounded-lg">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -65,22 +63,21 @@ export function ExecutionCondition() {
           </Select>
         </div>
 
-        {/* ================= Timeframe ================= */}
-        <div className="space-y-1">
-          <Label>{t("timeframe")}</Label>
+        <div className="space-y-1.5">
+          <Label className="text-xs font-medium uppercase tracking-wider text-slate-500 flex items-center gap-2">
+            <Clock className="h-3.5 w-3.5" />
+            {t("timeframe")}
+          </Label>
           <Select
             value={timeframe}
             disabled={!hasCatalog}
             onValueChange={(v) =>
               update({
-                meta: {
-                  ...rule.meta,
-                  timeframe: v,
-                },
+                meta: { ...rule.meta, timeframe: v },
               })
             }
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full max-w-[200px] rounded-lg">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

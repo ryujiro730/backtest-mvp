@@ -47,16 +47,16 @@ export function SectionAccordion({
   }, [listenToInput, onToggleEnabled]);
 
   return (
-    <Card>
+    <Card className="rounded-xl border border-slate-200/80 shadow-sm">
       <Accordion type="single" collapsible defaultValue="">
         <AccordionItem value={id} className="border-none">
 
-          {/* Header */}
-          <div className="flex items-center px-6 py-4 gap-3">
-            {/* Checkbox：条件ON/OFF */}
+          {/* Header：チェックはアウトライン＋Delverブルーで控えめに */}
+          <div className="flex items-center px-5 py-4 gap-3">
             <Checkbox
               checked={enabled}
               onCheckedChange={(v) => onToggleEnabled(!!v)}
+              className="h-4 w-4 rounded border-2 border-slate-300 data-[state=checked]:bg-transparent data-[state=checked]:border-blue-500 data-[state=checked]:text-blue-600 data-[state=checked]:shadow-none"
             />
 
             {/* タイトル */}
@@ -78,7 +78,7 @@ export function SectionAccordion({
           <AccordionContent>
             <div
               ref={contentRef}
-              className={`px-6 pb-6 ${enabled ? "" : "opacity-70"}`}
+              className={`px-5 pb-5 ${enabled ? "" : "opacity-70"}`}
             >
               {children}
             </div>

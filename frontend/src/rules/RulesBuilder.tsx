@@ -108,11 +108,11 @@ export function RulesBuilder() {
         </p>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-6">
         <ExecutionCondition />
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         <SectionAccordion
           id="trading"
           title={t("sections.trading")}

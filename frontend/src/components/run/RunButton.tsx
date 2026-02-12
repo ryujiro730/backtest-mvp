@@ -45,6 +45,14 @@ export function RunButton({
       localStorage.setItem("last_run_pair", rule.meta.pair);
       localStorage.setItem("last_run_timeframe", rule.meta.timeframe);
       onRunStarted(data.run_id);
+      // GA4: 実行ボタンで Run が開始された（「何人押したか」をイベントで集計）
+      if (typeof window !== "undefined" && typeof window.gtag === "function") {
+        window.gtag("event", "run_backtest_started", {
+          run_id: data.run_id,
+          pair: rule.meta.pair,
+          timeframe: rule.meta.timeframe,
+        });
+      }
     } else {
       console.error("[RunButton] run_id not found", data);
     }
@@ -54,63 +62,27 @@ export function RunButton({
     <button
       onClick={onClick}
       disabled={running}
-      className={`
-        relative z-10 overflow-hidden
-        flex items-center justify-center gap-2
-        px-10 py-4
-        text-lg font-bold text-white
-        rounded-full
-
-        bg-gradient-to-b
-        from-red-400
-        via-red-500
-        to-red-700
-
-        shadow-[
-          0_3px_0_rgba(127,29,29,0.45),
-          0_12px_30px_rgba(0,0,0,0.12)
-        ]
-
-        transition-all duration-150
-        hover:brightness-110
-        active:translate-y-[4px]
-        active:shadow-[
-          0_2px_0_rgba(127,29,29,0.6),
-          0_6px_12px_rgba(0,0,0,0.2)
-        ]
-
-        focus:outline-none
-        focus:ring-0
-        focus-visible:outline-none
-
-        disabled:opacity-80
-        disabled:cursor-not-allowed
-        disabled:active:translate-y-0
-      `}
+      className="
+        w-full flex items-center justify-center gap-2
+        px-8 py-4
+        text-sm font-bold text-white uppercase tracking-widest
+        rounded-xl
+        bg-blue-600 hover:bg-blue-700
+        shadow-[0_2px_12px_rgba(37,99,235,0.25)]
+        hover:shadow-[0_4px_20px_rgba(37,99,235,0.35)]
+        transition-all duration-200
+        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+        disabled:opacity-70 disabled:cursor-not-allowed
+      "
     >
-      {/* 上ハイライト */}
-      <span
-        className="
-          pointer-events-none
-          absolute inset-x-1 top-1 h-1/2
-          rounded-full
-          bg-gradient-to-b
-          from-white/50
-          to-transparent
-        "
-      />
-
-      {/* 中身 */}
-      <span className="relative z-10 flex items-center gap-2">
-        {running ? (
-          <>
-            <Spinner className="h-4 w-4 animate-spin" />
-            {t("running")}
-          </>
-        ) : (
-          t("run")
-        )}
-      </span>
+      {running ? (
+        <>
+          <Spinner className="h-4 w-4 animate-spin" />
+          <span>{t("running")}</span>
+        </>
+      ) : (
+        t("run")
+      )}
     </button>
   );
 }

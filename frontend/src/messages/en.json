@@ -67,6 +67,10 @@
       "subtitle": "No login required. Experience backtesting right here.",
       "engineCopy": "Fastest in the industry. Rust-powered core engine processes millions of bars in seconds—feel it in your browser."
     },
+    "ManualVerify": {
+      "label": "Verify entries visually",
+      "cta": "Manual verification mode — Confirm winning patterns on the chart"
+    },
     "BetaSignup": {
       "title": "Beta · Early Access",
       "description": "This tool is in beta. Enter your email to join the early access list.",
@@ -116,6 +120,14 @@
       "title": "Verify risk of ruin with real backtests",
       "description": "Get win rate, R/R, and drawdown from a backtest, then cross-check with this calculator. Delver runs free backtests with no login.",
       "button": "Run free backtest on Delver"
+    },
+    "related": {
+      "title": "Related articles",
+      "sidebarChart": "Chart verification",
+      "sidebarBacktest": "Free backtest",
+      "articleMaxDrawdown": "Drawdown and risk of ruin",
+      "articleHowToRead": "How to read backtest results",
+      "articleWinratePf": "Win rate, PF and overfitting"
     },
   "Chart": {
     "title": "Risk of Ruin vs Risk Fraction f (other parameters fixed)",

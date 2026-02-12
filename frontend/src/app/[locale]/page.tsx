@@ -8,35 +8,60 @@ import { ChartVerificationCtaLink } from "@/components/ChartVerificationCta";
 import { getTranslations } from "next-intl/server";
 import { Metadata } from "next";
 
-const SOFTWARE_APP_JSON_LD = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "Delver",
-  applicationCategory: "FinanceApplication",
-  operatingSystem: "Any (Web Browser)",
-  description: "ブラウザで動く無料のFX・暗号資産バックテストツール。ログイン不要で過去検証が可能。破産確率・期待値の算出に対応。",
-  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-  url: "https://delvertrade.com",
-};
+const BASE_URL = "https://delvertrade.com";
 
-export const metadata: Metadata = {
-  title: "【無料】FXバックテスト検証ツール | ブラウザで爆速検証 Delver",
-  description: "FXの過去検証がブラウザで今すぐ無料で始められます。MT4不要、ゴールド(XAUUSD)対応。バルサラの破産確率も自動算出。効率的な検証で聖杯探しを卒業しましょう。",
-  robots: "index, follow",
-};
+function getSoftwareAppJsonLd(locale: string) {
+  const isEn = locale === "en";
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "Delver",
+    applicationCategory: "FinanceApplication",
+    operatingSystem: "Any (Web Browser)",
+    description: isEn
+      ? "Free FX and crypto backtest tool in your browser. No sign-up. Historical verification, risk of ruin and expectancy built-in."
+      : "ブラウザで動く無料のFX・暗号資産バックテストツール。ログイン不要で過去検証が可能。破産確率・期待値の算出に対応。",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    url: BASE_URL,
+  };
+}
+
+const LP_META = {
+  ja: {
+    title: "【完全無料】FXバックテスト検証ツール | ブラウザで条件を入力して即座にトレード実行 Delver",
+    description:
+      "FXの過去検証がブラウザで今すぐ無料で始められます。検証のやり方は条件を入力するだけ。MT4不要、ゴールド(XAUUSD)対応。バルサラの破産確率も自動算出。効率的な検証で聖杯探しを卒業しましょう。",
+  },
+  en: {
+    title: "Free FX Backtest Tool | Browser-Based Verification Delver",
+    description:
+      "Run FX backtests in your browser for free. No MT4, no sign-up. Gold (XAUUSD) supported. Balsara risk of ruin and expectancy calculated automatically.",
+  },
+} as const;
 
 type PageProps = { params: Promise<{ locale: string }> };
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params;
+  const meta = LP_META[locale === "en" ? "en" : "ja"];
+  return {
+    title: meta.title,
+    description: meta.description,
+    robots: "index, follow",
+  };
+}
 
 export default async function Page({ params }: PageProps) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "LP" });
+  const jsonLd = getSoftwareAppJsonLd(locale);
 
   return (
     <div className="flex flex-col min-h-screen">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(SOFTWARE_APP_JSON_LD).replace(/<\/script>/gi, "<\\/script>"),
+          __html: JSON.stringify(jsonLd).replace(/<\/script>/gi, "<\\/script>"),
         }}
       />
 
@@ -62,10 +87,10 @@ export default async function Page({ params }: PageProps) {
             <RunPanel />
           </div>
 
-          <div className="mt-8 flex flex-col items-center gap-2 text-center">
-            <p className="text-sm font-medium text-amber-700/90">目視でエントリーを検証</p>
+          <div className="mt-12 md:mt-14 flex flex-col items-center gap-4 text-center">
+            <p className="text-sm font-medium text-amber-700/90">{t("ManualVerify.label")}</p>
             <ChartVerificationCtaLink href={`/${locale}/chart`} variant="manual">
-              手動検証モード — チャートで勝ち筋を確認
+              {t("ManualVerify.cta")}
             </ChartVerificationCtaLink>
           </div>
         </div>
