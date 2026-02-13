@@ -5,6 +5,9 @@ import { routing } from './i18n/routing';
 
 const COOKIE = 'anon_id';
 
+const CRAWLER_UA =
+  /Googlebot|bingbot|Baiduspider|YandexBot|DuckDuckBot|Slurp|facebookexternalhit|Twitterbot|LinkedInBot|Applebot|PetalBot/i;
+
 const intlMiddleware = createMiddleware(routing);
 
 export function middleware(req: NextRequest) {
@@ -23,6 +26,15 @@ export function middleware(req: NextRequest) {
   }
   if (pathname.startsWith('/api') || pathname.startsWith('/auth')) {
     const res = NextResponse.next();
+    attachAnonCookie(req, res);
+    return res;
+  }
+
+  // ルート (/) へのクローラーアクセスはリダイレクトせず、app/page.tsx でコンテンツを返す
+  if (pathname === '/' && CRAWLER_UA.test(req.headers.get('user-agent') ?? '')) {
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set('x-pathname', '/');
+    const res = NextResponse.next({ request: { headers: requestHeaders } });
     attachAnonCookie(req, res);
     return res;
   }

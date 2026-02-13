@@ -17,6 +17,8 @@ export async function generateMetadata({
   const { locale } = await params;
   const pathname = (await headers()).get('x-pathname') || `/${locale}`;
   const pathWithoutLocale = pathname.replace(/^\/(ja|en)/, '') || '/';
+  const isRootPage = pathWithoutLocale === '/';
+  const canonicalUrl = isRootPage ? `${BASE}/` : `${BASE}${pathname}`;
 
   return {
     title: {
@@ -29,7 +31,7 @@ export async function generateMetadata({
         : 'FXの破産確率・複利を数値で検証するツール',
     metadataBase: new URL(BASE),
     alternates: {
-      canonical: `${BASE}${pathname}`,
+      canonical: canonicalUrl,
       languages: {
         ja: `${BASE}/ja${pathWithoutLocale}`,
         en: `${BASE}/en${pathWithoutLocale}`,
