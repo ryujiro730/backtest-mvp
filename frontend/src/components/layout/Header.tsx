@@ -99,6 +99,9 @@ return (
           <Link href="/blog" className={blogLinkCls}>
             {t('blog')}
           </Link>
+          <Link href="/community" className={blogLinkCls}>
+            {t('community')}
+          </Link>
 
           {!flags.freeMode && (
             <Link href="/#pricing" className={navLinkCls}>
@@ -143,6 +146,7 @@ return (
 
                 <nav className="flex flex-col">
                   <MobileLink href="/blog" className="text-slate-700 border-slate-200">{t('blog')}</MobileLink>
+                  <MobileLink href="/community" className="text-slate-700 border-slate-200">{t('community')}</MobileLink>
                   {!flags.freeMode && <MobileLink href="/#pricing" className="text-slate-700 border-slate-200">{t('pricing')}</MobileLink>}
                   <MobileLink href="/#try" className="text-indigo-600 border-slate-200 font-medium">{t('backtest')}</MobileLink>
                   <MobileLink href="/tools/risk-of-ruin" className="text-slate-700 border-slate-200">{t('ruin')}</MobileLink>

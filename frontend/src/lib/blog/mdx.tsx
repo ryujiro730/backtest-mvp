@@ -12,6 +12,7 @@ import { cache } from "react";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import { ValidationCode } from "@/components/blog/ValidationCode";
+import { TwitterEmbed } from "@/components/blog/TwitterEmbed";
 
 // 基底ディレクトリは src/content/blog
 const BLOG_ROOT = path.join(process.cwd(), "src", "content", "blog");
@@ -23,6 +24,7 @@ const mdxComponents = {
   BlogToc,
   InlineLink,
   ValidationCode,
+  TwitterEmbed,
 };
 
 export type BlogMeta = {

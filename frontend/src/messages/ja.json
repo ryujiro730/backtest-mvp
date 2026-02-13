@@ -4,11 +4,45 @@
   },
   "Header": {
     "blog": "ブログ",
+    "community": "コミュニティ",
     "pricing": "料金",
     "backtest": "バックテストツール",
     "ruin": "バルサラの破産確率",
     "expectedValue": "期待値判定ツール",
     "menu": "メニュー"
+  },
+  "Community": {
+    "meta": {
+      "title": "コミュニティ | Delver",
+      "description": "Delverユーザー同士で検証や戦略を語り合う場です。"
+    },
+    "title": "コミュニティ",
+    "description": "検証や戦略について気軽に投稿・議論できます。ログインなしでも投稿可能です。",
+    "newPost": "新規投稿",
+    "newPostDescription": "タイトルと本文を入力して投稿してください。未ログインの場合は匿名で表示されます。",
+    "backToList": "一覧へ戻る",
+    "empty": "まだ投稿がありません。最初の投稿をしてみましょう。",
+    "aria": { "posts": "投稿一覧" },
+    "anonymous": "匿名",
+    "fieldTitle": "タイトル",
+    "placeholderTitle": "投稿のタイトル",
+    "fieldBody": "本文",
+    "placeholderBody": "内容を入力...",
+    "fieldAuthorDisplay": "表示名（任意）",
+    "placeholderAuthorDisplay": "例: トレーダーA",
+    "fieldAuthorDisplayHint": "空欄の場合は「匿名」と表示されます。",
+    "submit": "投稿する",
+    "reset": "クリア",
+    "errorGeneric": "投稿に失敗しました。しばらく経ってから再度お試しください。",
+    "errorTitleTooLong": "タイトルは200文字以内で入力してください。",
+    "errorBodyTooLong": "本文は10,000文字以内で入力してください。",
+    "differentLocale": "この投稿は別の言語で書かれています。",
+    "repliesSectionTitle": "返信",
+    "replyFormTitle": "返信する",
+    "replyBody": "本文",
+    "replyPlaceholder": "返信を入力...（2,000文字以内）",
+    "replySubmit": "返信する",
+    "replyErrorBodyTooLong": "本文は2,000文字以内で入力してください。"
   },
   "LP": {
     "Hero": {

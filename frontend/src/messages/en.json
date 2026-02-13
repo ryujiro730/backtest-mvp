@@ -4,11 +4,45 @@
   },
   "Header": {
     "blog": "Blog",
+    "community": "Community",
     "pricing": "Pricing",
     "backtest": "Backtest Tool",
     "ruin": "Ruin Probability",
     "expectedValue": "Expected Value Tool",
     "menu": "Menu"
+  },
+  "Community": {
+    "meta": {
+      "title": "Community | Delver",
+      "description": "A place for Delver users to share strategies and discuss backtesting."
+    },
+    "title": "Community",
+    "description": "Share and discuss strategies and verification. You can post without signing in.",
+    "newPost": "New post",
+    "newPostDescription": "Enter a title and body to post. Unauthenticated posts will show as anonymous.",
+    "backToList": "Back to list",
+    "empty": "No posts yet. Be the first to post.",
+    "aria": { "posts": "Posts" },
+    "anonymous": "Anonymous",
+    "fieldTitle": "Title",
+    "placeholderTitle": "Post title",
+    "fieldBody": "Body",
+    "placeholderBody": "Write your content...",
+    "fieldAuthorDisplay": "Display name (optional)",
+    "placeholderAuthorDisplay": "e.g. Trader A",
+    "fieldAuthorDisplayHint": "Leave blank to show as Anonymous.",
+    "submit": "Post",
+    "reset": "Clear",
+    "errorGeneric": "Failed to post. Please try again later.",
+    "errorTitleTooLong": "Title must be 200 characters or less.",
+    "errorBodyTooLong": "Body must be 10,000 characters or less.",
+    "differentLocale": "This post was written in another language.",
+    "repliesSectionTitle": "Replies",
+    "replyFormTitle": "Reply",
+    "replyBody": "Body",
+    "replyPlaceholder": "Write your reply... (max 2,000 characters)",
+    "replySubmit": "Reply",
+    "replyErrorBodyTooLong": "Body must be 2,000 characters or less."
   },
   "LP": {
     "Hero": {
