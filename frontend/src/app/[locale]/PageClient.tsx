@@ -200,7 +200,6 @@ export default function PageClient({ locale }: { locale: string }) {
             </div>
           </div>
         </div>
-        </div>
       </section>
 
       {/* ===== SEO copy ===== */}
