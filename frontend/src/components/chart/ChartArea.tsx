@@ -391,6 +391,36 @@ export const ChartArea = forwardRef<ChartAreaHandle, ChartAreaProps>(function Ch
     };
   }, [chartReady, onBarClick]);
 
+  // モバイル向けタッチタップ検出（subscribeClick はモバイルで発火しないため補完）
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    if (t) touchStartRef.current = { x: t.clientX, y: t.clientY };
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!onBarClickRef.current || !chartRef.current || !touchStartRef.current) return;
+    const t = e.changedTouches[0];
+    if (!t) return;
+    const dx = Math.abs(t.clientX - touchStartRef.current.x);
+    const dy = Math.abs(t.clientY - touchStartRef.current.y);
+    touchStartRef.current = null;
+    // 10px 以上動いた場合はパン操作とみなしてスキップ
+    if (dx > 10 || dy > 10) return;
+    const container = chartContainerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const x = t.clientX - rect.left;
+    const timeScale = chartRef.current.timeScale();
+    const logical = timeScale.coordinateToLogical(x);
+    if (typeof logical !== "number" || !Number.isFinite(logical)) return;
+    const b = barsRef.current;
+    const rti = replayToIndexRef.current;
+    const visibleLen = rti != null ? rti + 1 : b.length;
+    if (visibleLen === 0) return;
+    const barIndex = Math.max(0, Math.min(visibleLen - 1, Math.floor(logical)));
+    onBarClickRef.current(barIndex);
+  };
+
   // リプレイモードON時: マウス位置に赤い縦線を表示（カット位置を明示）
   const [replayLineX, setReplayLineX] = useState<number | null>(null);
   const crosshairHandlerRef = useRef<((params: { point?: { x: number } }) => void) | null>(null);
@@ -443,7 +473,12 @@ export const ChartArea = forwardRef<ChartAreaHandle, ChartAreaProps>(function Ch
 
   return (
     <div className={className} style={{ position: "relative", width: "100%", height: "100%" }}>
-      <div ref={chartContainerRef} style={{ width: "100%", height: "100%" }} />
+      <div
+        ref={chartContainerRef}
+        style={{ width: "100%", height: "100%" }}
+        onTouchStart={onBarClick ? handleTouchStart : undefined}
+        onTouchEnd={onBarClick ? handleTouchEnd : undefined}
+      />
       {replayLineX != null && (
         <div
           className="absolute inset-0 pointer-events-none"

@@ -19,6 +19,8 @@ import {
   PanelRightClose,
   X,
   Scissors,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -375,6 +377,8 @@ function ChartPageInner() {
   const [quickEntryQty, setQuickEntryQty] = useState("1");
   /** 下パネル（Position/Order History）の高さ（px）。リサイズハンドルで変更可能 */
   const [panelHeightPx, setPanelHeightPx] = useState(220);
+  /** モバイルで下パネルを折りたたむかどうか */
+  const [panelCollapsed, setPanelCollapsed] = useState(false);
   /** バックテスト run のエントリー・決済マーカーを非表示にするか（ボタンで切り替え） */
   const [hideRunMarkers, setHideRunMarkers] = useState(false);
   const contentWrapperRef = useRef<HTMLDivElement>(null);
@@ -890,11 +894,11 @@ function ChartPageInner() {
             </DropdownMenu>
           </div>
         </div>
-        <div className="flex flex-wrap justify-center gap-1">
+        <div className="flex flex-wrap justify-center gap-1.5 sm:gap-1">
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8 shrink-0"
+            className="h-11 w-11 shrink-0 sm:h-8 sm:w-8"
             title={t("rewindFast")}
             onClick={handleRewindFast}
             onPointerDown={() => bars.length > 0 && startHoldRepeat(handleRewindFast)}
@@ -902,12 +906,12 @@ function ChartPageInner() {
             onPointerLeave={clearHoldRepeat}
             disabled={bars.length === 0}
           >
-            <Rewind className="h-4 w-4" />
+            <Rewind className="h-5 w-5 sm:h-4 sm:w-4" />
           </Button>
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8 shrink-0"
+            className="h-11 w-11 shrink-0 sm:h-8 sm:w-8"
             title={t("rewindOne")}
             onClick={handleRewind}
             onPointerDown={() => bars.length > 0 && startHoldRepeat(handleRewind)}
@@ -915,46 +919,46 @@ function ChartPageInner() {
             onPointerLeave={clearHoldRepeat}
             disabled={bars.length === 0}
           >
-            <Rewind className="h-3 w-3" />
+            <Rewind className="h-4 w-4 sm:h-3 sm:w-3" />
           </Button>
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8 shrink-0"
+            className="h-11 w-11 shrink-0 sm:h-8 sm:w-8"
             title={isPlaying ? t("pause") : t("play")}
             onClick={() => setIsPlaying((p) => !p)}
             disabled={bars.length === 0}
           >
             {isPlaying ? (
-              <Pause className="h-4 w-4 text-primary" />
+              <Pause className="h-5 w-5 text-primary sm:h-4 sm:w-4" />
             ) : (
-              <Play className="h-4 w-4" />
+              <Play className="h-5 w-5 sm:h-4 sm:w-4" />
             )}
           </Button>
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8 shrink-0"
+            className="h-11 w-11 shrink-0 sm:h-8 sm:w-8"
             title={t("stop")}
             onClick={() => setIsPlaying(false)}
             disabled={!isPlaying}
           >
-            <Square className="h-4 w-4" />
+            <Square className="h-5 w-5 sm:h-4 sm:w-4" />
           </Button>
           <Button
             variant={skipReplayMode ? "secondary" : "outline"}
             size="icon"
-            className="h-8 w-8 shrink-0"
+            className="h-11 w-11 shrink-0 sm:h-8 sm:w-8"
             title={t("skipReplayModeTitle")}
             onClick={() => setSkipReplayMode((v) => !v)}
             disabled={bars.length === 0}
           >
-            <Scissors className="h-4 w-4" />
+            <Scissors className="h-5 w-5 sm:h-4 sm:w-4" />
           </Button>
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8 shrink-0"
+            className="h-11 w-11 shrink-0 sm:h-8 sm:w-8"
             title={t("forwardOne")}
             onClick={handleForward}
             onPointerDown={() => bars.length > 0 && startHoldRepeat(handleForward)}
@@ -962,12 +966,12 @@ function ChartPageInner() {
             onPointerLeave={clearHoldRepeat}
             disabled={bars.length === 0}
           >
-            <FastForward className="h-3 w-3" />
+            <FastForward className="h-4 w-4 sm:h-3 sm:w-3" />
           </Button>
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8 shrink-0"
+            className="h-11 w-11 shrink-0 sm:h-8 sm:w-8"
             title={t("forwardFast")}
             onClick={handleForwardFast}
             onPointerDown={() => bars.length > 0 && startHoldRepeat(handleForwardFast)}
@@ -975,7 +979,7 @@ function ChartPageInner() {
             onPointerLeave={clearHoldRepeat}
             disabled={bars.length === 0}
           >
-            <FastForward className="h-4 w-4" />
+            <FastForward className="h-5 w-5 sm:h-4 sm:w-4" />
           </Button>
         </div>
       </header>
@@ -1128,25 +1132,38 @@ function ChartPageInner() {
 
         {/* 下パネル：境界線（ResizeBar）をこの中に含む */}
         <div
-          style={{ height: panelHeightPx }}
+          style={{ height: panelCollapsed ? 40 : panelHeightPx }}
           className="relative flex shrink-0 flex-col border-t bg-card"
         >
           {/* 境界線：パネルの最上部に absolute で浮かせる */}
-          <div
-            role="separator"
-            aria-label={t("panelResize")}
-            onMouseDown={handleResizeStart}
-            className="absolute -top-1 left-0 z-50 h-2 w-full cursor-ns-resize transition-colors hover:bg-primary/30"
-            title={t("panelResizeTitle")}
-          />
+          {!panelCollapsed && (
+            <div
+              role="separator"
+              aria-label={t("panelResize")}
+              onMouseDown={handleResizeStart}
+              className="absolute -top-1 left-0 z-50 h-2 w-full cursor-ns-resize transition-colors hover:bg-primary/30"
+              title={t("panelResizeTitle")}
+            />
+          )}
           {/* パネルの中身 */}
-          <div className="h-full overflow-auto">
+          <div className={panelCollapsed ? "overflow-hidden" : "h-full overflow-auto"}>
           <Tabs defaultValue="position" className="flex min-h-0 w-full flex-1 flex-col min-w-0">
           <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 border-b px-2 pt-2 sm:px-4">
-            <TabsList className="h-8 shrink-0">
-              <TabsTrigger value="position">{t("position")}</TabsTrigger>
-              <TabsTrigger value="orders">{t("orderHistory")}</TabsTrigger>
-            </TabsList>
+            <div className="flex items-center gap-2">
+              <TabsList className="h-8 shrink-0">
+                <TabsTrigger value="position">{t("position")}</TabsTrigger>
+                <TabsTrigger value="orders">{t("orderHistory")}</TabsTrigger>
+              </TabsList>
+              {/* モバイル用折りたたみトグル */}
+              <button
+                type="button"
+                className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent sm:hidden"
+                onClick={() => setPanelCollapsed((v) => !v)}
+                aria-label={panelCollapsed ? "パネルを展開" : "パネルを折りたたむ"}
+              >
+                {panelCollapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </button>
+            </div>
             <Button
               size="sm"
               variant="outline"

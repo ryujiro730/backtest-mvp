@@ -184,7 +184,7 @@ export default function PageClient({ locale }: { locale: string }) {
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-8 md:px-10 md:py-10 flex flex-col md:flex-row items-center gap-6 md:gap-10">
             <div className="flex-1 space-y-3">
               <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-xs font-semibold text-amber-800">
-                Forex Tester 5 相当の機能 · 完全無料
+                MT4・MT5不要 · インストール不要 · 完全無料
               </div>
               <h2 className="text-xl md:text-2xl font-bold text-slate-900 leading-snug">
                 {t('ManualVerify.sectionTitle')}
