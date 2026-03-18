@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
+import { createServerClient } from '@supabase/ssr';
 
 const COOKIE = 'anon_id';
 
@@ -10,7 +11,22 @@ const CRAWLER_UA =
 
 const intlMiddleware = createMiddleware(routing);
 
-export function middleware(req: NextRequest) {
+// ログインが必要なパス（ロケールプレフィックス /ja /en を除いた部分で判定）
+const PROTECTED_PATHS = ['/settings'];
+
+function isProtected(pathname: string): boolean {
+  const m = pathname.match(/^\/[a-z]{2}(\/.*)?$/);
+  if (!m) return false;
+  const rest = m[1] ?? '/';
+  return PROTECTED_PATHS.some(p => rest === p || rest.startsWith(p + '/'));
+}
+
+function getLocaleFromPath(pathname: string): string {
+  const m = pathname.match(/^\/([a-z]{2})(\/|$)/);
+  return m ? m[1] : 'ja';
+}
+
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (pathname.match(/\.(png|jpg|jpeg|gif|webp|svg|ico)$/)) {
@@ -28,6 +44,33 @@ export function middleware(req: NextRequest) {
     const res = NextResponse.next();
     attachAnonCookie(req, res);
     return res;
+  }
+
+  // 認証が必要なルートのガード
+  if (isProtected(pathname)) {
+    const authRes = NextResponse.next({ request: req });
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() { return req.cookies.getAll(); },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              authRes.cookies.set(name, value, options)
+            );
+          },
+        },
+      }
+    );
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      const locale = getLocaleFromPath(pathname);
+      const loginUrl = new URL(`/${locale}/login`, req.url);
+      loginUrl.searchParams.set('next', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    // 認証OK → intl ミドルウェアを通してから返す
   }
 
   // ルート (/) へのクローラーアクセスはリダイレクトせず、app/page.tsx でコンテンツを返す

@@ -27,8 +27,8 @@ export async function generateMetadata({
     },
     description:
       locale === 'en'
-        ? 'A tool to numerically verify FX bankruptcy probability and compound interest.'
-        : 'FXの破産確率・複利を数値で検証するツール',
+        ? 'Free browser-based forex backtester. Test trading strategies with 20+ years of data, then verify entries on a chart — no install required.'
+        : 'FX取引戦略を数値で検証できる無料ブラウザバックテスター。20年以上のデータで戦略をテストし、チャートでエントリーポイントを目視確認。インストール不要。',
     metadataBase: new URL(BASE),
     alternates: {
       canonical: canonicalUrl,
@@ -39,15 +39,27 @@ export async function generateMetadata({
       },
     },
     openGraph: {
-      title: 'Delver',
-      description: 'FXの破産確率・複利を数値で検証するツール',
+      title: locale === 'en' ? 'Delver – Free Forex Backtester' : 'Delver – 無料FXバックテスター',
+      description:
+        locale === 'en'
+          ? 'Free browser-based forex backtester. Test trading strategies with 20+ years of data, then verify entries on a chart — no install required.'
+          : 'FX取引戦略を数値で検証できる無料ブラウザバックテスター。インストール不要。',
       url: `${BASE}${pathname}`,
       siteName: 'Delver',
       locale: locale === 'en' ? 'en_US' : 'ja_JP',
       type: 'website',
+      images: [
+        {
+          url: `${BASE}/blog/bollinger-bands-10000-backtest-results/delver_results_en.png`,
+          width: 1200,
+          height: 630,
+          alt: 'Delver – Forex Backtest Results',
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
+      images: [`${BASE}/blog/bollinger-bands-10000-backtest-results/delver_results_en.png`],
     },
   };
 }
