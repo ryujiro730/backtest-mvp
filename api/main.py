@@ -452,8 +452,10 @@ def _get_run_row(run_id: str) -> dict:
 def _load_equity_for_run(run_id: str):
     """Load equity: DB first, filesystem fallback."""
     row = _get_run_row(run_id)
+    if row["status"] == "failed":
+        raise HTTPException(status_code=200, detail="run_failed")
     if row["status"] not in ("done",):
-        raise HTTPException(status_code=404, detail="report_not_ready")
+        raise HTTPException(status_code=202, detail=row["status"])
     if row["equity_data"] is not None:
         return row["equity_data"]
     # Filesystem fallback (local dev)
@@ -468,9 +470,16 @@ def _load_equity_for_run(run_id: str):
 @app.get("/api/reports/{run_id}/summary")
 def get_report_summary(run_id: str):
     _validate_run_id(run_id)
+    row = _get_run_row(run_id)
+
+    # Return status immediately so clients know whether to keep polling or stop
+    if row["status"] == "failed":
+        return JSONResponse({"run_id": run_id, "status": "failed"}, status_code=200)
+    if row["status"] not in ("done",):
+        return JSONResponse({"run_id": run_id, "status": row["status"]}, status_code=202)
+
     try:
         equity = _load_equity_for_run(run_id)
-        row = _get_run_row(run_id)
         summary = {
             "pf": row["pf"],
             "winrate": row["winrate"],
@@ -488,6 +497,7 @@ def get_report_summary(run_id: str):
             raise HTTPException(status_code=404, detail="report_not_ready")
         return {
             "run_id": run_id,
+            "status": "done",
             "summary": summary,
             "stats": {
                 "start": equity[0]["t"],
@@ -499,7 +509,7 @@ def get_report_summary(run_id: str):
         raise
     except Exception as e:
         logging.exception("get_report_summary failed: %s", e)
-        raise HTTPException(status_code=404, detail="report_not_ready")
+        raise HTTPException(status_code=500, detail="report_load_error")
 
 @app.get("/api/reports/{run_id}/equity")
 def get_report_equity(run_id: str):
@@ -510,8 +520,10 @@ def get_report_equity(run_id: str):
 def get_report_trades(run_id: str):
     _validate_run_id(run_id)
     row = _get_run_row(run_id)
+    if row["status"] == "failed":
+        return JSONResponse({"run_id": run_id, "status": "failed"}, status_code=200)
     if row["status"] not in ("done",):
-        raise HTTPException(status_code=404, detail="report_not_ready")
+        return JSONResponse({"run_id": run_id, "status": row["status"]}, status_code=202)
     if row["trades_data"] is not None:
         return row["trades_data"]
     # Filesystem fallback

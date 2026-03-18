@@ -18,3 +18,7 @@ celery = Celery(
     broker=REDIS_URL,
     backend=REDIS_URL,
 )
+
+# Re-queue tasks if the worker is killed (SIGKILL/OOM) before completion
+celery.conf.task_acks_late = True
+celery.conf.task_reject_on_worker_lost = True
