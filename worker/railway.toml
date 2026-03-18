@@ -1,0 +1,8 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "infra/Dockerfile.worker"
+
+[deploy]
+startCommand = "celery -A worker.tasks worker -l info --concurrency 2"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3

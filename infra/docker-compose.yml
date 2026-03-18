@@ -25,9 +25,10 @@ services:
     build:
       context: ..
       dockerfile: ./infra/backend.Dockerfile
+      network: host
     working_dir: /delver
     image: infra-api
-    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 1 --log-level debug
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 1 --log-level debug --reload
     environment:
       POSTGRES_URL: postgresql://fx:fxpass@postgres:5432/fxdb
       REDIS_URL: redis://redis:6379/0
@@ -66,6 +67,7 @@ services:
     build:
       context: ..
       dockerfile: ./infra/backend.Dockerfile
+      network: host
     working_dir: /delver
     command: celery -A worker.tasks worker -l info
     environment:

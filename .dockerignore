@@ -1,0 +1,33 @@
+# Large data files — upload to S3/R2 separately
+data/
+results/
+
+# Frontend — not needed for backend images
+frontend/
+
+# Engine Rust build artifacts
+engine-rs/target/
+
+# Dev artifacts
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+
+# Git
+.git/
+.gitignore
+
+# Local env files
+.env
+.env.local
+infra/.env
+
+# Jupyter
+*.ipynb
+
+# Draft / docs
+frontend/draft/
+RAILWAY_DEPLOY.md

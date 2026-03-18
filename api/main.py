@@ -31,7 +31,64 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 
-app = FastAPI(debug=True)
+DDL_RUNS = """
+CREATE TABLE IF NOT EXISTS runs (
+    run_id      uuid        PRIMARY KEY,
+    sid         text,
+    seed        integer,
+    code_hash   text,
+    dataset_hash text,
+    status      text        NOT NULL DEFAULT 'pending',
+    created_at  timestamp   NOT NULL DEFAULT now(),
+    started_at  timestamp,
+    finished_at timestamp,
+    error       text,
+    idem_key    text        UNIQUE,
+    pf          double precision,
+    winrate     double precision,
+    maxdd       double precision,
+    trades      integer,
+    expectancy  double precision,
+    avg_win     double precision,
+    avg_loss    double precision,
+    payload     jsonb,
+    equity_data jsonb,
+    trades_data jsonb
+);
+CREATE INDEX IF NOT EXISTS idx_runs_status   ON runs(status);
+CREATE INDEX IF NOT EXISTS idx_runs_sid      ON runs(sid);
+CREATE INDEX IF NOT EXISTS idx_runs_run_id   ON runs(run_id);
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='runs' AND column_name='payload') THEN
+        ALTER TABLE runs ADD COLUMN payload jsonb;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='runs' AND column_name='equity_data') THEN
+        ALTER TABLE runs ADD COLUMN equity_data jsonb;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='runs' AND column_name='trades_data') THEN
+        ALTER TABLE runs ADD COLUMN trades_data jsonb;
+    END IF;
+END $$;
+"""
+
+def _ensure_schema():
+    """起動時にテーブルが無ければ作成する（冪等）。"""
+    try:
+        with psycopg.connect(os.environ["POSTGRES_URL"]) as conn, conn.cursor() as cur:
+            cur.execute(DDL_RUNS)
+            conn.commit()
+        logging.info("DB schema ensured (runs table ok)")
+    except Exception as e:
+        logging.error("_ensure_schema failed: %s", e)
+
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app):
+    _ensure_schema()
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 from fastapi.middleware.gzip import GZipMiddleware
 app.add_middleware(GZipMiddleware, minimum_size=1000)
@@ -51,7 +108,7 @@ async def global_exception_handler(request: Request, exc: Exception):
                   request.url.path,
                   str(exc),
                   traceback.format_exc())
-    return JSONResponse(status_code=500, content={"detail": str(exc)})
+    return JSONResponse(status_code=500, content={"detail": "internal_server_error"})
 
 # ---- Strategy schema ----
 try:
@@ -69,25 +126,20 @@ async def json_errors(request: Request, call_next):
         resp.headers["X-Request-Id"] = rid
         return resp
     except Exception as exc:
+        logging.error("Unhandled exception rid=%s path=%s: %s\n%s",
+                      rid, str(request.url), str(exc), traceback.format_exc())
         return JSONResponse(
             {
-                "error": "unhandled_exception",
-                "detail": str(exc),
-                "traceback": traceback.format_exc(),
+                "error": "internal_server_error",
                 "request_id": rid,
-                "path": str(request.url),
             },
             status_code=500,
         )
 
-# ---------- Health / Boom ----------
+# ---------- Health ----------
 @app.get("/health")
 def health():
     return {"ok": True}
-
-@app.get("/__boom__")
-def boom():
-    raise RuntimeError("boom!")
 
 # ---------- Env ----------
 def _req(name: str) -> str:
@@ -183,10 +235,10 @@ def _resolve_dataset_hash(pair: str, timeframe: str) -> str:
 # ---------- API ----------
 SQL_INSERT_RUN = """
 INSERT INTO runs
-    (run_id, sid, seed, code_hash, dataset_hash, status, started_at, idem_key)
+    (run_id, sid, seed, code_hash, dataset_hash, status, started_at, idem_key, payload)
 VALUES
     (%(run_id)s, %(sid)s, %(seed)s, %(code_hash)s, %(dataset_hash)s,
-     %(status)s, NOW(), %(idem_key)s)
+     %(status)s, NOW(), %(idem_key)s, %(payload)s)
 ON CONFLICT (run_id) DO NOTHING;
 """.strip()
 
@@ -277,12 +329,17 @@ async def api_run(request: Request, idem_key: str = Header(..., alias="Idempoten
         dataset_hash = _resolve_dataset_hash(pair, timeframe)
 
         sid = _strategy_sid(payload)
-        os.makedirs(f"{BASE}/strategies", exist_ok=True)
-        with open(f"{BASE}/strategies/{sid}.json", "w") as f:
-            json.dump(payload, f)
+        # Save strategy JSON to filesystem (local dev / volume mount) — best effort
+        try:
+            os.makedirs(f"{BASE}/strategies", exist_ok=True)
+            with open(f"{BASE}/strategies/{sid}.json", "w") as f:
+                json.dump(payload, f)
+        except Exception as _fs_err:
+            logging.debug("RUN strategy filesystem save skipped: %s", _fs_err)
         logging.info("RUN step=2 resolved dataset_hash=%s sid=%s", dataset_hash, sid)
 
         run_id = str(uuid.uuid4())
+        payload_json = json.dumps(payload)
         with psycopg.connect(POSTGRES_URL) as conn, conn.cursor() as cur:
             logging.info("RUN step=4 db_insert begin")
             cur.execute(
@@ -295,6 +352,7 @@ async def api_run(request: Request, idem_key: str = Header(..., alias="Idempoten
                     "dataset_hash": dataset_hash,
                     "status": "queued",
                     "idem_key": idem_key,
+                    "payload": payload_json,
                 },
             )
             conn.commit()
@@ -310,19 +368,71 @@ async def api_run(request: Request, idem_key: str = Header(..., alias="Idempoten
         raise HTTPException(status_code=500, detail=str(e))
 
 
+def _validate_run_id(run_id: str) -> None:
+    """run_id が UUID v4 形式であることを確認（パストラバーサル対策）。"""
+    import re
+    if not re.fullmatch(r"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}", run_id):
+        raise HTTPException(status_code=400, detail="invalid_run_id")
+
+
+def _get_run_row(run_id: str) -> dict:
+    """Fetch a run row from DB. Returns dict with all columns."""
+    with psycopg.connect(POSTGRES_URL) as conn, conn.cursor() as cur:
+        cur.execute(
+            "SELECT status, pf, winrate, maxdd, trades, equity_data, trades_data FROM runs WHERE run_id=%s",
+            (run_id,),
+        )
+        row = cur.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="run_not_found")
+    return {
+        "status": row[0],
+        "pf": row[1],
+        "winrate": row[2],
+        "maxdd": row[3],
+        "trades": row[4],
+        "equity_data": row[5],
+        "trades_data": row[6],
+    }
+
+
+def _load_equity_for_run(run_id: str):
+    """Load equity: DB first, filesystem fallback."""
+    row = _get_run_row(run_id)
+    if row["status"] not in ("done",):
+        raise HTTPException(status_code=404, detail="report_not_ready")
+    if row["equity_data"] is not None:
+        return row["equity_data"]
+    # Filesystem fallback (local dev)
+    path = f"/delver/results/{run_id}/equity.json"
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="report_not_ready")
+
+
 @app.get("/api/reports/{run_id}/summary")
 def get_report_summary(run_id: str):
-    base = f"/delver/results/{run_id}"
-
+    _validate_run_id(run_id)
     try:
-        with open(f"{base}/summary.json") as f:
-            summary = json.load(f)
-
-        with open(f"{base}/equity.json") as f:
-            equity = json.load(f)
-            if not equity:
-                raise FileNotFoundError
-
+        equity = _load_equity_for_run(run_id)
+        row = _get_run_row(run_id)
+        summary = {
+            "pf": row["pf"],
+            "winrate": row["winrate"],
+            "maxdd": row["maxdd"],
+            "trades": row["trades"],
+        }
+        # Try filesystem summary for extra fields (local dev)
+        base = f"/delver/results/{run_id}"
+        try:
+            with open(f"{base}/summary.json") as f:
+                summary = json.load(f)
+        except FileNotFoundError:
+            pass
+        if not equity:
+            raise HTTPException(status_code=404, detail="report_not_ready")
         return {
             "run_id": run_id,
             "summary": summary,
@@ -332,15 +442,28 @@ def get_report_summary(run_id: str):
                 "bars": len(equity),
             }
         }
-    except FileNotFoundError:
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception("get_report_summary failed: %s", e)
         raise HTTPException(status_code=404, detail="report_not_ready")
 
 @app.get("/api/reports/{run_id}/equity")
 def get_report_equity(run_id: str):
-    with open(f"/delver/results/{run_id}/equity.json") as f:
-        return json.load(f)
+    _validate_run_id(run_id)
+    return _load_equity_for_run(run_id)
 
 @app.get("/api/reports/{run_id}/trades")
 def get_report_trades(run_id: str):
-    with open(f"/delver/results/{run_id}/trades.json") as f:
-        return json.load(f)
+    _validate_run_id(run_id)
+    row = _get_run_row(run_id)
+    if row["status"] not in ("done",):
+        raise HTTPException(status_code=404, detail="report_not_ready")
+    if row["trades_data"] is not None:
+        return row["trades_data"]
+    # Filesystem fallback
+    try:
+        with open(f"/delver/results/{run_id}/trades.json") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="report_not_ready")
