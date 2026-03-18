@@ -196,17 +196,42 @@ def _thin_equity(
     step = max(1, (n + max_points - 1) // max_points)
     return points[::step]
 
+def _list_parquet_names() -> List[str]:
+    """List parquet filenames from S3/R2 (if configured) or local disk."""
+    S3_BUCKET = os.getenv("PARQUET_BUCKET")
+    if S3_BUCKET:
+        try:
+            import boto3
+            from botocore.config import Config as BotoConfig
+            kwargs: dict = {}
+            endpoint = os.getenv("AWS_ENDPOINT_URL")
+            if endpoint:
+                kwargs["endpoint_url"] = endpoint
+            s3 = boto3.client("s3", config=BotoConfig(signature_version="s3v4"), **kwargs)
+            names = []
+            paginator = s3.get_paginator("list_objects_v2")
+            for page in paginator.paginate(Bucket=S3_BUCKET, Prefix=os.getenv("PARQUET_PREFIX", "")):
+                for obj in page.get("Contents", []):
+                    key = obj["Key"].split("/")[-1]
+                    if key.endswith(".parquet"):
+                        names.append(key)
+            return names
+        except Exception as e:
+            logging.warning("R2 catalog listing failed: %s", e)
+
+    # Local disk fallback
+    if not os.path.isdir(BASE):
+        return []
+    try:
+        return [f for f in os.listdir(BASE) if f.endswith(".parquet")]
+    except OSError:
+        return []
+
+
 def _catalog() -> Dict[str, Any]:
     items = []
     pairs, tfs = set(), set()
-    if not os.path.isdir(BASE):
-        logging.warning("Catalog: BASE %s does not exist or is not a directory; returning empty catalog.", BASE)
-        return {"items": [], "pairs": [], "timeframes": []}
-    try:
-        names = os.listdir(BASE)
-    except OSError as e:
-        logging.warning("Catalog: cannot listdir(%s): %s; returning empty catalog.", BASE, e)
-        return {"items": [], "pairs": [], "timeframes": []}
+    names = _list_parquet_names()
     for fn in names:
         if not fn.endswith(".parquet"):
             continue
@@ -249,13 +274,38 @@ def api_catalog():
     return _catalog()
 
 
+def _ensure_parquet_api(dataset_hash: str) -> str:
+    """Return local path to parquet, downloading from R2 if needed."""
+    path = f"{BASE}/{dataset_hash}.parquet"
+    if os.path.exists(path):
+        return path
+    S3_BUCKET = os.getenv("PARQUET_BUCKET")
+    if not S3_BUCKET:
+        raise HTTPException(status_code=404, detail="parquet_not_found")
+    try:
+        import boto3
+        from botocore.config import Config as BotoConfig
+        kwargs: dict = {}
+        endpoint = os.getenv("AWS_ENDPOINT_URL")
+        if endpoint:
+            kwargs["endpoint_url"] = endpoint
+        s3 = boto3.client("s3", config=BotoConfig(signature_version="s3v4"), **kwargs)
+        prefix = os.getenv("PARQUET_PREFIX", "")
+        key = f"{prefix}{dataset_hash}.parquet"
+        os.makedirs(BASE, exist_ok=True)
+        logging.info("Downloading parquet from R2: %s → %s", key, path)
+        s3.download_file(S3_BUCKET, key, path)
+        return path
+    except Exception as e:
+        logging.error("R2 parquet download failed: %s", e)
+        raise HTTPException(status_code=404, detail="parquet_not_found")
+
+
 def _chart_data_from_parquet(pair: str, timeframe: str, limit: int, before: int | None = None) -> List[Dict[str, Any]]:
     """Parquet から OHLC を読み、チャート用 JSON で返す。before があればその時刻より前の limit 本。"""
     import pandas as pd
     dataset_hash = _resolve_dataset_hash(pair, timeframe)
-    path = f"{BASE}/{dataset_hash}.parquet"
-    if not os.path.exists(path):
-        raise HTTPException(status_code=404, detail="parquet_not_found")
+    path = _ensure_parquet_api(dataset_hash)
     df = pd.read_parquet(path)
     # 日時列: 列にあればそのまま、なければインデックスを列に
     time_col = None
