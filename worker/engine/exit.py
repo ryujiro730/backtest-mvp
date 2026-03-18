@@ -6,7 +6,15 @@ from .indicators import atr, macd, bbands, stochastic, cci, adx, vwap, supertren
 
 # ========= exit helpers =========
 
-def _initial_r_and_sl(entry_px: float, direction: str, df, i, sl_atr: dict | None, sl_fixed_pips: float | None):
+def _initial_r_and_sl(
+    entry_px: float,
+    direction: str,
+    df,
+    i,
+    sl_atr: dict | None,
+    sl_fixed_pips: float | None,
+    pip_size: float = 0.0001,
+):
     """初期SL価格とR(価格差)を返す。なければ (None, None)。"""
     if sl_atr:
         n = int(sl_atr.get("n", 14)); k = float(sl_atr.get("k", 2.0))
@@ -16,19 +24,26 @@ def _initial_r_and_sl(entry_px: float, direction: str, df, i, sl_atr: dict | Non
         R = abs(entry_px - sl)
         return sl, R
     if sl_fixed_pips:
-        width = float(sl_fixed_pips) * 1e-4  # pips→価格（FX想定）
+        width = float(sl_fixed_pips) * pip_size  # pip_size は JPY=0.01, 他=0.0001
         sl = entry_px - width if direction == "long" else entry_px + width
         R = abs(entry_px - sl)
         return sl, R
     return None, None
 
-def _tp_price(entry_px: float, direction: str, R: float | None, tp_rr: float | None, tp_fixed_pips: float | None = None):
+def _tp_price(
+    entry_px: float,
+    direction: str,
+    R: float | None,
+    tp_rr: float | None,
+    tp_fixed_pips: float | None = None,
+    pip_size: float = 0.0001,
+):
     """単発TP価格（Rベース or pips）を返す。無ければ None。"""
     if tp_rr and R:
         width = R * float(tp_rr)
         return entry_px + width if direction == "long" else entry_px - width
     if tp_fixed_pips:
-        width = float(tp_fixed_pips) * 1e-4
+        width = float(tp_fixed_pips) * pip_size
         return entry_px + width if direction == "long" else entry_px - width
     return None
 
@@ -118,8 +133,8 @@ def _indicator_exit_hit(pos, i, inds, rules):
             band = r.get("band","mid"); px = inds["close"]; prv = inds["close_prev"]
             mid = inds[f"bb_mid_{n}_{k}"]; upb = inds[f"bb_up_{n}_{k}"]; lowb = inds[f"bb_lo_{n}_{k}"]
             if band == "mid":
-                up = (prv <= mid[i-1]) and (px[i] > mid[i])
-                dn = (prv >= mid[i-1]) and (px[i] < mid[i])
+                up = (prv[i] <= mid[i-1]) and (px[i] > mid[i])
+                dn = (prv[i] >= mid[i-1]) and (px[i] < mid[i])
             elif band == "upper":
                 up = inds["high"][i] >= upb[i]; dn = False
             else:
@@ -166,8 +181,9 @@ def _indicator_exit_hit(pos, i, inds, rules):
             if v is None:
                 inds["vwap"] = v = vwap(pos["df"]).values
             px = inds["close"]; prv = inds["close_prev"]
-            up   = (px[i] > v[i]) and (prv[i-1] <= v[i-1])
-            down = (px[i] < v[i]) and (prv[i-1] >= v[i-1])
+            # prv[i] = close[i-1]（shift(1)済み）なので prv[i] が「前足終値」
+            up   = (px[i] > v[i]) and (prv[i] <= v[i])
+            down = (px[i] < v[i]) and (prv[i] >= v[i])
             d = r.get("dir", "down" if pos["side"]=="long" else "up")
             if d == "up" and up: return True
             if d == "down" and down: return True
@@ -191,8 +207,8 @@ def _indicator_exit_hit(pos, i, inds, rules):
                 ll = pd.Series(inds["low"]).rolling(n).min().values
                 inds[mid_key] = (hh + ll) / 2.0
             px = inds["close"]; mid = inds[mid_key]; prv = inds["close_prev"]
-            up   = (prv[i-1] <= mid[i-1]) and (px[i] >  mid[i])
-            down = (prv[i-1] >= mid[i-1]) and (px[i] <  mid[i])
+            up   = (prv[i] <= mid[i-1]) and (px[i] >  mid[i])
+            down = (prv[i] >= mid[i-1]) and (px[i] <  mid[i])
             d = r.get("dir")
             if d == "up" and up: return True
             if d == "down" and down: return True

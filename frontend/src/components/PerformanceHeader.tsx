@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
@@ -14,7 +14,7 @@ export function PerformanceHeader() {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => router.push("/")}
+        onClick={() => router.push("/app" as any)}
         className="mt-1"
         aria-label={t("back")}
       >

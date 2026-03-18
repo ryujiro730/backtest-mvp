@@ -195,8 +195,8 @@ def _run_engine_bidirectional(df, cfg):
             if prev_long == 0 and curr_long == 1:
                 entry_px = next_open + cost_pips
                 exit_cfg = exit_long
-                sl, R = _initial_r_and_sl(entry_px, "long", df, i, exit_cfg.get("sl_atr"), exit_cfg.get("sl_fixed_pips"))
-                tp = _tp_price(entry_px, "long", R, exit_cfg.get("tp_r_multiple"), None)
+                sl, R = _initial_r_and_sl(entry_px, "long", df, i, exit_cfg.get("sl_atr"), exit_cfg.get("sl_fixed_pips"), pip_size)
+                tp = _tp_price(entry_px, "long", R, exit_cfg.get("tp_r_multiple"), None, pip_size)
                 position_notional = _notional_for_entry(balance_ref[0], entry_px, R)
                 position = {
                     "side": "long", "entry_idx": i, "entry_px": entry_px,
@@ -207,8 +207,8 @@ def _run_engine_bidirectional(df, cfg):
             if prev_short == 0 and curr_short == 1:
                 entry_px = next_open - cost_pips
                 exit_cfg = exit_short
-                sl, R = _initial_r_and_sl(entry_px, "short", df, i, exit_cfg.get("sl_atr"), exit_cfg.get("sl_fixed_pips"))
-                tp = _tp_price(entry_px, "short", R, exit_cfg.get("tp_r_multiple"), None)
+                sl, R = _initial_r_and_sl(entry_px, "short", df, i, exit_cfg.get("sl_atr"), exit_cfg.get("sl_fixed_pips"), pip_size)
+                tp = _tp_price(entry_px, "short", R, exit_cfg.get("tp_r_multiple"), None, pip_size)
                 position_notional = _notional_for_entry(balance_ref[0], entry_px, R)
                 position = {
                     "side": "short", "entry_idx": i, "entry_px": entry_px,
@@ -228,8 +228,8 @@ def _run_engine_bidirectional(df, cfg):
             if exit_cfg.get("opposite_signal_exit") and curr_short == 1:
                 close_position(mkt_px, i)
                 entry_px = next_open - cost_pips
-                sl, R = _initial_r_and_sl(entry_px, "short", df, i, exit_short.get("sl_atr"), exit_short.get("sl_fixed_pips"))
-                tp = _tp_price(entry_px, "short", R, exit_short.get("tp_r_multiple"), None)
+                sl, R = _initial_r_and_sl(entry_px, "short", df, i, exit_short.get("sl_atr"), exit_short.get("sl_fixed_pips"), pip_size)
+                tp = _tp_price(entry_px, "short", R, exit_short.get("tp_r_multiple"), None, pip_size)
                 position = {
                     "side": "short", "entry_idx": i, "entry_px": entry_px,
                     "stop": sl, "tp": tp, "balance_at_entry": balance_ref[0],
@@ -256,8 +256,8 @@ def _run_engine_bidirectional(df, cfg):
             if exit_cfg.get("opposite_signal_exit") and curr_long == 1:
                 close_position(mkt_px, i)
                 entry_px = next_open + cost_pips
-                sl, R = _initial_r_and_sl(entry_px, "long", df, i, exit_long.get("sl_atr"), exit_long.get("sl_fixed_pips"))
-                tp = _tp_price(entry_px, "long", R, exit_long.get("tp_r_multiple"), None)
+                sl, R = _initial_r_and_sl(entry_px, "long", df, i, exit_long.get("sl_atr"), exit_long.get("sl_fixed_pips"), pip_size)
+                tp = _tp_price(entry_px, "long", R, exit_long.get("tp_r_multiple"), None, pip_size)
                 position = {
                     "side": "long", "entry_idx": i, "entry_px": entry_px,
                     "stop": sl, "tp": tp, "balance_at_entry": balance_ref[0],
@@ -755,8 +755,8 @@ def run_engine(df, cfg):
                     entry_px = raw_entry + cost_pips
                 else:
                     entry_px = raw_entry - cost_pips
-                sl, R = _initial_r_and_sl(entry_px, direction, df, i, exit_cfg.get("sl_atr"), exit_cfg.get("sl_fixed_pips"))
-                tp = _tp_price(entry_px, direction, R, exit_cfg.get("tp_r_multiple"), None)
+                sl, R = _initial_r_and_sl(entry_px, direction, df, i, exit_cfg.get("sl_atr"), exit_cfg.get("sl_fixed_pips"), pip_size)
+                tp = _tp_price(entry_px, direction, R, exit_cfg.get("tp_r_multiple"), None, pip_size)
                 balance_at_entry = balance_ref[0]
                 if lot_mode == "fixed":
                     position_notional = lot_size * CONTRACT_SIZE
@@ -797,7 +797,9 @@ def run_engine(df, cfg):
         if fe:
             now_ts = pd.to_datetime(ts.iat[i])
             fe_start, fe_end = fe.get("start"), fe.get("end")
-            in_window = (fe_start is not None and now_ts >= pd.to_datetime(fe_start)) or (fe_end is not None and now_ts >= pd.to_datetime(fe_end))
+            after_start = fe_start is None or now_ts >= pd.to_datetime(fe_start)
+            before_end  = fe_end is None or now_ts <= pd.to_datetime(fe_end)
+            in_window = after_start and before_end
             if in_window:
                 for _ in range(len(positions)):
                     _close_one_position(positions[0], close_all_px, i)

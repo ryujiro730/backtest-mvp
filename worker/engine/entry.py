@@ -29,9 +29,6 @@ def entry_ema_cross(df, e, direction):
     else:
         m = above  # デフォルト
 
-    print(f"[EMA] fast={fast} slow={slow} above={int(above.sum())} "
-          f"cross_up={int(cross_up.sum())} cross_down={int(cross_down.sum())}",
-          flush=True)
     return m.astype(bool)
 
 
@@ -531,7 +528,6 @@ def build_entry_mask(
     side_filter が "long" / "short" のときは、ブロック内でその side の条件だけを AND/OR してマスクを出す（direction=both 用）。
     entry_blocks が無い場合: entries をすべて AND で結合（従来どおり）。
     """
-    print(f"[ENTRY] building mask direction={direction} side_filter={side_filter}", flush=True)
     if entry_blocks:
         block_masks = []
         for bi, block in enumerate(entry_blocks):
@@ -546,9 +542,8 @@ def build_entry_mask(
                 block_masks.append(pd.Series(False, index=df.index))
                 continue
             masks = []
-            for i, e in enumerate(block_entries):
+            for e in block_entries:
                 m = _single_entry_mask(df, e, direction)
-                print(f"[ENTRY] block#{bi+1} cond#{i+1} type={str(e.get('type','')).lower()} true={int(m.sum())}", flush=True)
                 masks.append(m)
             block_mask = _combine_masks(masks, logic)
             block_masks.append(block_mask)
@@ -557,16 +552,11 @@ def build_entry_mask(
         m = _combine_masks(block_masks, "AND")
     else:
         masks = []
-        for i, e in enumerate(entries):
+        for e in entries:
             m = _single_entry_mask(df, e, direction)
-            print(f"[ENTRY] cond#{i+1} type={str(e.get('type','')).lower()} true={int(m.sum())}", flush=True)
             masks.append(m)
         if not masks:
             return pd.Series(False, index=df.index)
         m = _combine_masks(masks, "AND")
 
-    prev = m.shift(1).fillna(False).astype(bool)
-    trans_in  = ((~prev) & m).sum()
-    trans_out = (prev & ~m).sum()
-    print(f"[ENTRY] final mask: true={int(m.sum())}, entries={int(trans_in)}, exits={int(trans_out)}", flush=True)
     return m.astype(bool)

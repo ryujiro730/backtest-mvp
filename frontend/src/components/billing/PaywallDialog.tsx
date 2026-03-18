@@ -1,7 +1,8 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/routing';
 import { useMemo, useState, useEffect } from 'react';
+import { useLocale } from 'next-intl';
 import LoginInline from '@/components/auth/LoginInline';
 import { createClient } from '@supabase/supabase-js';
 
@@ -90,6 +91,7 @@ export default function PaywallDialog({
   limit?: number;
 }) {
   const router = useRouter();
+  const locale = useLocale();
 
   const [showLogin, setShowLogin] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -105,7 +107,7 @@ export default function PaywallDialog({
     const nextCheckout = `/billing/checkout?plan=${plan}&period=${period}`;
 
     if (!authed) {
-      router.push(`/login?next=${encodeURIComponent(nextCheckout)}`);
+      router.push(`/${locale}/login?next=${encodeURIComponent(nextCheckout)}` as any);
       return;
     }
 

@@ -60,7 +60,6 @@ if (res.status === 402) {
 }
 
 
-const API = process.env.NEXT_PUBLIC_API_BASE!; // 例: https://api.delvertrade.com
 
 export type PollResult = {
   status: "completed" | "failed";
@@ -75,8 +74,9 @@ export type PollResult = {
  */
 export async function pollReport(runId: string) {
   for (;;) {
+    const base = process.env.NEXT_PUBLIC_API_BASE ?? "";
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE}/api/reports/${runId}/summary`,
+      `${base}/api/reports/${runId}/summary`,
       { cache: "no-store" }
     );
 

@@ -8,6 +8,11 @@ import psycopg
 BASE = os.getenv("DATA_DIR", "/delver/data")
 POSTGRES_URL = os.getenv("POSTGRES_URL")
 
+# Cap rows for short timeframes to avoid OOM on Railway (512MB limit).
+# Approximate bars per year: M1=525960, M5=105192, M15=35064, M30=17532
+_TF_MAX_YEARS = {"M1": 3, "M5": 5, "M15": 10, "M30": 15}
+_BARS_PER_YEAR = {"M1": 525_960, "M5": 105_192, "M15": 35_064, "M30": 17_532}
+
 # S3/R2 settings (optional — only needed on Railway where parquet isn't on disk)
 S3_BUCKET = os.getenv("PARQUET_BUCKET")       # e.g. "delver-data"
 S3_PREFIX = os.getenv("PARQUET_PREFIX", "")   # e.g. "parquet/" or ""
@@ -78,16 +83,53 @@ def _load_prices(dataset_hash: str):
     pair, tf = dataset_hash.split("_", 1)
     local_path = _ensure_parquet(pair, tf)
 
-    df = pd.read_parquet(local_path)
+    # Load using pyarrow row-group iteration to avoid reading the full file
+    # when only the recent history is needed (avoids OOM on Railway 512MB).
+    max_rows = _TF_MAX_YEARS.get(tf, 0) * _BARS_PER_YEAR.get(tf, 0) if tf in _TF_MAX_YEARS else 0
+
+    import pyarrow.parquet as pq
+    import pyarrow as pa
+
+    pf = pq.ParquetFile(local_path)
+    meta = pf.metadata
+    total_rows = meta.num_rows
+
+    if max_rows and total_rows > max_rows:
+        # Find first row group that contains data within the last max_rows
+        skip_rows = total_rows - max_rows
+        cumulative = 0
+        first_rg = meta.num_row_groups - 1
+        for i in range(meta.num_row_groups):
+            rg_rows = meta.row_group(i).num_rows
+            if cumulative + rg_rows > skip_rows:
+                first_rg = i
+                break
+            cumulative += rg_rows
+        print(f"[LOADER] {tf}: capping to last {_TF_MAX_YEARS[tf]}y — row groups {first_rg}-{meta.num_row_groups-1} of {meta.num_row_groups} (was {total_rows:,} rows)", flush=True)
+        tables = [pf.read_row_group(i) for i in range(first_rg, meta.num_row_groups)]
+        table = pa.concat_tables(tables)
+    else:
+        table = pf.read()
+
+    df = table.to_pandas()
+    del table  # release pyarrow memory immediately
 
     if df.index.name == 'datetime':
         df = df.reset_index()
 
     need = ['datetime', 'open', 'high', 'low', 'close']
-    df = df[need]
+    df = df[[c for c in need if c in df.columns]]
 
     df['datetime'] = pd.to_datetime(df['datetime'], errors='coerce')
-    df[['open', 'high', 'low', 'close']] = df[['open', 'high', 'low', 'close']].apply(pd.to_numeric, errors='coerce')
+    # Use float32 for OHLC to halve memory (~266MB→133MB for M1 full load).
+    # engine.py explicitly casts to float64 before Rust calls, so precision is preserved there.
+    for col in ['open', 'high', 'low', 'close']:
+        df[col] = pd.to_numeric(df[col], errors='coerce').astype('float32')
 
     df = df.dropna().sort_values('datetime').reset_index(drop=True)
+
+    # Final row cap (handles partial row groups at the boundary)
+    if max_rows and len(df) > max_rows:
+        df = df.tail(max_rows).reset_index(drop=True)
+
     return df

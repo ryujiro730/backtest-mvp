@@ -326,11 +326,5 @@ base.trading = {
   -------------------------------- */
   base.exit = buildExitSection(rule);
 
-  console.log("=== DEBUG payload ===", JSON.stringify(base, null, 2));
-  console.log("DEBUG rule.indicatorThreshold =", rule.indicatorThreshold);
-  console.log("DEBUG rule.priceAction =", rule.priceAction);
-  console.log("DEBUG rule.chartPattern =", rule.chartPattern);
-  console.log("DEBUG rule.exit =", rule.exit);
-
   return base;
 }

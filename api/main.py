@@ -252,7 +252,8 @@ def _resolve_dataset_hash(pair: str, timeframe: str) -> str:
     for it in cat["items"]:
         if it["pair"] == pair and it["timeframe"] == timeframe:
             h = it["dataset_hash"]
-            if os.path.exists(f"{BASE}/{h}.parquet"):
+            # When using R2, parquet files are downloaded on-demand by the worker
+            if os.getenv("PARQUET_BUCKET") or os.path.exists(f"{BASE}/{h}.parquet"):
                 return h
             raise HTTPException(status_code=500, detail="dataset_file_missing")
 

@@ -55,7 +55,6 @@ export default function RunClient({ used, limit }: { used: number; limit: number
   const [pair, setPair] = useState<string>("EURUSD");
   const [timeframe, setTimeframe] = useState<string>("H1");
   useEffect(() => {
-    console.log('API_BASE=', process.env.NEXT_PUBLIC_API_BASE);
     if (catalog.pairs.length > 0) setPair((p) => catalog.pairs.includes(p) ? p : catalog.pairs[0]);
     if (catalog.timeframes.length > 0) setTimeframe((tf) => catalog.timeframes.includes(tf) ? tf : catalog.timeframes[0]);
   }, [catalog.pairs, catalog.timeframes]);
@@ -197,15 +196,11 @@ function buildEntry(
       };
 
 case "rsi_threshold": {
-  console.log("[buildEntry:rsi_threshold] raw params", params);
   const length = toInt(params.length);
   const level  = toNum(params.level);
   const event  = params.event as "cross_up" | "cross_down" | undefined;
-  console.log("[buildEntry:rsi_threshold] after toInt/toNum", { length, level, event });
-
 
   if (length == null || level == null || !event) {
-    console.error("[buildEntry:rsi_threshold] missing params", { length, level, event, params });
     throw new Error("RSI: length/level/event が不足");
   }
 
@@ -416,7 +411,6 @@ function toEntryObj(
 
 
 const payload = useMemo(() => {
-  console.log("payload recompute triggered");
   const base: any = {
     pair, timeframe, direction,
     fee_bps: Number(feeBps),
@@ -471,8 +465,6 @@ if (direction === "both") {
 
   base.entries = base.entry; // 後方互換が必要なら残す
 
-  console.log("=== DEBUG payload ===", JSON.stringify(base, null, 2));
-
   return base;
 }, [
   // 依存配列は「この useMemo 内で参照したもの」だけ
@@ -485,7 +477,6 @@ if (direction === "both") {
 
 // gate → execute → poll
 async function handleRun() {
-  console.log("[payload before run]", JSON.stringify(payload, null, 2));
   setRunning(true);
   setError(null);
 
@@ -522,7 +513,8 @@ async function handleRun() {
     //   return;
     // }
     if (e?.code === "UNAUTHORIZED") {
-      location.href = `/login?next=/app`;
+      const loc = typeof document !== "undefined" ? document.documentElement.lang || "ja" : "ja";
+      location.href = `/${loc}/login?next=/${loc}/app`;
       return;
     }
     setError(e?.message ?? "実行に失敗しました");

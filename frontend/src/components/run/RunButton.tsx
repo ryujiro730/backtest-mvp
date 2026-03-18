@@ -26,26 +26,33 @@ export function RunButton({
       return;
     }
 
-    const res = await fetch("/api/run/start", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Idempotency-Key": uuidv4(),
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await res.json();
-
-    console.log("[RunButton] response =", data);
+    let data: any;
+    try {
+      const res = await fetch("/api/run/start", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": uuidv4(),
+        },
+        body: JSON.stringify(payload),
+      });
+      data = await res.json();
+      if (!res.ok) {
+        console.error("[RunButton] API error", res.status, data);
+        alert(`バックテストの開始に失敗しました (${res.status}): ${data?.error ?? data?.detail ?? "不明なエラー"}`);
+        return;
+      }
+    } catch (e) {
+      console.error("[RunButton] fetch failed", e);
+      alert("サーバーに接続できませんでした。バックエンドが起動しているか確認してください。");
+      return;
+    }
 
     if (data?.run_id) {
-      console.log("[RunButton] new runId =", data.run_id);
       localStorage.setItem("last_run_id", data.run_id);
       localStorage.setItem("last_run_pair", rule.meta.pair);
       localStorage.setItem("last_run_timeframe", rule.meta.timeframe);
       onRunStarted(data.run_id);
-      // GA4: 実行ボタンで Run が開始された（「何人押したか」をイベントで集計）
       if (typeof window !== "undefined" && typeof window.gtag === "function") {
         window.gtag("event", "run_backtest_started", {
           run_id: data.run_id,
@@ -55,6 +62,7 @@ export function RunButton({
       }
     } else {
       console.error("[RunButton] run_id not found", data);
+      alert(`バックテストを開始できませんでした: ${data?.error ?? "不明なエラー"}`);
     }
   };
 

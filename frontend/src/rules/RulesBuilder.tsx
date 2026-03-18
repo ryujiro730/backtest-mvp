@@ -10,6 +10,7 @@ import { PriceActionSection } from "../components/sections/PriceActionSection";
 import { ChartPatternSection } from "../components/sections/ChartPatternSection";
 import { ExitSection } from "../components/sections/ExitSection";
 import { ExecutionCondition } from "@/components/sections/ExecutionCondition";
+import { PresetStrategies } from "@/components/PresetStrategies";
 import { useTranslations } from "next-intl";
 
 export function RulesBuilder() {
@@ -106,6 +107,10 @@ export function RulesBuilder() {
         <p className="text-sm text-muted-foreground">
           {t("description")}
         </p>
+      </div>
+
+      <div className="mb-4">
+        <PresetStrategies />
       </div>
 
       <div className="mb-6">

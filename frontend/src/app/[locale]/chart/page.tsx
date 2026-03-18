@@ -8,6 +8,7 @@ import {
   Search,
   Rewind,
   Play,
+  Pause,
   Square,
   FastForward,
   Ruler,
@@ -265,7 +266,8 @@ function ChartPageInner() {
   const [positions, setPositions] = useState<Position[]>([]);
   /** TP/SL で決済した履歴（巻き戻しで復元するため exitTime で紐付け） */
   const [closedTrades, setClosedTrades] = useState<ClosedTrade[]>([]);
-  const prevBarIndexRef = useRef<number | null>(null);
+  /** TP/SL判定の基準: インデックスではなく時刻で管理（loadMore で index がシフトしても誤検知しない） */
+  const prevBarTimeRef = useRef<number | null>(null);
   const replayInitializedRef = useRef(false);
   const positionsRef = useRef(positions);
   const closedTradesRef = useRef(closedTrades);
@@ -389,6 +391,7 @@ function ChartPageInner() {
 
   useEffect(() => {
     replayInitializedRef.current = false;
+    prevBarTimeRef.current = null;
     setReplayTime(null);
     setReplayHeadM1(null);
     setPositions([]);
@@ -403,56 +406,80 @@ function ChartPageInner() {
     if (useM1Replay) replayInitializedRef.current = true;
   }, [bars, useM1Replay]);
 
-  /** 足が進んだとき TP/SL 判定で約定、巻き戻したとき約定取り消し */
+  /**
+   * 足が進んだとき TP/SL 判定で約定、巻き戻したとき約定取り消し。
+   * 時刻ベースで追跡することで：
+   *   - 早送り/早巻き・スキップで複数本飛ぶ場合も中間足を全て処理
+   *   - loadMore でインデックスがシフトしても誤検知しない
+   */
   useEffect(() => {
     if (bars.length === 0) return;
-    const prev = prevBarIndexRef.current;
-    prevBarIndexRef.current = currentBarIndex;
+    const curBar = bars[currentBarIndex];
+    if (!curBar) return;
 
-    if (prev === null) return; // 初回はスキップ
+    const prevTime = prevBarTimeRef.current;
+    prevBarTimeRef.current = curBar.time;
 
-    if (currentBarIndex > prev) {
-      // 再生が進んだ: 現在の足で TP/SL ヒットしたポジションを決済
-      const bar = bars[currentBarIndex];
-      const openPositions = positionsRef.current;
-      const toClose: Position[] = [];
-      const stillOpen: Position[] = [];
-      for (const pos of openPositions) {
-        if (pos.entryTime >= bar.time) {
-          stillOpen.push(pos);
-          continue;
+    if (prevTime === null || prevTime === curBar.time) return; // 初回 or loadMore によるインデックスシフト
+
+    // 前回足のインデックスを時刻から逆引き（loadMore後も正しく動く）
+    const prevIdx = bars.findLastIndex((b) => b.time <= prevTime);
+
+    if (currentBarIndex > prevIdx && prevIdx >= 0) {
+      // 前進: prev+1 ～ currentBarIndex の全足を順に TP/SL 判定
+      let openPositions = [...positionsRef.current];
+      const newClosed: ClosedTrade[] = [];
+
+      for (let i = prevIdx + 1; i <= currentBarIndex; i++) {
+        const bar = bars[i];
+        if (!bar) break;
+        const stillOpen: Position[] = [];
+        for (const pos of openPositions) {
+          if (pos.entryTime >= bar.time) {
+            stillOpen.push(pos);
+            continue;
+          }
+          const hit = checkTpSlHit(pos, bar);
+          if (hit) {
+            newClosed.push({ ...pos, exitPrice: hit.exitPrice, exitTime: bar.time });
+          } else {
+            stillOpen.push(pos);
+          }
         }
-        const hit = checkTpSlHit(pos, bar);
-        if (hit) toClose.push(pos);
-        else stillOpen.push(pos);
+        openPositions = stillOpen;
       }
-      if (toClose.length > 0) {
-        const newClosed: ClosedTrade[] = toClose.map((pos) => {
-          const hit = checkTpSlHit(pos, bar)!;
-          return { ...pos, exitPrice: hit.exitPrice, exitTime: bar.time };
-        });
-        setPositions(stillOpen);
-        setClosedTrades((prevClosed) => [...prevClosed, ...newClosed]);
+
+      if (newClosed.length > 0) {
+        setPositions(openPositions);
+        setClosedTrades((prev) => [...prev, ...newClosed]);
       }
-    } else if (currentBarIndex < prev) {
-      // 巻き戻し: 戻った先の「次の足」で決済したものをポジションに戻す
-      const barWeLeft = bars[prev];
+    } else if (currentBarIndex < prevIdx) {
+      // 後退: currentBarIndex+1 ～ prevIdx の全足で決済されたポジションを復元
       const prevClosed = closedTradesRef.current;
-      const toReopen = prevClosed.filter((t) => t.exitTime === barWeLeft.time);
-      if (toReopen.length > 0) {
-        const openAgain: Position[] = toReopen.map((t) => ({
-          id: t.id,
-          symbol: t.symbol,
-          side: t.side,
-          quantity: t.quantity,
-          entryTime: t.entryTime,
-          entryPrice: t.entryPrice,
-          takeProfit: t.takeProfit,
-          stopLoss: t.stopLoss,
-          leverage: t.leverage,
-        }));
-        setPositions((p) => [...p, ...openAgain]);
-        setClosedTrades((c) => c.filter((t) => t.exitTime !== barWeLeft.time));
+      const fromTime = bars[currentBarIndex + 1]?.time;
+      const toTime = bars[prevIdx]?.time;
+
+      if (fromTime != null && toTime != null) {
+        const toReopen = prevClosed.filter(
+          (t) => t.exitTime >= fromTime && t.exitTime <= toTime
+        );
+        if (toReopen.length > 0) {
+          const openAgain: Position[] = toReopen.map((t) => ({
+            id: t.id,
+            symbol: t.symbol,
+            side: t.side,
+            quantity: t.quantity,
+            entryTime: t.entryTime,
+            entryPrice: t.entryPrice,
+            takeProfit: t.takeProfit,
+            stopLoss: t.stopLoss,
+            leverage: t.leverage,
+          }));
+          setPositions((p) => [...p, ...openAgain]);
+          setClosedTrades((c) =>
+            c.filter((t) => !(t.exitTime >= fromTime && t.exitTime <= toTime))
+          );
+        }
       }
     }
   }, [currentBarIndex, bars]);
@@ -608,7 +635,7 @@ function ChartPageInner() {
 
   const handleAddPosition = useCallback(() => {
     if (!currentBar) return;
-    const qty = parseInt(entryQty, 10) || 1;
+    const qty = Math.max(0.01, parseFloat(entryQty) || 0.01);
     const parseNum = (s: string) => {
       const v = parseFloat(s);
       return s.trim() !== "" && !Number.isNaN(v) ? v : null;
@@ -898,7 +925,11 @@ function ChartPageInner() {
             onClick={() => setIsPlaying((p) => !p)}
             disabled={bars.length === 0}
           >
-            <Play className={cn("h-4 w-4", isPlaying && "text-primary")} />
+            {isPlaying ? (
+              <Pause className="h-4 w-4 text-primary" />
+            ) : (
+              <Play className="h-4 w-4" />
+            )}
           </Button>
           <Button
             variant="outline"
@@ -1366,7 +1397,8 @@ function ChartPageInner() {
               <Input
                 id="qty"
                 type="number"
-                min={1}
+                min={0.01}
+                step={0.01}
                 value={entryQty}
                 onChange={(e) => setEntryQty(e.target.value)}
               />

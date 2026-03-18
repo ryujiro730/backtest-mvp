@@ -2,16 +2,22 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 
 import { RulesBuilder } from "@/rules/RulesBuilder";
 import { RunButton } from "@/components/run/RunButton";
+import { SimpleMode } from "@/components/run/SimpleMode";
+import type { PresetKey } from "@/lib/strategy/presets";
 
 export function RunPanel() {
+  const [mode, setMode] = useState<"simple" | "advanced">("simple");
   const [runId, setRunId] = useState<string | null>(null);
   const [uiRunning, setUiRunning] = useState(false);
+  const [runningKey, setRunningKey] = useState<PresetKey | null>(null);
 
   const router = useRouter();
+  const t = useTranslations("AppMode");
 
   // 多重起動防止
   const pollingRef = useRef(false);
@@ -27,46 +33,36 @@ export function RunPanel() {
       if (!alive) return;
 
       try {
-        // 完了判定は「summary が取れるか」で十分
         const res = await fetch(`/api/reports/${runId}/summary`, {
           cache: "no-store",
         });
 
         if (!alive) return;
 
-        // 404 = report_not_ready（まだ結果ファイルがない）
         if (res.status === 404) {
           setTimeout(tick, 1500);
           return;
         }
 
-        // 200以外はログ出して少し待つ
         if (!res.ok) {
           const text = await res.text().catch(() => "");
-          console.warn(
-            "[RunPanel] summary not ready:",
-            res.status,
-            text.slice(0, 200)
-          );
+          console.warn("[RunPanel] summary not ready:", res.status, text.slice(0, 200));
           setTimeout(tick, 1500);
           return;
         }
 
-        // ここに来たら完了（summary.json と equity.json は揃ってる前提）
         await res.json().catch(() => null);
-
         if (!alive) return;
 
-        // 実行中フラグ解除して遷移
         setUiRunning(false);
-        router.push("/performance");
+        setRunningKey(null);
+        router.push("/performance" as any);
       } catch (e) {
         console.warn("[RunPanel] polling error:", e);
         setTimeout(tick, 1500);
       }
     };
 
-    // すぐ1回目を叩く
     tick();
 
     return () => {
@@ -75,19 +71,54 @@ export function RunPanel() {
     };
   }, [runId, router]);
 
+  const handleRunStarted = (id: string, key?: PresetKey) => {
+    setUiRunning(true);
+    setRunningKey(key ?? null);
+    setRunId(id);
+  };
+
   return (
     <>
-      <RulesBuilder />
-
-      <div className="mt-14 md:mt-16">
-        <RunButton
-        running={uiRunning}
-        onRunStarted={(id) => {
-          setUiRunning(true); // 押した瞬間にON
-          setRunId(id);
-        }}
-      />
+      {/* モード切り替えタブ */}
+      <div className="flex gap-1 mb-6 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit">
+        <button
+          type="button"
+          onClick={() => setMode("simple")}
+          className={`
+            px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150
+            ${mode === "simple"
+              ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
+              : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+            }
+          `}
+        >
+          {t("simple")}
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("advanced")}
+          className={`
+            px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150
+            ${mode === "advanced"
+              ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
+              : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+            }
+          `}
+        >
+          {t("advanced")}
+        </button>
       </div>
+
+      {mode === "simple" ? (
+        <SimpleMode runningKey={runningKey} onRunStarted={handleRunStarted} />
+      ) : (
+        <>
+          <RulesBuilder />
+          <div className="mt-10 md:mt-12">
+            <RunButton running={uiRunning} onRunStarted={(id) => handleRunStarted(id)} />
+          </div>
+        </>
+      )}
     </>
   );
 }

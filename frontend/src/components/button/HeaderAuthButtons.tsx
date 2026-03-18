@@ -1,7 +1,7 @@
 // src/app/[locale]/components/HeaderAuthButtons.tsx
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 
 export default function HeaderAuthButtons({ variant }: { variant: 'dark' | 'light' }) {
   const isDark = variant === 'dark';

@@ -1,5 +1,5 @@
 // app/blog/page.tsx
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { getAllPostsMeta } from "@/lib/blog/mdx";
@@ -128,7 +128,7 @@ const href =
             {filteredPosts.map((post) => (
               <Link
                 key={post.sourcePath}
-                href={`/${locale}/blog/${post.slug}`}
+                href={`/blog/${post.slug}`}
                 className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
               >
                 <article className="p-5">

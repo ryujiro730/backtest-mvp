@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type { CandlestickBar } from "./ChartArea";
 
 const INITIAL_LIMIT = 2000;
@@ -31,7 +31,7 @@ export function useChartData(pair: string, timeframe: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reachedStart, setReachedStart] = useState(false);
-  const loadingMoreRef = { current: false };
+  const loadingMoreRef = useRef(false);
 
   const loadInitial = useCallback(async () => {
     setLoading(true);

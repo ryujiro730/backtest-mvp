@@ -46,10 +46,24 @@
   },
   "LP": {
     "Hero": {
-      "title": "Extract one true edge from ten thousand lies.",
-      "subtitle": "A completely free simulation tool for FX and Crypto traders.",
-      "cta": "Audit Your First Strategy",
+      "title": "Does the Golden Cross actually work? We backtested 25 years of data.",
+      "subtitle": "A completely free backtest tool for FX and crypto traders. No sign-up. Try it right now.",
+      "cta": "Try It Now",
       "disclaimer": "The tool is available in Japanese and English."
+    },
+    "SectionHeadings": {
+      "entry": "Fine-tune Entry Conditions",
+      "timezone": "Time Zone & Day Filter",
+      "indicator": "Indicator Thresholds",
+      "priceAction": "Price Pattern Detection",
+      "chartPattern": "Chart Pattern Recognition",
+      "exit": "Exit Rule Backtesting"
+    },
+    "TrySection": {
+      "title": "Try a Backtest in One Click",
+      "subtitle": "No sign-up. Backtest 25 years of data instantly.",
+      "advancedLink": "Custom settings & advanced mode →",
+      "sampleBadge": "Sample (EURUSD H1 / Golden Cross)"
     },
     "Sections": {
       "entry": "Entry rules cover everything from risk management to multiple indicators",
@@ -67,9 +81,9 @@
     },
     "HowItWorks": {
       "title": "How it Works (90s)",
-      "step1": "Go to 'Audit Your First Strategy'",
-      "step2": "Enter conditions and click <kbd>Run</kbd> to execute",
-      "step3": "Share your results"
+      "step1": "Pick a strategy and run it with one click — no sign-up needed",
+      "step2": "Results are ready in seconds and you're auto-redirected",
+      "step3": "Evaluate with win rate, PF & drawdown — then refine"
     },
     "Pricing": {
       "title": "Pricing Plans",
@@ -242,11 +256,59 @@
 
     "sections": {
       "trading": "Trading Conditions",
-      "indicator": "Indicator Conditions",
+      "indicator": "Technical Indicators",
       "time": "Time Window",
-      "price": "Price Action",
+      "price": "Price Patterns",
       "chartPattern": "Chart Patterns",
       "exit": "Exit Rules"
+    }
+  },
+  "AppMode": {
+    "simple": "Quick Mode",
+    "advanced": "Advanced Mode"
+  },
+  "SimpleMode": {
+    "title": "Test with 25 Years of Data",
+    "description": "Does the Golden Cross really work? Find out with one click.",
+    "sampleLabel": "EURUSD H1 / 25-year reference",
+    "sampleNote": "* Reference values. Actual results vary by pair, period, and market conditions.",
+    "runButton": "Run This Strategy →",
+    "running": "Running…",
+    "statWinRate": "Win Rate",
+    "statPF": "Profit Factor",
+    "statDD": "Max Drawdown",
+    "statTrades": "Trades",
+    "statTradesUnit": "",
+    "goldenCross": {
+      "name": "Golden Cross",
+      "detail": "EMA 25 / EMA 75 crossover",
+      "desc": "Go long when the fast EMA crosses above the slow EMA, short when it crosses below. The classic trend-following entry — does it actually work?"
+    },
+    "rsiContrarian": {
+      "name": "RSI Contrarian",
+      "detail": "RSI 14 (30 / 70)",
+      "desc": "Buy when RSI drops below 30 (oversold), sell when it rises above 70 (overbought). The textbook reversal approach — put it to the test."
+    },
+    "breakout": {
+      "name": "Breakout",
+      "detail": "20-bar high / low break",
+      "desc": "Go long on a 20-bar high break, short on a low break. Aims to catch early trend momentum — see how it holds up over 25 years."
+    }
+  },
+  "PresetStrategies": {
+    "label": "Preset Strategies",
+    "description": "Load a strategy with one click and run a backtest",
+    "goldenCross": {
+      "name": "Golden Cross",
+      "desc": "EMA 25/75 crossover trend-following"
+    },
+    "rsiContrarian": {
+      "name": "RSI Contrarian",
+      "desc": "Fade overbought/oversold with RSI 30/70"
+    },
+    "breakout": {
+      "name": "Breakout",
+      "desc": "Enter on 20-bar high/low breakouts"
     }
   },
     "TradingConditions": {
