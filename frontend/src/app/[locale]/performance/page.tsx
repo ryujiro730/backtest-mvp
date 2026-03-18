@@ -31,32 +31,56 @@ export default function PerformancePage() {
     if (!id) return;
     setRunId(id);
 
-    // ① summary（軽い）
-    fetch(`/api/reports/${id}/summary`, { cache: "no-store" })
-      .then(r => r.json())
+    let alive = true;
+
+    // 202 が返る間はリトライするフェッチ
+    async function pollUntilReady(url: string): Promise<any> {
+      for (;;) {
+        if (!alive) return null;
+        const res = await fetch(url, { cache: "no-store" });
+        if (res.status === 202) {
+          await new Promise(r => setTimeout(r, 1500));
+          continue;
+        }
+        if (!res.ok) throw new Error(`fetch ${url} failed: ${res.status}`);
+        const body = await res.json();
+        // body レベルの status が done 以外なら待つ
+        if (body?.status && body.status !== "done") {
+          await new Promise(r => setTimeout(r, 1500));
+          continue;
+        }
+        return body;
+      }
+    }
+
+    // ① summary
+    pollUntilReady(`/api/reports/${id}/summary`)
       .then(s => {
+        if (!alive) return;
         console.log("[PerformancePage] summary loaded");
         setSummary(s);
-      });
+      })
+      .catch(e => console.error("[PerformancePage] summary error", e));
 
-    // ② equity（重い）
-    setTimeout(() => {
-      fetch(`/api/reports/${id}/equity`, { cache: "no-store" })
-        .then(r => r.json())
-        .then(eq => {
-          console.log("[PerformancePage] equity loaded");
-          setEquity(eq);
-        });
-    }, 0);
+    // ② equity
+    pollUntilReady(`/api/reports/${id}/equity`)
+      .then(eq => {
+        if (!alive) return;
+        console.log("[PerformancePage] equity loaded");
+        setEquity(eq);
+      })
+      .catch(e => console.error("[PerformancePage] equity error", e));
 
-    // ③ trades（中）
-    fetch(`/api/reports/${id}/trades`, { cache: "no-store" })
-      .then(r => r.json())
+    // ③ trades
+    pollUntilReady(`/api/reports/${id}/trades`)
       .then(t => {
+        if (!alive) return;
         console.log("[PerformancePage] trades loaded");
         setTrades(Array.isArray(t) ? t : Array.isArray(t?.trades) ? t.trades : []);
       })
-      .catch(() => setTrades([]));
+      .catch(() => { if (alive) setTrades([]); });
+
+    return () => { alive = false; };
   }, []);
 
   // ✅ これだけ残す（統合は1回だけ）

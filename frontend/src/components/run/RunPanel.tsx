@@ -39,20 +39,27 @@ export function RunPanel() {
 
         if (!alive) return;
 
-        if (res.status === 404) {
+        // 202 = queued/running, 404 = not yet created → keep polling
+        if (res.status === 202 || res.status === 404) {
           setTimeout(tick, 1500);
           return;
         }
 
         if (!res.ok) {
           const text = await res.text().catch(() => "");
-          console.warn("[RunPanel] summary not ready:", res.status, text.slice(0, 200));
+          console.warn("[RunPanel] summary error:", res.status, text.slice(0, 200));
           setTimeout(tick, 1500);
           return;
         }
 
-        await res.json().catch(() => null);
+        const body = await res.json().catch(() => null);
         if (!alive) return;
+
+        // status が "done" 以外（"queued"/"running" 等）なら待つ
+        if (body?.status && body.status !== "done") {
+          setTimeout(tick, 1500);
+          return;
+        }
 
         setUiRunning(false);
         setRunningKey(null);
