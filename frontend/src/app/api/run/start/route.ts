@@ -44,16 +44,26 @@ export async function POST(req: NextRequest) {
     // --- 認証
     let userId: string | null = null;
     {
-      const { data: ssr } = await supaSSR.auth.getUser();
-      if (ssr?.user) {
-        userId = ssr.user.id;
+      let ssrData: any = null;
+      try {
+        const { data: ssr } = await supaSSR.auth.getUser();
+        ssrData = ssr;
+      } catch (authErr: any) {
+        console.error("[run/start] supaSSR.auth.getUser failed:", authErr?.message, authErr?.cause);
+      }
+      if (ssrData?.user) {
+        userId = ssrData.user.id;
       } else {
         const m = (req.headers.get("authorization") || "").match(
           /^Bearer\s+(.+)$/i
         );
         if (m) {
-          const { data } = await supaAdmin.auth.getUser(m[1]);
-          if (data?.user) userId = data.user.id;
+          try {
+            const { data } = await supaAdmin.auth.getUser(m[1]);
+            if (data?.user) userId = data.user.id;
+          } catch (adminErr: any) {
+            console.error("[run/start] supaAdmin.auth.getUser failed:", adminErr?.message, adminErr?.cause);
+          }
         }
       }
     }
@@ -139,16 +149,26 @@ export async function POST(req: NextRequest) {
     const RUN_PATH = process.env.FASTAPI_RUN_PATH ?? "/api/run";
     const url = `${API.replace(/\/$/, "")}${RUN_PATH}`;
 
-    const apiRes = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // FastAPI 側の alias="Idempotency-Key" に合わせる
-        "Idempotency-Key": idem,
-      },
-      body: JSON.stringify(payload),
-      cache: "no-store",
-    });
+    console.log("[run/start] fetching FastAPI:", url, { pair: payload.pair, tf: payload.timeframe });
+    let apiRes: Response;
+    try {
+      apiRes = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // FastAPI 側の alias="Idempotency-Key" に合わせる
+          "Idempotency-Key": idem,
+        },
+        body: JSON.stringify(payload),
+        cache: "no-store",
+      });
+    } catch (fetchErr: any) {
+      console.error("[run/start] fetch to FastAPI failed:", fetchErr?.message, fetchErr?.cause, "url:", url);
+      return NextResponse.json(
+        { error: "fastapi_unreachable", message: fetchErr?.message ?? String(fetchErr), url },
+        { status: 502 }
+      );
+    }
 
     // FastAPI のレスポンスをそのまま扱う
     const raw = await apiRes.text().catch(() => "");
