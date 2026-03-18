@@ -8,8 +8,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# API-specific requirements (exclude heavy/unavailable packages)
 COPY requirements.txt /delver/requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir \
+    fastapi==0.116.1 \
+    uvicorn[standard]==0.35.0 \
+    pydantic==2.11.7 \
+    psycopg[binary] \
+    celery==5.5.3 \
+    redis==5.2.1 \
+    boto3 \
+    pandas \
+    pyarrow \
+    python-dotenv \
+    stripe \
+    requests
 
 # Copy source
 COPY api/ /delver/api/

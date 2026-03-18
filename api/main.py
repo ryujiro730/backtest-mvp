@@ -74,7 +74,9 @@ END $$;
 def _ensure_schema():
     """起動時にテーブルが無ければ作成する（冪等）。"""
     try:
-        with psycopg.connect(os.environ["POSTGRES_URL"]) as conn, conn.cursor() as cur:
+        url = os.environ["POSTGRES_URL"]
+        # Supabase requires SSL; add connect_timeout to avoid hanging startup
+        with psycopg.connect(url, connect_timeout=10) as conn, conn.cursor() as cur:
             cur.execute(DDL_RUNS)
             conn.commit()
         logging.info("DB schema ensured (runs table ok)")
