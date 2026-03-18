@@ -117,7 +117,9 @@
     },
     "ManualVerify": {
       "label": "Verify entries visually",
-      "cta": "Manual verification mode — Confirm winning patterns on the chart"
+      "cta": "Try Manual Discretionary Mode →",
+      "sectionTitle": "Found a promising strategy? Verify it on the chart.",
+      "sectionDesc": "Delver includes a manual discretionary verification mode — review each entry point on a real chart, one by one. The same experience as Forex Tester 5, with no install and completely free. See the edge your backtest numbers can't show you."
     },
     "BetaSignup": {
       "title": "Beta · Early Access",

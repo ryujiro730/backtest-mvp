@@ -47,11 +47,12 @@ export default function PageClient({ locale }: { locale: string }) {
         const res = await fetch(`/api/reports/${runId}/summary`, { cache: 'no-store' });
         if (!alive) return;
 
-        if (res.status === 404) { setTimeout(tick, 1500); return; }
+        if (res.status === 202 || res.status === 404) { setTimeout(tick, 1500); return; }
         if (!res.ok) { setTimeout(tick, 1500); return; }
 
-        await res.json().catch(() => null);
+        const body = await res.json().catch(() => null);
         if (!alive) return;
+        if (body?.status && body.status !== 'done') { setTimeout(tick, 1500); return; }
 
         setUiRunning(false);
         setRunningKey(null);
@@ -163,25 +164,42 @@ export default function PageClient({ locale }: { locale: string }) {
 
           <SimpleMode runningKey={runningKey} onRunStarted={handleRunStarted} showTitle={false} />
 
-          <div className="mt-5 flex flex-col items-center gap-5">
+          <div className="mt-5 flex flex-col items-center gap-4">
             <Link
               href="/app"
               className="text-sm text-slate-500 hover:text-slate-800 underline underline-offset-2 transition-colors"
             >
               {t('TrySection.advancedLink')}
             </Link>
-
             <div className="w-full max-w-sm">
               <BetaSignupCard />
             </div>
-
-            <p className="text-sm font-medium text-amber-700/90">
-              {t('ManualVerify.label')}
-            </p>
-            <ChartVerificationCtaLink href={`/${locale}/chart`} variant="manual">
-              {t('ManualVerify.cta')}
-            </ChartVerificationCtaLink>
           </div>
+        </div>
+      </section>
+
+      {/* ===== 手動裁量検証モード ===== */}
+      <section className="py-12 md:py-16 border-b border-slate-200/60 bg-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-8 md:px-10 md:py-10 flex flex-col md:flex-row items-center gap-6 md:gap-10">
+            <div className="flex-1 space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-xs font-semibold text-amber-800">
+                Forex Tester 5 相当の機能 · 完全無料
+              </div>
+              <h2 className="text-xl md:text-2xl font-bold text-slate-900 leading-snug">
+                {t('ManualVerify.sectionTitle')}
+              </h2>
+              <p className="text-slate-600 text-sm md:text-base leading-relaxed">
+                {t('ManualVerify.sectionDesc')}
+              </p>
+            </div>
+            <div className="shrink-0">
+              <ChartVerificationCtaLink href={`/${locale}/chart`} variant="manual">
+                {t('ManualVerify.cta')}
+              </ChartVerificationCtaLink>
+            </div>
+          </div>
+        </div>
         </div>
       </section>
 

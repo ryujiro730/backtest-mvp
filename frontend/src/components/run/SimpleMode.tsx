@@ -8,15 +8,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { useTranslations } from "next-intl";
 import { v4 as uuidv4 } from "uuid";
 
-/* ============================================================
-   サンプルデータ（EURUSD H1 / 過去25年 参考値）
-============================================================ */
-
-const SAMPLE_DATA: Record<PresetKey, { winRate: number; pf: number; maxDD: number; trades: number }> = {
-  goldenCross:   { winRate: 51, pf: 1.32, maxDD: 18.4, trades: 1847 },
-  rsiContrarian: { winRate: 58, pf: 1.21, maxDD: 14.2, trades: 3241 },
-  breakout:      { winRate: 44, pf: 1.47, maxDD: 22.8, trades: 892  },
-};
 
 const PRESET_CONFIG: {
   key: PresetKey;
@@ -141,7 +132,6 @@ export function SimpleMode({
       {/* プリセットカード */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {PRESET_CONFIG.map(({ key, make, icon, gradient, btnClass }) => {
-          const sample = SAMPLE_DATA[key];
           return (
             <div
               key={key}
@@ -163,45 +153,12 @@ export function SimpleMode({
               </div>
 
               {/* 戦略説明 */}
-              <div className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300 border-b border-slate-100 dark:border-slate-700 leading-relaxed">
+              <div className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300 leading-relaxed flex-1">
                 {t(`${key}.desc`)}
               </div>
 
-              {/* サンプル成績 */}
-              <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
-                <div className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-2">
-                  {t("sampleLabel")}
-                </div>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-                  <div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400">{t("statWinRate")}</div>
-                    <div className="font-bold text-slate-800 dark:text-slate-100">
-                      {sample.winRate}%
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400">{t("statPF")}</div>
-                    <div className="font-bold text-slate-800 dark:text-slate-100">
-                      {sample.pf}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400">{t("statDD")}</div>
-                    <div className="font-bold text-slate-800 dark:text-slate-100">
-                      {sample.maxDD}%
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400">{t("statTrades")}</div>
-                    <div className="font-bold text-slate-800 dark:text-slate-100">
-                      {sample.trades.toLocaleString()}{t("statTradesUnit")}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               {/* 実行ボタン */}
-              <div className="px-4 py-3 mt-auto">
+              <div className="px-4 py-3">
                 <button
                   onClick={() => runPreset(key, make)}
                   disabled={runningKey !== null}
