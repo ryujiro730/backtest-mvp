@@ -8,9 +8,10 @@ import psycopg
 BASE = os.getenv("DATA_DIR", "/delver/data")
 POSTGRES_URL = os.getenv("POSTGRES_URL")
 
-# Cap rows for short timeframes to avoid OOM on Railway (512MB limit).
+# Row caps per timeframe (years of history to load).
+# With 8GB RAM we can load full history for all timeframes.
 # Approximate bars per year: M1=525960, M5=105192, M15=35064, M30=17532
-_TF_MAX_YEARS = {"M1": 3, "M5": 5, "M15": 10, "M30": 15}
+_TF_MAX_YEARS = {}  # empty = no cap, load full history
 _BARS_PER_YEAR = {"M1": 525_960, "M5": 105_192, "M15": 35_064, "M30": 17_532}
 
 # S3/R2 settings (optional — only needed on Railway where parquet isn't on disk)
@@ -121,10 +122,8 @@ def _load_prices(dataset_hash: str):
     df = df[[c for c in need if c in df.columns]]
 
     df['datetime'] = pd.to_datetime(df['datetime'], errors='coerce')
-    # Use float32 for OHLC to halve memory (~266MB→133MB for M1 full load).
-    # engine.py explicitly casts to float64 before Rust calls, so precision is preserved there.
     for col in ['open', 'high', 'low', 'close']:
-        df[col] = pd.to_numeric(df[col], errors='coerce').astype('float32')
+        df[col] = pd.to_numeric(df[col], errors='coerce').astype('float64')
 
     df = df.dropna().sort_values('datetime').reset_index(drop=True)
 
