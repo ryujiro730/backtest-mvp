@@ -1,11 +1,11 @@
-# railway.toml — shared base config
-# Dockerfile and startCommand are configured per-service in Railway UI
-# API service:    Dockerfile = infra/Dockerfile.api   | Start = uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 1
-# Worker service: Dockerfile = infra/Dockerfile.worker | Start = celery -A worker.tasks worker -l info --concurrency=4
+# railway.toml — Worker service config
+# Worker service: Root Directory = / (empty)
 
 [build]
 builder = "DOCKERFILE"
+dockerfilePath = "infra/Dockerfile.worker"
 
 [deploy]
+startCommand = "celery -A worker.tasks worker -l info --concurrency=4"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3

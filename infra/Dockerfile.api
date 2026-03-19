@@ -10,7 +10,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # API-specific requirements (exclude heavy/unavailable packages)
-COPY requirements.txt /delver/requirements.txt
 RUN pip install --no-cache-dir \
     fastapi==0.116.1 \
     uvicorn[standard]==0.35.0 \
@@ -26,7 +25,7 @@ RUN pip install --no-cache-dir \
     requests
 
 # Copy source
-COPY api/ /delver/api/
+COPY . /delver/api/
 
 # Create data dirs
 RUN mkdir -p /delver/data/strategies /delver/results
