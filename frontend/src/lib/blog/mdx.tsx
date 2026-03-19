@@ -76,9 +76,11 @@ const buildIndex = async (locale: "ja" | "en") => {
 
       const { frontmatter } = await compileMDX<Partial<BlogMeta>>({
         source,
+        components: mdxComponents,
         options: {
           parseFrontmatter: true,
           mdxOptions: { remarkPlugins: [remarkBreaks] },
+          blockJS: false,
         },
       });
 
@@ -154,9 +156,10 @@ async function getPostByFullPath(filePath: string, slug: string) {
   const source = await fs.promises.readFile(filePath, "utf8");
   const { frontmatter, content } = await compileMDX({
     source,
-    options: { 
+    options: {
       parseFrontmatter: true,
       mdxOptions: { remarkPlugins: [remarkBreaks] },
+      blockJS: false,
     },
     components: mdxComponents,
   });

@@ -1,0 +1,262 @@
+{
+  "pair": "GBPJPY",
+  "tf": "M1",
+  "neg_pct": 0.0,
+  "pos_pct": 100.0,
+  "best_exp": 75.6921157836914,
+  "survival_rate": 1.0,
+  "top_configs": [
+    {
+      "short": 60,
+      "long": 293,
+      "tp": 125,
+      "sl": 200,
+      "exp": 75.6921157836914,
+      "trades": 406,
+      "score": 75.54433253245988
+    },
+    {
+      "short": 52,
+      "long": 287,
+      "tp": 120,
+      "sl": 200,
+      "exp": 75.625,
+      "trades": 468,
+      "score": 75.49679487179488
+    },
+    {
+      "short": 57,
+      "long": 296,
+      "tp": 125,
+      "sl": 200,
+      "exp": 75.60315704345703,
+      "trades": 412,
+      "score": 75.45752597549587
+    },
+    {
+      "short": 53,
+      "long": 290,
+      "tp": 130,
+      "sl": 200,
+      "exp": 75.5703353881836,
+      "trades": 391,
+      "score": 75.4168827027616
+    },
+    {
+      "short": 98,
+      "long": 242,
+      "tp": 125,
+      "sl": 200,
+      "exp": 75.5740737915039,
+      "trades": 351,
+      "score": 75.40313362056374
+    },
+    {
+      "short": 100,
+      "long": 261,
+      "tp": 120,
+      "sl": 200,
+      "exp": 75.50688934326172,
+      "trades": 363,
+      "score": 75.34160008706337
+    },
+    {
+      "short": 60,
+      "long": 294,
+      "tp": 125,
+      "sl": 200,
+      "exp": 75.4554443359375,
+      "trades": 404,
+      "score": 75.30692948445235
+    },
+    {
+      "short": 54,
+      "long": 281,
+      "tp": 130,
+      "sl": 200,
+      "exp": 75.40908813476562,
+      "trades": 396,
+      "score": 75.25757298325047
+    },
+    {
+      "short": 63,
+      "long": 278,
+      "tp": 125,
+      "sl": 200,
+      "exp": 75.30176544189453,
+      "trades": 396,
+      "score": 75.15025029037938
+    },
+    {
+      "short": 52,
+      "long": 288,
+      "tp": 130,
+      "sl": 200,
+      "exp": 75.2746810913086,
+      "trades": 395,
+      "score": 75.12278235713138
+    }
+  ],
+  "endurance_summary": [
+    {
+      "short": 60,
+      "long": 293,
+      "tp": 125,
+      "sl": 200,
+      "pnl_25y": 122692.5,
+      "positive_25y": true
+    },
+    {
+      "short": 52,
+      "long": 287,
+      "tp": 120,
+      "sl": 200,
+      "pnl_25y": 143065.0,
+      "positive_25y": true
+    },
+    {
+      "short": 57,
+      "long": 296,
+      "tp": 125,
+      "sl": 200,
+      "pnl_25y": 122157.0,
+      "positive_25y": true
+    },
+    {
+      "short": 53,
+      "long": 290,
+      "tp": 130,
+      "sl": 200,
+      "pnl_25y": 111576.5,
+      "positive_25y": true
+    },
+    {
+      "short": 98,
+      "long": 242,
+      "tp": 125,
+      "sl": 200,
+      "pnl_25y": 104314.0,
+      "positive_25y": true
+    },
+    {
+      "short": 100,
+      "long": 261,
+      "tp": 120,
+      "sl": 200,
+      "pnl_25y": 111181.0,
+      "positive_25y": true
+    },
+    {
+      "short": 60,
+      "long": 294,
+      "tp": 125,
+      "sl": 200,
+      "pnl_25y": 121028.0,
+      "positive_25y": true
+    },
+    {
+      "short": 54,
+      "long": 281,
+      "tp": 130,
+      "sl": 200,
+      "pnl_25y": 114675.0,
+      "positive_25y": true
+    },
+    {
+      "short": 63,
+      "long": 278,
+      "tp": 125,
+      "sl": 200,
+      "pnl_25y": 120951.5,
+      "positive_25y": true
+    },
+    {
+      "short": 52,
+      "long": 288,
+      "tp": 130,
+      "sl": 200,
+      "pnl_25y": 113761.0,
+      "positive_25y": true
+    },
+    {
+      "short": 54,
+      "long": 283,
+      "tp": 130,
+      "sl": 200,
+      "pnl_25y": 112661.5,
+      "positive_25y": true
+    },
+    {
+      "short": 62,
+      "long": 296,
+      "tp": 120,
+      "sl": 200,
+      "pnl_25y": 125971.0,
+      "positive_25y": true
+    },
+    {
+      "short": 56,
+      "long": 298,
+      "tp": 125,
+      "sl": 200,
+      "pnl_25y": 122280.5,
+      "positive_25y": true
+    },
+    {
+      "short": 99,
+      "long": 264,
+      "tp": 120,
+      "sl": 200,
+      "pnl_25y": 110988.5,
+      "positive_25y": true
+    },
+    {
+      "short": 60,
+      "long": 295,
+      "tp": 125,
+      "sl": 200,
+      "pnl_25y": 119040.0,
+      "positive_25y": true
+    },
+    {
+      "short": 61,
+      "long": 293,
+      "tp": 125,
+      "sl": 200,
+      "pnl_25y": 118669.5,
+      "positive_25y": true
+    },
+    {
+      "short": 62,
+      "long": 280,
+      "tp": 125,
+      "sl": 200,
+      "pnl_25y": 120581.0,
+      "positive_25y": true
+    },
+    {
+      "short": 62,
+      "long": 282,
+      "tp": 125,
+      "sl": 200,
+      "pnl_25y": 122139.5,
+      "positive_25y": true
+    },
+    {
+      "short": 61,
+      "long": 294,
+      "tp": 120,
+      "sl": 200,
+      "pnl_25y": 132355.5,
+      "positive_25y": true
+    },
+    {
+      "short": 68,
+      "long": 152,
+      "tp": 120,
+      "sl": 200,
+      "pnl_25y": 177725.5,
+      "positive_25y": true
+    }
+  ]
+}

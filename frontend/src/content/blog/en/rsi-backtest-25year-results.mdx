@@ -1,0 +1,333 @@
+---
+slug: "rsi-backtest-25year-results"
+title: "【25-Year Backtest】Can RSI Actually Win? Results of a 10,000-Combination Brute Force Study"
+description: "Is there a holy grail RSI setting that works forever? We ran 4,586,400 combinations across 25 years of EURUSD M15 data. Even the 'Elite Settings' with positive expectancy collapsed in the 25-year endurance test. The brutal statistical truth about RSI mean reversion."
+category: "analysis"
+publishedAt: "2026-03-19"
+readTimeMinutes: 13
+author: "David Miller"
+---
+
+<BlogToc />
+
+# "RSI tells you when the market is overbought or oversold — it's the ultimate indicator."
+If you still believe that, I won't mince words: stop reading this page and quit FX trading right now.
+I slammed over 10,000 RSI parameter combinations against EURUSD market data spanning 2000 to 2025 — a full 25 years of history. RSI period × oversold threshold × overbought threshold yielded 11,466 configurations. Multiplied by 400 TP/SL combinations, the total number of cases computed reached **4,586,400**.
+The conclusion from all of that is singular:
+There is not a single shred of a "Holy Grail" in RSI mean reversion.
+The popular wisdom — "Buy below 30, sell above 70 and let mean reversion do the work" — has been reduced to pathetic rubble before the weight of 25 years and the judgment of statistics.
+Many traders <InlineLink href="/en/blog/fx-rsi-not-working">feel that RSI doesn't work</InlineLink>, and this article puts that feeling into hard numbers.
+
+## The Scope of This Study
+
+In this study, we investigate whether RSI mean reversion actually wins over the long term.
+The method is **Brute Force Verification**.
+When RSI crosses below the oversold threshold → Long entry. When RSI crosses above the overbought threshold → Short entry. Exit at specified TP/SL. That's it. We apply this simple logic across every conceivable parameter combination.
+
+**"We look for anomalies — edges in the data — and exploit them."** — Jim Simons (<InlineLink href="https://www.rentec.com/Home.action?index=true">Renaissance Technologies</InlineLink> founder), <InlineLink href="https://www.ted.com/talks/jim_simons_the_mind_behind_medallion">TED Interview</InlineLink>
+
+**"Investing is a scientific process — continuously testing thousands of hypotheses through rigorous data analysis."** — <InlineLink href="https://www.twosigma.com/">Two Sigma</InlineLink> (<InlineLink href="https://www.twosigma.com/articles/the-innovation-equation-curiosity-x-the-scientific-method-at-two-sigma/">The Innovation Equation</InlineLink>)
+
+This study uses the exact same data source and conditions as our <InlineLink href="/en/blog/bollinger-bands-10000-backtest-results">Bollinger Bands brute force backtest</InlineLink>, making direct comparison possible.
+
+## First: Testing the Common Settings
+
+Let's start with what the textbook recommends, run through <InlineLink href="/">Delver</InlineLink>, a free backtesting tool.
+
+### Test Conditions
+
+![Delver trading conditions screen](/blog/bollinger-bands-10000-backtest-results/val_tradingCondition_ja.png)
+
+- **Instrument / Timeframe:** EURUSD M15
+
+- **Spread:** 0.7 pips
+
+- **Slippage and swap:** Disabled
+
+- **Leverage:** 25x
+
+- **Risk management:** Fixed lot (testing the strategy, not position sizing)
+
+### RSI Settings
+
+The most popular configuration: RSI period 14, oversold at 30, overbought at 70.
+Entry logic is straightforward:
+
+- **Long:** RSI crosses below the oversold threshold (30)
+- **Short:** RSI crosses above the overbought threshold (70)
+- **Exit:** TP20 pips / SL20 pips (RR 1:1)
+
+### 5-Year Results
+
+Looking at 2020–2025 first:
+
+- **Expectancy: -0.818 pips/trade** — Losing more than 0.8 pips on every single trade, consistently.
+- **Trade count: 3,356** — All those entries over 5 years and still solidly negative throughout.
+
+This is just one data point. Jumping to conclusions here would be a mistake — as the <InlineLink href="/en/blog/fx-backtest-holy-grail-myth">holy grail myth</InlineLink> article explains. Maybe the TP/SL settings were wrong. That's our next hypothesis.
+
+## The Exit Condition Hypothesis
+
+The previous test locked TP and SL at 20 pips each (RR 1:1). But what if that was the problem?
+RSI just caught an oversold reading — shouldn't we let profits run further? Or maybe tighten the stop and aim for a higher win rate?
+Countless hypotheses emerge. Let's test them all at once.
+
+## Brute Force Testing with Python
+
+<InlineLink href="/">Delver</InlineLink> can run these tests, but with 10,000+ combinations we turned to Python for efficiency.
+
+### Full Test Scope
+
+- **Entry logic:** RSI crosses below OS threshold → Long; crosses above OB threshold → Short
+
+- **RSI period:** 5–30 (step 1, 26 values)
+
+- **Oversold threshold:** 20–40 (step 1, 21 values)
+
+- **Overbought threshold:** 60–80 (step 1, 21 values)
+
+- **Take Profit (TP):** 5–100 pips (step 5, 20 values)
+
+- **Stop Loss (SL):** 5–100 pips (step 5, 20 values)
+
+- **Test period:** 5 years (EURUSD M15, 2020–2025)
+
+- **RSI configurations:** 11,466
+
+- **Total combinations including TP/SL:** **4,586,400**
+
+- **Spread and costs:** Same as Delver conditions (0.7 pips)
+
+<ValidationCode title="Python RSI Entry Logic">
+```python
+import numpy as np
+import pandas as pd
+
+SPREAD = 0.7   # pips
+PIP    = 0.0001
+
+def calc_rsi(close, n):
+    delta = np.diff(close)
+    gain  = np.where(delta > 0,  delta, 0.0)
+    loss  = np.where(delta < 0, -delta, 0.0)
+    avg_g = np.zeros(len(close))
+    avg_l = np.zeros(len(close))
+    avg_g[n] = gain[:n].mean()
+    avg_l[n] = loss[:n].mean()
+    for i in range(n + 1, len(close)):
+        avg_g[i] = (avg_g[i-1] * (n - 1) + gain[i-1]) / n
+        avg_l[i] = (avg_l[i-1] * (n - 1) + loss[i-1]) / n
+    rs  = np.where(avg_l == 0, np.inf, avg_g / avg_l)
+    val = 100.0 - 100.0 / (1.0 + rs)
+    val[:n] = 50.0   # fill warmup period with neutral
+    return val
+
+def rsi_signal(close, period, os_lvl, ob_lvl):
+    """
+    +1: RSI crosses below oversold threshold (Long)
+    -1: RSI crosses above overbought threshold (Short)
+     0: No signal
+    """
+    r    = calc_rsi(close, period)
+    prev = r[:-1]
+    curr = r[1:]
+    sig  = np.zeros(len(close), dtype=np.int8)
+    sig[1:][(prev >= os_lvl) & (curr < os_lvl)] =  1   # enter oversold zone
+    sig[1:][(prev <= ob_lvl) & (curr > ob_lvl)] = -1   # enter overbought zone
+    return sig
+```
+</ValidationCode>
+
+<ValidationCode title="Precomputed Outcome Table for Fast Backtesting">
+```python
+# Precompute all TP/SL outcomes once per bar, then apply instantly to each RSI config
+MAX_H   = 600   # max look-ahead bars
+TP_VALS = list(range(5, 105, 5))
+SL_VALS = list(range(5, 105, 5))
+N_TP, N_SL = len(TP_VALS), len(SL_VALS)
+
+def build_outcome_table(close, high, low):
+    n     = len(close)
+    tp_p  = np.array(TP_VALS) * PIP
+    sl_p  = np.array(SL_VALS) * PIP
+    cost  = SPREAD * PIP
+    tp_arr = np.array(TP_VALS, np.float32)[:, None]
+    sl_arr = np.array(SL_VALS, np.float32)[None, :]
+
+    long_pnl  = np.zeros((n, N_TP, N_SL), dtype=np.float32)
+    short_pnl = np.zeros((n, N_TP, N_SL), dtype=np.float32)
+
+    for i in range(200, n - 1):
+        end = min(i + 1 + MAX_H, n)
+        fh, fl = high[i+1:end], low[i+1:end]
+        if len(fh) == 0: continue
+
+        # LONG
+        ep  = close[i] + cost
+        cg  = np.maximum.accumulate(fh - ep)
+        cd  = np.maximum.accumulate(ep - fl)
+        ftp = np.searchsorted(cg, tp_p)[:, None]
+        fsl = np.searchsorted(cd, sl_p)[None, :]
+        win = (ftp < len(fh)) & (ftp <= fsl)
+        los = (fsl < len(fh)) & (fsl < ftp)
+        long_pnl[i]  = (win * (tp_arr - SPREAD) - los * sl_arr).astype(np.float32)
+
+        # SHORT (same logic, direction reversed)
+        ep  = close[i] - cost
+        cg  = np.maximum.accumulate(ep - fl)
+        cd  = np.maximum.accumulate(fh - ep)
+        ftp = np.searchsorted(cg, tp_p)[:, None]
+        fsl = np.searchsorted(cd, sl_p)[None, :]
+        win = (ftp < len(fh)) & (ftp <= fsl)
+        los = (fsl < len(fh)) & (fsl < ftp)
+        short_pnl[i] = (win * (tp_arr - SPREAD) - los * sl_arr).astype(np.float32)
+
+    return long_pnl, short_pnl
+
+def run_config(sig, lp, sp):
+    lm = sig == 1; sm = sig == -1
+    total  = lp[lm].sum(0) + sp[sm].sum(0)
+    trades = (lp[lm] != 0).sum(0) + (sp[sm] != 0).sum(0)
+    n_t    = trades.astype(np.float32)
+    return np.where(n_t > 0, total / n_t, 0.0).astype(np.float32), n_t
+
+# ── Brute force sweep ──────────────────────────────────────────────
+for period in range(5, 31):
+    for os_lvl in range(20, 41):
+        for ob_lvl in range(60, 81):
+            sig = rsi_signal(close, period, os_lvl, ob_lvl)
+            exp_mat, trades_mat = run_config(sig, lp, sp)
+            # append to records...
+```
+</ValidationCode>
+
+## Results
+
+The results were striking.
+
+### Expectancy Distribution
+
+![RSI expectancy histogram](/blog/rsi-backtest-25year-results/expectancy_distribution.png)
+
+**Of 4,586,400 cases, 64.3% had negative expectancy. Only 35.7% were positive.**
+That looks slightly better than Bollinger Bands — but hold on. We're about to find out whether that 35.7% is real.
+
+### TP × SL Expectancy Heatmap
+
+![RSI expectancy heatmap](/blog/rsi-backtest-25year-results/expectancy_heatmap.png)
+
+Most of the map is dominated by blue and purple — the colors of death.
+There is a faint green glow in the upper-right corner: **large TP + large SL combinations** where expectancy turns positive.
+In other words, only extreme high-RR settings show a positive edge.
+
+But don't be fooled.
+
+**A large TP means longer holding time — and more time for spread costs to accumulate.**
+
+### Drawdown Heatmap
+
+Drawdown is one of the most critical factors in any backtest. The <InlineLink href="/en/blog/fx-backtest-holy-grail-myth">holy grail myth</InlineLink> lives in high-DD settings that look great until they destroy an account.
+
+![RSI drawdown heatmap](/blog/rsi-backtest-25year-results/maxdd_heatmap.png)
+
+- **Yellow/red areas:** Extreme drawdown — "Dead Zones"
+- **Blue areas:** Controlled drawdown — "Safe Zones"
+
+Overlay this with the expectancy heatmap: the "green glow" of positive expectancy is **also a high-DD zone**. Finding a combination that maximizes expectancy *while* minimizing drawdown is nearly impossible.
+
+I found the faintest hint of a candidate and immediately threw it into the 25-year endurance test.
+
+## Top Candidates in the 25-Year Endurance Test
+
+From the 5-year brute force results, we filter elite settings using these criteria:
+
+**Trade count filter**
+```python
+df = df[df["trades"] >= 200]
+```
+At least 200 trades over 5 years — eliminates lucky curve-fit outliers and ensures statistical relevance.
+
+**Score formula**
+```python
+score = expectancy - 0.30 × (SL / trades)
+```
+Expectancy is the primary metric; high-DD strategies are penalized.
+
+The top 10 candidates:
+
+![RSI top candidates table](/blog/rsi-backtest-25year-results/EURUSD_rsi_candidates_table.png)
+
+Some of these show expectancy above 14 pips. Promising — or so it seemed.
+
+## 25-Year Endurance Test Results
+
+The chart speaks for itself.
+
+![RSI top 10 candidates 25-year endurance test](/blog/rsi-backtest-25year-results/EURUSD_rsi_25y_endurance.png)
+
+**Total wipeout.**
+
+The best performer — RSI27 OS29/OB79 TP75/SL100 — still ended at **-4,930 pips** over 25 years.
+Not a single one of the 10 "elite" settings survived.
+
+### Why Do the Best Settings Fail?
+
+This chart exposes the <InlineLink href="/en/blog/fx-backtest-holy-grail-myth">fundamental truth of trading and backtesting</InlineLink>.
+
+### Spread Cost Accumulation
+
+0.7 pips looks negligible. But across 12,000+ trades, the round-trip cost accumulates to thousands of pips.
+The top RSI configurations — with their peculiar period values and precise thresholds — generate signals frequently. More entries means more spread cost. Even a positive 5-year expectancy gets overwhelmed.
+
+### It Was Just Luck
+
+Five years seems like a lot of data. But seen from a 25-year perspective, it's just one chapter.
+The productive framing: **"RSI mean reversion had a genuine edge in the 2020–2025 market environment."**
+That edge may have been real — just not universal.
+
+### The Baseline: RSI(14, 30, 70) Over 25 Years
+
+![RSI(14,30,70) TP20/SL20 25-year equity curve](/blog/rsi-backtest-25year-results/rsi_basic_equity_curve.png)
+
+**RSI(14, 30, 70) TP20/SL20 over 25 years: -14,287 pips.**
+12,074 entries. A relentless, consistent downward slope. The myth of "buy oversold, sell overbought" is statistically dead.
+
+## Conclusion
+
+Key findings from this study:
+
+- Of 4,586,400 RSI combinations, **64.3% had negative expectancy** over 5 years
+
+- The textbook RSI(14, 30, 70) lost **-14,287 pips** over 25 years
+
+- Top-scoring 5-year settings **all failed** in the 25-year endurance test
+
+- Cumulative spread costs are lethal at scale
+
+That said — the important part comes now.
+
+### RSI Is Not a Useless Indicator
+
+This study found that 35.7% of configurations were positive over the 5-year window. That's not nothing. RSI clearly captured something real in specific market conditions.
+Many traders who feel <InlineLink href="/en/blog/fx-rsi-not-working">RSI doesn't work</InlineLink> are simply running it on autopilot without context.
+
+### Find the Edge — Don't Just Execute the Signal
+
+The core lesson of this article: **backtesting exists to find edges, not to confirm fantasies.**
+We found that RSI mean reversion *does* have edges — in specific periods, timeframes, and market conditions.
+The next step is to extract that edge by filtering with:
+
+- Day of week / time of day
+- Trend direction (RSI in a ranging market vs. trending market)
+- Price action confirmation
+- Longer timeframes
+
+This work is endless — and that's exactly the point.
+
+None of this requires Python. <InlineLink href="/en/blog/free-backtest-tools">Free backtesting tools</InlineLink> exist and can do much of this work. <InlineLink href="/">Delver</InlineLink>, used in this study, is particularly well-suited for brute-force parameter sweeps.
+
+## Open Source Research
+
+In the interest of transparency and reproducibility, the full Python scripts used in this backtest are publicly available on GitHub. Everything from data processing logic to statistical computation is open for review.
+
+👉 [Trade Verification RSI Research](https://github.com/ryujiro730/trade-verification/tree/main/scripts/strategy_space/rsi)

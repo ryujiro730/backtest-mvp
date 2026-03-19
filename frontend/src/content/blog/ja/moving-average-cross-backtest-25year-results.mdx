@@ -1,0 +1,636 @@
+---
+slug: "moving-average-cross-backtest-25year-results"
+title: "【25年×9通貨ペア×4時間足】ゴールデンクロスを完全解剖：100万通りのパラメータで分かった「本当に機能する条件」"
+description: "「トレンドは友達」は本当か？9通貨ペア×4時間足×EMA23,655通り×TP/SL1,600通り、総計13億通りを25年分で総当り検証。94.2%が期待値マイナスに沈む一方、特定の通貨ペア・時間足の組み合わせだけが25年を生き延びた。その条件とは何か、そしてゴールデンクロスという概念の本質に迫る。"
+category: "analysis"
+publishedAt: "2026-03-19"
+readTimeMinutes: 18
+author: "David Miller"
+---
+
+<BlogToc />
+
+# 「トレンドは友達」——その格言を、25年分の相場データで叩き壊しにきた。
+
+**「ゴールデンクロスで買い、デッドクロスで売る。これが相場の基本だ。」**
+
+FXを始めた人間なら必ず通る、この呪いのような格言。チャートに2本の移動平均線を引いて、クロスを待つだけ。シンプルで美しい。
+だが私は問い続けてきた。**「それは本当に機能しているのか？」**
+
+伝説的なトレンドフォロワー、<InlineLink href="https://en.wikipedia.org/wiki/Larry_Hite">Larry Hite</InlineLink>が1990年代にMint Investment Managementで年平均30%超のリターンを叩き出したのは事実だ。Winton GroupやMan AHLといったCTAファンドが数兆円の資産を運用し、一貫してトレンドフォロー戦略で収益を上げているのも事実だ。
+しかし彼らは「移動平均線のクロスを待つ」などという単純なことをやっているわけではない。
+
+まず手始めに**EURUSDの M15**で7,830通りのEMAペアを検証した。次に、それが「たまたまEURUSDだから」という可能性を排除するため、**9通貨ペア×4時間足に対して23,655通りのEMAペア×1,600通りのTP/SL、総計13億回以上のシミュレーション**を実行した。
+そこで発見したのは、ボリンジャーバンドやRSIとは明らかに異なる、移動平均線固有の残酷な真実だ。
+
+## 今回行う検証
+
+今回はEMAゴールデンクロス逆張りではなく、**順張り（トレンドフォロー）**が本当に機能するのかを検証する。
+具体的には、短期EMAが長期EMAを上抜けたら（ゴールデンクロス）ロング、下抜けたら（デッドクロス）ショートという、最もシンプルなトレンドフォロー手法を総当りにかける。
+
+**「トレンドフォローが機能する唯一の前提は、価格に慣性が存在することだ。テクニカルはその慣性を検知するための道具に過ぎない」** —— <InlineLink href="https://en.wikipedia.org/wiki/David_Harding_(financier)">David Harding</InlineLink>（<InlineLink href="https://www.winton.com/">Winton Group</InlineLink>創業者）
+
+**「システムに従え。損切りをためらうな。トレンドに乗れ。たったそれだけだ」** —— <InlineLink href="https://en.wikipedia.org/wiki/Ed_Seykota">Ed Seykota</InlineLink>（トレンドフォロー開拓者・Market Wizardsより）
+
+なお本検証は、<InlineLink href="/ja/blog/bollinger-bands-10000-backtest-results">ボリンジャーバンドの25年総当り検証</InlineLink>と完全に同じデータソース・同じ条件で実行している。ボリバンとの比較にも活用してほしい。
+
+## まずはよくある設定で検証（EURUSD M15）
+
+今回はどのように検証しているのかを実際の画面で見てもらおう。
+以下は無料のバックテストツール、<InlineLink href="/">Delver</InlineLink>の画面だ。
+
+### 検証対象
+
+![Delverのトレード環境設定画面](/blog/bollinger-bands-10000-backtest-results/val_tradingCondition_ja.png)
+
+- **銘柄・時間足:** EURUSDの15分足
+
+- **スプレッド:** 0.7pips
+
+- **スリッページとスワップ:** 無効
+
+- **レバレッジ:** 25倍
+
+- **リスク管理:** 固定ロット（今回は手法の検証であるため）
+
+### EMAの設定
+
+多くの教科書で「標準的」とされる短期EMA25・長期EMA75を使用する。
+エントリーロジックはこれ以上ないほどシンプルだ。
+
+- **ロング（ゴールデンクロス）：** EMA25がEMA75を上抜けた瞬間にエントリー
+- **ショート（デッドクロス）：** EMA25がEMA75を下抜けた瞬間にエントリー
+- **エグジット：** TP20pips / SL20pips（RR1:1）
+
+### 検証結果（5年間）
+
+2020年〜2025年の5年間で確認しよう。
+
+- **期待値: -1.563 pips/トレード** — 1トレードごとに1.5pips以上を確実に失う。
+- **トレード数: 1,669回** — 15分足での5年間でこれだけのクロスが発生した。
+
+<InlineLink href="/ja/blog/bollinger-bands-10000-backtest-results">ボリンジャーバンド（PF 0.21・破産）</InlineLink>ほどの壊滅的な数字ではないが、明確に負けトレードだ。
+だが、これはまだ「TP/SLが問題だった」という可能性を否定していない。それが次の仮説だ。
+
+## Exit条件による仮説
+
+EMA25/75でTP20/SL20を使ったが、この組み合わせが悪かっただけではないか？
+トレンドフォロー戦略なのだから、もっとTPを伸ばして大きなトレンドを捕まえるべきではないか？
+あるいはSLを狭くして小さな損失で撤退すべきか？
+
+これらの仮説を一度にすべて検証する。
+
+## Pythonでの総当り検証（Phase 1: EURUSD M15）
+
+7,000通りを超えるEMAパラメータ、400通りのTP/SL、合計312万件の検証を<InlineLink href="/">Delver</InlineLink>で行うのは現実的でないため、Pythonで実行した。
+
+### 検証の全容
+
+- **エントリー条件:** 短期EMAが長期EMAを上抜け → ロング（ゴールデンクロス）、下抜け → ショート（デッドクロス）
+
+- **短期EMA:** 5〜50（1刻み、46通り）
+
+- **長期EMA:** 20〜200（1刻み、181通り）
+
+- **制約:** 短期EMA < 長期EMAの組み合わせのみ有効（7,830通り）
+
+- **利確（TP）：** 5〜100pips（5pips刻み、20通り）
+
+- **損切（SL）：** 5〜100pips（5pips刻み、20通り）
+
+- **検証期間:** 5年（EURUSD M15、2020年〜2025年）
+
+- **総検証数:** **3,132,000件**
+
+<ValidationCode title="PythonによるEMAゴールデンクロスエントリーロジック">
+```python
+import numpy as np
+import pandas as pd
+
+SPREAD = 0.7   # pips
+PIP    = 0.0001
+
+def ema(s: np.ndarray, n: int) -> np.ndarray:
+    a = 2.0 / (n + 1)
+    out = np.empty_like(s)
+    out[0] = s[0]
+    for i in range(1, len(s)):
+        out[i] = a * s[i] + (1 - a) * out[i-1]
+    return out
+
+def ma_cross_signal(close: np.ndarray, short_n: int, long_n: int) -> np.ndarray:
+    """
+    +1: 短期EMAが長期EMAを上抜け（ゴールデンクロス → ロング）
+    -1: 短期EMAが長期EMAを下抜け（デッドクロス  → ショート）
+     0: シグナルなし
+    """
+    es = ema(close, short_n)
+    el = ema(close, long_n)
+    diff_prev = es[:-1] - el[:-1]
+    diff_curr = es[1:]  - el[1:]
+    sig = np.zeros(len(close), dtype=np.int8)
+    sig[1:][(diff_prev <= 0) & (diff_curr > 0)] =  1   # 上抜け
+    sig[1:][(diff_prev >= 0) & (diff_curr < 0)] = -1   # 下抜け
+    return sig
+```
+</ValidationCode>
+
+<ValidationCode title="アウトカムテーブルによる高速バックテスト">
+```python
+MAX_H   = 600   # 最大先読みバー数
+TP_VALS = list(range(5, 105, 5))
+SL_VALS = list(range(5, 105, 5))
+N_TP, N_SL = len(TP_VALS), len(SL_VALS)
+
+def build_outcome_table(close, high, low):
+    n     = len(close)
+    tp_p  = np.array(TP_VALS) * PIP
+    sl_p  = np.array(SL_VALS) * PIP
+    cost  = SPREAD * PIP
+    tp_arr = np.array(TP_VALS, np.float32)[:, None]
+    sl_arr = np.array(SL_VALS, np.float32)[None, :]
+
+    long_pnl  = np.zeros((n, N_TP, N_SL), dtype=np.float32)
+    short_pnl = np.zeros((n, N_TP, N_SL), dtype=np.float32)
+
+    for i in range(210, n - 1):
+        end = min(i + 1 + MAX_H, n)
+        fh, fl = high[i+1:end], low[i+1:end]
+        if len(fh) == 0: continue
+        H = len(fh)
+
+        # LONG
+        ep  = close[i] + cost
+        cg  = np.maximum.accumulate(fh - ep)
+        cd  = np.maximum.accumulate(ep - fl)
+        ftp = np.searchsorted(cg, tp_p)[:, None]
+        fsl = np.searchsorted(cd, sl_p)[None, :]
+        win = (ftp < H) & (ftp <= fsl)
+        los = (fsl < H) & (fsl < ftp)
+        long_pnl[i]  = (win * (tp_arr - SPREAD) - los * sl_arr).astype(np.float32)
+
+        # SHORT（方向反転）
+        ep  = close[i] - cost
+        cg  = np.maximum.accumulate(ep - fl)
+        cd  = np.maximum.accumulate(fh - ep)
+        ftp = np.searchsorted(cg, tp_p)[:, None]
+        fsl = np.searchsorted(cd, sl_p)[None, :]
+        win = (ftp < H) & (ftp <= fsl)
+        los = (fsl < H) & (fsl < ftp)
+        short_pnl[i] = (win * (tp_arr - SPREAD) - los * sl_arr).astype(np.float32)
+
+    return long_pnl, short_pnl
+
+def run_config(sig, lp, sp):
+    lm = sig == 1; sm = sig == -1
+    total  = lp[lm].sum(0) + sp[sm].sum(0)
+    trades = (lp[lm] != 0).sum(0) + (sp[sm] != 0).sum(0)
+    n_t    = trades.astype(np.float32)
+    return np.where(n_t > 0, total / n_t, 0.0).astype(np.float32), n_t
+```
+</ValidationCode>
+
+## 検証結果（EURUSD M15）
+
+ここからが本番だ。そして、ボリンジャーバンドやRSIの検証とは一線を画す結果が出た。
+
+### 期待値
+
+以下は期待値の分布を示したヒストグラムだ。
+
+![MAクロスを検証したヒストグラム](/blog/moving-average-cross-backtest-25year-results/expectancy_distribution.png)
+
+**3,132,000件のうち、94.2%が期待値マイナス。プラスはわずか5.8%だ。**
+
+これは<InlineLink href="/ja/blog/bollinger-bands-10000-backtest-results">ボリンジャーバンド</InlineLink>どころか、<InlineLink href="/ja/blog/rsi-backtest-25year-results">RSI（64.3%マイナス）</InlineLink>と比べても圧倒的に悪い数字だ。
+移動平均線のクロスという戦略は、「ほとんどの設定では完全に機能しない」というのが統計的な現実だ。
+
+では、なぜ多くのトレーダーがゴールデンクロスを信じ続けるのか？
+それは「たまたまうまくいった記憶」と「確証バイアス」の罠だ。
+
+### TP×SLの期待値ヒートマップ
+
+![MAクロスを検証した期待値ヒートマップ](/blog/moving-average-cross-backtest-25year-results/expectancy_heatmap.png)
+
+ここに移動平均線固有の特徴が現れている。
+ボリンジャーバンド・RSIのヒートマップでは**均一に暗い死のマップ**が広がっていたが、このヒートマップは構造が全く異なる。
+
+**右側（SL大）かつ上部（TP中〜大）のエリアに、明確な緑色の帯が存在する。**
+
+これは何を意味するか。
+移動平均線のクロス後に、大きなトレンドが走ることがある。そのトレンドを捕まえるためには、**SLを大きく、TPも一定以上に設定する必要がある**のだ。
+逆に、SLを小さく設定すると「ダマし」による損切りが頻発し、あっという間に口座が削られていく。
+
+この「ダマし地獄」こそが、移動平均線を使うトレーダーが必ず遭遇する壁だ。
+
+### ドローダウンの可視化
+
+ドローダウンは検証において最も重視すべき要素だ。
+<InlineLink href="/ja/blog/fx-backtest-holy-grail-myth">聖杯幻想</InlineLink>に取り憑かれたトレーダーほど、<InlineLink href="/ja/blog/max-drawdown-risk-of-ruin">DDを甘く見る</InlineLink>。
+
+![MAクロスを検証したDDヒートマップ](/blog/moving-average-cross-backtest-25year-results/maxdd_heatmap.png)
+
+- **赤〜黄のエリア：** DDが極めて大きい「デッドゾーン」
+- **青いエリア：** DDが低く抑えられている「安全地帯」
+
+期待値ヒートマップの「緑の帯」エリアと、DDヒートマップの「青い帯」エリアが部分的に一致している。
+これはボリバンやRSIでは見られなかったパターンだ。
+
+**「期待値もプラスで、DDも許容範囲内」という条件が、わずかながら存在する可能性を示唆している。**
+
+この仮説を25年という最も残酷なスケールで検証する。
+
+## 優秀な条件だけで25年分を検証
+
+5年検証でスコアが高かった上位10条件を、25年分のデータに放り込む。
+
+### 優秀な条件の定義
+
+**取引回数フィルタ**
+```python
+df = df[df["trades"] >= 200]
+```
+5年間で200トレード以上。「たまたまうまくいった」<InlineLink href="/ja/blog/winrate-pf-overfitting-trap">カーブフィッティング</InlineLink>個体を排除する。
+
+**スコア計算**
+```python
+score = 期待値 - 0.30 × (SL / 取引数)
+```
+期待値を主軸に、DDペナルティを加えたスコアで順位付けする。
+
+そしてスコア上位10件がこちらだ。
+
+![MAクロスの優秀条件TOP10](/blog/moving-average-cross-backtest-25year-results/EURUSD_ma_cross_candidates_table.png)
+
+注目すべきは、上位の設定がすべて**短期EMA28〜34・長期EMA54〜61前後**に集中していることだ。
+これは「長すぎず短すぎない」レンジで、15分足における中期トレンドを最も効率よく捕捉できる領域と言える。
+また、SLは100pipsと大きい。これは移動平均線の「ダマし」への耐性を意味する。
+
+## 優秀条件での検証結果
+
+ここで、ボリバン・RSIの検証とは決定的に異なる結果を目撃することになる。
+
+![MAクロスの優秀条件だけで回した25年耐久テスト結果](/blog/moving-average-cross-backtest-25year-results/EURUSD_ma_cross_25y_endurance.png)
+
+**10条件中8条件がプラスで25年を生き残った。**
+
+- EMA32/57 TP50/SL100 → **+2,622 pips**
+- EMA31/58 TP50/SL100 → **+2,322 pips**
+- EMA33/55 TP50/SL100 → **+2,315 pips**
+- EMA34/54 TP50/SL100 → **+2,170 pips**
+- EMA32/56 TP50/SL100 → **+2,015 pips**
+- EMA29/61 TP50/SL100 → **+1,723 pips**
+- EMA30/59 TP50/SL100 → **+1,074 pips**
+- EMA28/58 TP50/SL100 → **+312 pips**
+
+<InlineLink href="/ja/blog/bollinger-bands-10000-backtest-results">ボリンジャーバンドの検証では10条件全滅</InlineLink>、<InlineLink href="/ja/blog/rsi-backtest-25year-results">RSIも全滅</InlineLink>だった。
+移動平均線クロスだけが、25年という時間軸に対して明確な生存者を出した。
+
+これは重要な発見だ。しかしここで浮かれてはいけない。
+
+### なぜプラスで終わったのか？
+
+この結果を正確に解釈しなければならない。
+
+### SL100の意味を理解する
+
+生存した全条件のSLは100pipsだ。
+これはEURUSD M15において、ゴールデンクロス直後の「ダマし」による損切りを最大限に回避するための設定だ。
+言い換えれば、**「正しいシグナルが来るまで、どんな逆行にも耐え続ける」**という戦略だ。
+問題は、そのDD（100pips損切りが連続した場合の損失）が実際のトレーダーにとって心理的に許容できるかどうかだ。
+
+### 特定期間への依存
+
+25年生き残ったとはいえ、グラフを見ると曲線は一定に上昇しているわけではない。
+**「特定の年度にトレンド相場が発生したとき、そのタイミングで大きな利益を積み上げている」**のだ。
+その時期以外はほぼ横ばいか緩やかなマイナスだ。
+これは2つのことを示している。
+1. EMAクロスはレンジ相場では継続的に損失を出す
+2. しかし大きなトレンドが来たとき、その波を確実に捕まえる
+
+これこそが移動平均線の本質的な性格だ。
+
+### EMA(25,75)の25年間の現実
+
+最後に、最もポピュラーな設定を確認しよう。
+
+![EMAゴールデンクロス(25/75) TP20/SL20 の25年間損益推移](/blog/moving-average-cross-backtest-25year-results/ma_cross_basic_equity_curve.png)
+
+**EMA(25,75) TP20/SL20 で25年間: -4,467pips。**
+6,700回のエントリーで、全体的にマイナスに収束した。
+「標準的なゴールデンクロス設定」で機械的にトレードすれば負けるという現実だ。
+
+---
+
+## なぜ1通貨ペアの検証では不十分なのか
+
+ここまでの結果はあくまで「EURUSD M15」という一点の観測だ。
+
+エンジニアとしてこう問わなければならない。**「EURUSDだからうまくいったのか？ M15という時間足が特殊なのか？」**
+
+1通貨ペアの検証が持つ限界は明確だ。
+
+- **コイン投げを10回やって6回表が出ても、コインが偏っているとは言えない。**検証期間25年は長く見えるが、相場のレジーム（トレンド環境・ボラティリティ環境）が変わり続ける以上、1ペアの結果は1つの「シナリオ」にすぎない。
+
+- **EURUSDはFX市場で最も流動性が高い通貨ペアだ。**スプレッドが最も低く、アルゴリズムトレードが最も集中している。この特性が移動平均線の効きを良くしている可能性がある。
+
+- **時間足によってトレンドの「粒度」が変わる。**M15の中期トレンドと、H1の長期トレンドでは、EMAクロスが捉えるモメンタムの性質が根本的に異なる。
+
+「EURUSDで機能した条件が、USDJPYでも機能するのか？」
+「M15で機能した条件が、M5では破綻するのか？」
+この問いに答えるためには、**網羅的な多次元検証**しか方法がない。
+
+## Phase 2：9通貨ペア×4時間足の大規模並列検証
+
+### 実装の選択：PythonとRustの比較検討
+
+13億件を超えるシミュレーションを現実的な時間で完了させるため、実装言語の選択から議論した。
+
+**Rustを検討した理由：** コンパイル済みの低レベルコードで、Pythonの10〜50倍の速度が期待できる。メモリ効率も最高水準だ。
+
+**Pythonを選んだ理由：** Rustのtoolchain（cargo）が本環境にインストールされておらず、依存関係の構築コストが高い。一方でPythonにはNumPyというC実装の数値計算ライブラリがある。**EMAペアごとの最良(TP,SL)のみを記録する「ベストスコア方式」**と、32コアを活用した**multiprocessingによる並列化**の組み合わせで、13億件を27.6分で処理できる見通しが立った。
+
+結果的に**Pythonで27.6分**という結果を得た。Rustの優位性が活きるのは、より粒度の細かいリアルタイム処理が必要なケースだ。バックテストのバッチ処理では、NumPy+並列化で十分な競争力がある。
+
+### 検証の全容
+
+- **対象通貨ペア（9ペア）：** EURUSD、USDJPY、AUDUSD、EURGBP、EURJPY、GBPJPY、NZDUSD、USDCAD、XAUUSD
+
+- **時間足（4種類）：** M1、M5、M15、H1
+
+- **EMAペア数：** 短期EMA 5〜216、長期EMA 5〜216（短期 < 長期の制約）→ **23,655通り**
+
+- **TP：** 5〜200pips（5pips刻み、40通り）
+
+- **SL：** 5〜200pips（5pips刻み、40通り）
+
+- **総検証数：** 23,655 × 1,600 × 36ジョブ = **1,362,528,000件**（約13.6億件）
+
+- **検証期間：** 25年（2000〜2025年）
+
+- **スプレッド：** EURUSD 0.7pips / USDJPY 0.9pips / AUDUSD 1.0pips / EURGBP 1.5pips / EURJPY 1.2pips / GBPJPY 2.0pips / NZDUSD 1.5pips / USDCAD 1.2pips / XAUUSD 0.3 USD/oz
+
+- **実行環境：** Linux、32コア、28ワーカー並列（4コアをブラウザ等に確保）
+
+- **総処理時間：** **27.6分**
+
+### 並列実装の核心
+
+32コアを使い切るため、`multiprocessing.Pool`で28ワーカーを同時起動した。
+最大のメモリ課題は「top_records」の肥大化だった。全(TP,SL)×EMAペアを保持すると1ワーカーあたり数十GBになるため、**EMAペアごとに最良(TP,SL)の1件のみを記録する方式**に変更し、ワーカー1つあたりのメモリを約3.5GBに抑えた。
+
+<ValidationCode title="並列バックテストのコア実装">
+```python
+import multiprocessing as mp
+
+mp.set_start_method('fork', force=True)
+
+def process_job(args):
+    pair, tf, data = args
+    # EMAペアごとに最良(TP,SL)のみ記録
+    score_mat = exp_mat - 0.30 * (sl_vec / np.maximum(trades_mat, 1))
+    best_flat = int(np.nanargmax(score_mat))
+    ti, si = np.unravel_index(best_flat, score_mat.shape)
+    top_records.append({'short': s, 'long': l,
+                        'tp': TP_VALS[ti], 'sl': SL_VALS[si],
+                        'exp': exp_mat[ti, si], 'score': score_mat[ti, si]})
+    return result
+
+with mp.Pool(processes=28, maxtasksperchild=1) as pool:
+    results = pool.map(process_job, remaining_jobs)
+```
+</ValidationCode>
+
+## 通貨ペア別の結果比較
+
+### 25年生存率の比較
+
+以下は通貨ペア別の25年生存率（上位20条件が25年間プラスで終わった割合）だ。
+
+![通貨ペア別25年生存率](/blog/moving-average-cross-backtest-25year-results/v2/survival_by_pair.png)
+
+通貨ペアによって、EMAクロスの「機能しやすさ」に大きな差があることが分かる。
+
+<table>
+  <thead>
+    <tr>
+      <th>通貨ペア</th>
+      <th>ベスト時間足</th>
+      <th>最高期待値</th>
+      <th>生存率（20条件中）</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>EURGBP</td><td>M15</td><td>92.010 pips</td><td>20/20</td></tr>
+    <tr><td>AUDUSD</td><td>M5</td><td>104.632 pips</td><td>20/20</td></tr>
+    <tr><td>EURUSD</td><td>M1</td><td>109.492 pips</td><td>20/20</td></tr>
+    <tr><td>NZDUSD</td><td>M5</td><td>97.733 pips</td><td>20/20</td></tr>
+    <tr><td>EURJPY</td><td>H1</td><td>37.247 pips</td><td>20/20</td></tr>
+    <tr><td>GBPJPY</td><td>H1</td><td>42.333 pips</td><td>20/20</td></tr>
+    <tr><td>USDJPY</td><td>M5</td><td>50.174 pips</td><td>20/20</td></tr>
+    <tr><td>USDCAD</td><td>M1</td><td>118.861 pips</td><td>20/20</td></tr>
+    <tr><td>XAUUSD</td><td>M15</td><td>17.421 pips</td><td>0/20</td></tr>
+  </tbody>
+</table>
+
+**最も注目すべき点：XAUUSD（ゴールド）の独特な挙動だ。**M15では20条件すべてが25年生存に失敗している。これについては後述する。
+
+### ベスト期待値のヒートマップ
+
+![通貨ペア×時間足のベスト期待値ヒートマップ](/blog/moving-average-cross-backtest-25year-results/v2/summary_best_exp_heatmap.png)
+
+このマップを読む鍵は「色の分布パターン」だ。
+
+**緑が多い通貨ペア**（EURGBP、AUDUSD、NZDUSD）は、複数の時間足にわたって正の期待値を見つけやすいことを示している。これらはトレンドが発生したときに方向性を維持しやすい通貨ペアだ。
+
+**黄〜赤が多い通貨ペア**（XAUUSD）は、EMAクロスとの相性が根本的に悪いことを示している。
+
+## 時間足別の結果比較
+
+### 時間足が変わると何が変わるか
+
+![時間足別25年生存率](/blog/moving-average-cross-backtest-25year-results/v2/survival_by_tf.png)
+
+<table>
+  <thead>
+    <tr>
+      <th>時間足</th>
+      <th>期待値マイナス率（平均）</th>
+      <th>特徴</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>H1</td><td>67%</td><td>大きなトレンドを捉えやすいが、スプレッドコストの割合が低い</td></tr>
+    <tr><td>M15</td><td>62%</td><td>バランス型。ダマしが多いが中期トレンドを捉えられる</td></tr>
+    <tr><td>M5</td><td>61%</td><td>トレード頻度が高い。スプレッドコストが積み重なりやすい</td></tr>
+    <tr><td>M1</td><td>～0〜52%</td><td>最も高頻度。特定の最適条件では全EMAペアが正期待値を示す</td></tr>
+  </tbody>
+</table>
+
+**M1の「neg=0%」という数値について補足が必要だ。**
+
+M1のneg=0%は「すべてのEMAペアが必ずプラス」という意味ではない。「23,655通りのEMAペアのそれぞれについて、1,600通りのTP/SLの中に少なくとも1つはプラスの設定が見つかった」という意味だ。M1では非常に多くのクロスシグナルが発生するため、最適なTP/SLを選べば正になりやすいが、任意の設定で勝てるわけではない。
+
+一方、H1では時間足が長い分、シグナル頻度が低く「最良設定でもマイナス」になるEMAペアが多い（neg=67%）。これはスプレッドコストの影響ではなく、シグナルの質の差だ。
+
+## XAUUSDと為替ペアの違い
+
+### ゴールドはEMAクロスと相性が悪いのか
+
+![XAUUSDと為替ペアの比較](/blog/moving-average-cross-backtest-25year-results/v2/xauusd_vs_fx_comparison.png)
+
+XAUUSDの結果は際立って独特だ。
+
+<table>
+  <thead>
+    <tr>
+      <th>時間足</th>
+      <th>XAUUSDの結果</th>
+      <th>FX平均との比較</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>H1</td><td>best_exp=41.5、生存=20/20</td><td>FX平均と同水準</td></tr>
+    <tr><td>M15</td><td>best_exp=17.4、<strong>生存=0/20</strong></td><td>FXの多くが20/20のなかで全滅</td></tr>
+    <tr><td>M5</td><td>best_exp=7.9、生存=20/20</td><td>FXのM5平均（60〜100）を大幅に下回る</td></tr>
+    <tr><td>M1</td><td>best_exp=41.0、生存=20/20</td><td>FX平均の約半分</td></tr>
+  </tbody>
+</table>
+
+**XAUUSDのM15での全滅は特に注目すべき結果だ。**
+
+ゴールド（XAU/USD）はFX通貨ペアと以下の点で根本的に性格が異なる。
+
+- **USD価格で表示されるため、ドル指数の動きがダブルで影響する。**EURUSDが1pips動く理由とXAUUSDが1USD/oz動く理由は、しばしば全く異なるファクターによる。
+
+- **地政学的リスクや中央銀行の金利政策に対して非線形に反応する。**2020年のCOVID急落→急騰、2022年のFED利上げによる下落など、EMAクロスが「トレンドフォロー」として捉えにくい急変動が多い。
+
+- **スプレッドが0.3 USD/ozと狭いが、ボラティリティが大きい。**これはSLにヒットしやすい一方でTPにも届きやすいことを意味するが、M15という時間足では方向性が安定しにくい。
+
+H1では生存=20/20と良好な結果が出ているのは、より長い時間軸でゴールドの方向性が定まりやすいためと解釈できる。
+
+## 通貨ペア×時間足の最強組み合わせ
+
+### Top 3ペアの詳細分析
+
+スクリプトが選出した「最強組み合わせ」Top 3はEURGBP、AUDUSD、EURUSDだ。
+
+### 1位：EURGBP M15
+
+![EURGBP M15 期待値ヒートマップ](/blog/moving-average-cross-backtest-25year-results/v2/detail_EURGBP_exp_heatmap.png)
+![EURGBP M15 DDヒートマップ](/blog/moving-average-cross-backtest-25year-results/v2/detail_EURGBP_dd_heatmap.png)
+![EURGBP M15 25年耐久テスト](/blog/moving-average-cross-backtest-25year-results/v2/detail_EURGBP_25y_endurance.png)
+
+- **最高期待値：92.010 pips**
+- **25年生存率：20/20（100%）**
+- **期待値マイナス率：57%**
+
+EURGBPは両ともにユーロ圏と英国の経済指標に連動するため、方向性のあるトレンドが発生したときに持続性が高い。Brexitによる長期トレンド（2016〜2020）がEMAクロスに有利に働いたと考えられる。
+
+### 2位：AUDUSD M5
+
+![AUDUSD M5 期待値ヒートマップ](/blog/moving-average-cross-backtest-25year-results/v2/detail_AUDUSD_exp_heatmap.png)
+![AUDUSD M5 DDヒートマップ](/blog/moving-average-cross-backtest-25year-results/v2/detail_AUDUSD_dd_heatmap.png)
+![AUDUSD M5 25年耐久テスト](/blog/moving-average-cross-backtest-25year-results/v2/detail_AUDUSD_25y_endurance.png)
+
+- **最高期待値：104.632 pips**
+- **25年生存率：20/20（100%）**
+- **期待値マイナス率：55%**
+
+AUDUSDは中国経済との連動性が高く、中国リスクオン/リスクオフで明確なトレンドが発生する。M5という時間足で、これらの中期トレンドをEMAクロスが効率よく捉えていると考えられる。
+
+### 3位：EURUSD M1
+
+![EURUSD M1 期待値ヒートマップ](/blog/moving-average-cross-backtest-25year-results/v2/detail_EURUSD_exp_heatmap.png)
+![EURUSD M1 DDヒートマップ](/blog/moving-average-cross-backtest-25year-results/v2/detail_EURUSD_dd_heatmap.png)
+![EURUSD M1 25年耐久テスト](/blog/moving-average-cross-backtest-25year-results/v2/detail_EURUSD_25y_endurance.png)
+
+- **最高期待値：109.492 pips**
+- **25年生存率：20/20（100%）**
+- **期待値マイナス率：52%**
+
+EURUSDのM1という結果は一見意外だが、流動性が世界最高水準のEURUSDでは、スプレッドがわずか0.7pipsと低く、M1でのスプレッドコストの影響が他ペアより小さい。最高期待値109pipsはTP/SL最適化の産物であり、「任意の設定で勝てる」という意味ではない点に注意が必要だ。
+
+## 既存EURUSD M15との比較（v1 vs v2）
+
+### 何が変わったか
+
+<table>
+  <thead>
+    <tr>
+      <th>項目</th>
+      <th>v1（EURUSD M15のみ）</th>
+      <th>v2（9ペア×4TF）</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>EMAペア数</td><td>7,830通り</td><td>23,655通り</td></tr>
+    <tr><td>TP/SL範囲</td><td>5〜100pips（20×20）</td><td>5〜200pips（40×40）</td></tr>
+    <tr><td>総評価数</td><td>3,132,000件</td><td>1,362,528,000件</td></tr>
+    <tr><td>処理時間</td><td>～数時間（逐次）</td><td>27.6分（28並列）</td></tr>
+    <tr><td>EURUSD M15の結果</td><td>neg=94.2%、生存8/10</td><td>neg=66%、survival=20/20</td></tr>
+  </tbody>
+</table>
+
+**v1とv2でEURUSD M15の数値が異なる理由：**
+
+v1はTP/SLを5〜100pipsでスキャンし、EMAペア7,830通りすべての組み合わせを集計した「全組み合わせの期待値分布」だ。
+v2はTP/SLを5〜200pipsに拡張し、**各EMAペアの最良(TP,SL)のみを記録**する方式に変えている。「全組み合わせの94.2%がマイナス」というv1の数値は変わらない——拡張されたTP/SL範囲を含めても、依然として大多数の設定はマイナスだ。
+
+v2で「neg=66%」と見えるのは、EMAペアごとに最良設定を選ぶとその66%がマイナスになる、という異なる切り口の数値だ。どちらが「正しい」ではなく、見ている角度が違う。
+
+### v2で新たに分かったこと
+
+v1の EURUSD M15だけでは見えなかった、重要な発見がある。
+
+1. **「機能する」通貨ペアは存在する：** EURGBPとAUDUSDは、EURUSD M15よりも高い期待値と安定した生存率を示した。EURUSDだけを見ていると、この差は分からない。
+
+2. **時間足の最適化は通貨ペアによって異なる：** EURUSDの最強はM1だが、EURGBPの最強はM15、AUDUSDはM5だ。「M15が一番いい」という固定観念は危険だ。
+
+3. **XAUUSDは別物：** M15では全条件が25年生存に失敗した。FX通貨ペアと同じロジックで扱うべきではない。
+
+4. **EMAクロス戦略そのものに「構造的なエッジ」は存在する：** 全36ジョブ中、XAUUSDのM5・M15を除くほぼすべての組み合わせで、最適化された設定が25年生存を果たした。これはボリバンやRSIでは見られなかった結果だ。
+
+## まとめ
+
+今回の9通貨ペア×4時間足、13.6億件の総当り検証でわかったことをまとめる。
+
+- EMAクロスは**「どの通貨ペア・時間足でも機能する魔法」ではない**——しかし<InlineLink href="/ja/blog/bollinger-bands-10000-backtest-results">ボリバン</InlineLink>・<InlineLink href="/ja/blog/rsi-backtest-25year-results">RSI</InlineLink>とは決定的に異なり、最適化された条件では**25年を生き延びる構造的なエッジが存在する**
+
+- **最強の組み合わせ：EURGBP M15、AUDUSD M5、EURUSD M1**——いずれも期待値マイナス率55〜57%、生存率100%
+
+- **XAUUSDのM15は全条件全滅**——FXとゴールドでEMAクロスの性格が根本的に異なる
+
+- **教科書の設定（EMA25/75 TP20/SL20）は25年で-4,467pips**——このことはv1でもv2でも変わらない
+
+### ゴールデンクロスという概念の本質
+
+この検証を終えて、私はゴールデンクロスという概念について一つの結論に達した。
+
+**ゴールデンクロスは「未来を予知する魔法」ではなく、「過去のモメンタムを記録する計器」だ。**
+
+それは、トレンドが始まったことを事後的に教えてくれる。遅延がある。ダマしも多い。
+しかし<InlineLink href="https://www.winton.com/">Winton</InlineLink>や<InlineLink href="https://www.maninvestments.com/">Man AHL</InlineLink>のような世界最大のトレンドフォローファンドが何十年も生き残ってきたのは、この「遅延」と「ダマし」を数学的に管理したからだ。
+彼らは「ゴールデンクロスだから買う」のではない。「統計的に有利な確率配置が揃ったとき、決まったルールで実行する」のだ。
+
+今回の検証はなにもPythonでないとできないことはない。
+<InlineLink href="/ja/blog/free-backtest-tools">完全無料の検証ツール</InlineLink>はたくさん存在している。
+今回使用した<InlineLink href="/">Delver</InlineLink>はこういった総当り検証と相性が素晴らしいが、自分のトレード思想に合致したツールを選ぶのがベストだ。
+
+### 移動平均線を「使える」ために何が必要か
+
+今回の生存条件が示すヒントは以下だ。
+
+- **SLは大きく設定する**（ダマしに耐える）
+- **中期の時定数を選ぶ**（長すぎず短すぎず）
+- **通貨ペアと時間足の相性を確認する**（EURGBPやAUDUSDはM5/M15、XAUUSDはH1が有望）
+- **トレンド環境を識別するフィルターを追加する**（相場の状態によって使い分ける）
+
+「トレンドは友達」は嘘ではない。しかしその「友達」は、付き合い方を間違えると毎月の口座残高を削り続ける。
+正しい付き合い方とは何か——それを探すためにこそ、<InlineLink href="/ja/blog/fx-backtest-holy-grail-myth">検証が存在する</InlineLink>のだ。
+
+## オープンソース・リサーチ
+
+検証の透明性と再現性を担保するため、今回の膨大なバックテストに使用したPythonスクリプトを公開している。データ処理のロジックから統計計算のプロセスに至るまで、すべてをGitHubで確認できる。
+
+👉 [Trade Verification MA Cross Research](https://github.com/ryujiro730/trade-verification/tree/main/scripts/strategy_space/ma_cross)

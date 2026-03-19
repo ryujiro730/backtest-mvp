@@ -67,7 +67,7 @@ export async function generateMetadata(
   }
 
   const { meta } = post;
-  const baseUrl = "https://delver.app";
+  const baseUrl = "https://delvertrade.com";
   const path = `/blog/${meta.slug}`;
 
   return {

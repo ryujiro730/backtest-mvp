@@ -1,0 +1,369 @@
+---
+slug: "rsi-backtest-25year-results"
+title: "【25年分検証】RSIは本当に勝てないのか？1万通りの設定で総当り検証した結果"
+description: "RSIで一生食える設定は存在するか？25年分のEURUSD M15データで1万通りを総当り検証した結果を公開。期待値がプラスの「エリート設定」ですら25年耐久テストで全滅。統計が証明した、RSI逆張りの残酷な真実とは。"
+category: "analysis"
+publishedAt: "2026-03-19"
+readTimeMinutes: 13
+author: "David Miller"
+---
+
+<BlogToc />
+
+# 「RSIは売られすぎ・買われすぎを教えてくれる万能インジケータだ」
+もしあなたが今もそう信じているなら、悪いことは言わない。今すぐこのページを閉じ、FXから足を洗うべきだ。
+私はEURUSDの2000年〜2025年の25年分の相場データに対して「1万通り以上」のRSIパラメータを総当たりで叩きつけた。RSI期間・売られすぎ閾値・買われすぎ閾値の組み合わせは11,466通り。そこにTP/SLの400通りを掛け合わせると、計算したコンビネーションは**4,586,400件**に達した。
+その果てに導き出された結論は一つだ。
+RSI逆張りに、聖杯など1ミリも存在しない。
+「30以下で買い、70以上で売れば平均回帰で稼げる」という巷の格言は、25年という時間の重みと、統計学という名の審判の前に、無残な瓦礫と化した。
+<InlineLink href="/ja/blog/fx-rsi-not-working">RSIが機能しない</InlineLink>と感じているトレーダーは多いが、その「感覚」を数値で証明したのがこの記事だ。
+
+## 今回行う検証
+
+今回はRSI逆張りが本当に勝てるのか？というテーマで検証していく。
+方法は**総当り検証**だ。
+RSIが売られすぎ閾値を下回ったらロングエントリー、買われすぎ閾値を上回ったらショートエントリー。指定されたTP/SLでエグジット。それだけのシンプルな手法を、考えうるすべてのパラメータで検証する。
+
+**『我々はデータの中にあるアノマリー（歪み）を探し、利用するのだ』** ーーJim Simons (<InlineLink href="https://www.rentec.com/Home.action?index=true">Renaissance Technologies</InlineLink>創業者)<InlineLink href="https://www.ted.com/talks/jim_simons_the_mind_behind_medallion">TEDのインタビュー</InlineLink>より引用
+
+**「投資とは科学的なプロセスであり、数千の仮説を厳密なデータ解析によって検証し続けることだ」** ——<InlineLink href="https://www.twosigma.com/">Two Sigma</InlineLink>（公式レポート：<InlineLink href="https://www.twosigma.com/articles/the-innovation-equation-curiosity-x-the-scientific-method-at-two-sigma/">The Innovation Equation</InlineLink>）より引用
+
+なお、<InlineLink href="/ja/blog/bollinger-bands-10000-backtest-results">ボリンジャーバンドの総当り検証記事</InlineLink>と完全に同じデータソース・同じ条件で実行しているため、比較にも使えるはずだ。
+
+## まずはよくある設定で検証
+
+今回はどのように検証しているのかを実際の画面で見てもらおう。
+以下は無料のバックテストツール、<InlineLink href="/">Delver</InlineLink>の画面だ。
+
+### 検証対象
+
+![Delverのトレード環境設定画面](/blog/bollinger-bands-10000-backtest-results/val_tradingCondition_ja.png)
+
+- **銘柄・時間足:** EURUSDの15分足
+
+- **スプレッド:** 0.7pips
+
+- **スリッページとスワップ:** 無効
+
+- **レバレッジ:** 25倍
+
+- **リスク管理:** 固定ロット（今回は運用の検証ではなく手法の検証であるため）
+
+### RSIの設定
+
+最もポピュラーな設定であるRSI期間14、売られすぎ30、買われすぎ70を使用する。
+エントリーロジックはシンプルだ。
+
+- **ロング：** RSIが売られすぎ閾値（30）を下抜けた瞬間にエントリー
+- **ショート：** RSIが買われすぎ閾値（70）を上抜けた瞬間にエントリー
+- **エグジット：** TP20pips / SL20pips（RR1:1）
+
+### 検証結果（5年間）
+
+期間を2020年〜2025年の5年間に絞って、この「教科書通り」の設定がどう機能するか確認しよう。
+
+- **期待値: -0.818 pips/トレード** — 1トレードごとに確実に0.8pips以上を失い続ける。
+- **トレード数: 3,356回** — 5年間でこれだけエントリーして、全期間通してマイナスだ。
+
+散々な結果だが、これはあくまで一つの検証に過ぎない。
+これだけで<InlineLink href="/ja/blog/fx-backtest-holy-grail-myth">結果を全部理解したつもり</InlineLink>になるのは早計だ。
+TP/SLの設定が悪かっただけではないか？それが次の仮説だ。
+
+## Exit条件による仮説
+
+先程の検証ではTP20/SL20のRR1:1で固定していたが、その指定が問題だったのではないか？
+RSIで売られすぎを掴んだのだから、もっとTPを伸ばして損小利大にすればプロフィットファクターは改善するはずだ。
+逆に、損切りを厳しくして勝率を上げる方向性はどうか？
+様々な仮説が生まれてくる。
+次の項ではそれらの仮説を一斉に検証してみよう。
+
+## Pythonでの総当り検証
+
+<InlineLink href="/">Delver</InlineLink>でも検証できるが、今回は1万通り以上の検証になるのでPythonで実行した。
+
+### 検証の全容
+
+- **エントリー条件:** RSIが売られすぎ閾値を下抜け → ロング、買われすぎ閾値を上抜け → ショート
+
+- **RSI期間:** 5〜30（1刻み、26通り）
+
+- **売られすぎ閾値:** 20〜40（1刻み、21通り）
+
+- **買われすぎ閾値:** 60〜80（1刻み、21通り）
+
+- **利確（TP）：** 5〜100pips（5pips刻み、20通り）
+
+- **損切（SL）：** 5〜100pips（5pips刻み、20通り）
+
+- **検証期間:** 5年（EURUSD M15、2020年〜2025年）
+
+- **RSI設定の組み合わせ:** 11,466通り
+
+- **TP/SLを含む総検証数:** **4,586,400件**
+
+- **スプレッドその他:** Delver画面と同条件（0.7pips）
+
+<ValidationCode title="Pythonによる RSI エントリーロジック">
+```python
+import numpy as np
+import pandas as pd
+
+SPREAD = 0.7   # pips
+PIP    = 0.0001
+
+def calc_rsi(close, n):
+    delta = np.diff(close)
+    gain  = np.where(delta > 0,  delta, 0.0)
+    loss  = np.where(delta < 0, -delta, 0.0)
+    avg_g = np.zeros(len(close))
+    avg_l = np.zeros(len(close))
+    avg_g[n] = gain[:n].mean()
+    avg_l[n] = loss[:n].mean()
+    for i in range(n + 1, len(close)):
+        avg_g[i] = (avg_g[i-1] * (n - 1) + gain[i-1]) / n
+        avg_l[i] = (avg_l[i-1] * (n - 1) + loss[i-1]) / n
+    rs  = np.where(avg_l == 0, np.inf, avg_g / avg_l)
+    val = 100.0 - 100.0 / (1.0 + rs)
+    val[:n] = 50.0   # ウォームアップ前はニュートラルで埋める
+    return val
+
+def rsi_signal(close, period, os_lvl, ob_lvl):
+    """
+    +1: RSIが売られすぎ閾値を下抜け（ロング）
+    -1: RSIが買われすぎ閾値を上抜け（ショート）
+     0: シグナルなし
+    """
+    r    = calc_rsi(close, period)
+    prev = r[:-1]
+    curr = r[1:]
+    sig  = np.zeros(len(close), dtype=np.int8)
+    sig[1:][(prev >= os_lvl) & (curr < os_lvl)] =  1   # 売られすぎゾーン突入
+    sig[1:][(prev <= ob_lvl) & (curr > ob_lvl)] = -1   # 買われすぎゾーン突入
+    return sig
+```
+</ValidationCode>
+
+結果テーブルの構築と総当り検証のコアは以下の通りだ。
+
+<ValidationCode title="アウトカムテーブルによる高速バックテスト">
+```python
+# TP/SL の結果を1度だけ事前計算し、各RSI設定への適用を瞬時に行う
+MAX_H   = 600   # 最大先読みバー数
+TP_VALS = list(range(5, 105, 5))   # 5, 10, ..., 100
+SL_VALS = list(range(5, 105, 5))
+N_TP, N_SL = len(TP_VALS), len(SL_VALS)
+
+def build_outcome_table(close, high, low):
+    n     = len(close)
+    tp_p  = np.array(TP_VALS) * PIP
+    sl_p  = np.array(SL_VALS) * PIP
+    cost  = SPREAD * PIP
+    tp_arr = np.array(TP_VALS, np.float32)[:, None]
+    sl_arr = np.array(SL_VALS, np.float32)[None, :]
+
+    long_pnl  = np.zeros((n, N_TP, N_SL), dtype=np.float32)
+    short_pnl = np.zeros((n, N_TP, N_SL), dtype=np.float32)
+
+    for i in range(200, n - 1):
+        end = min(i + 1 + MAX_H, n)
+        fh, fl = high[i+1:end], low[i+1:end]
+        if len(fh) == 0: continue
+
+        # LONG
+        ep  = close[i] + cost
+        cg  = np.maximum.accumulate(fh - ep)
+        cd  = np.maximum.accumulate(ep - fl)
+        ftp = np.searchsorted(cg, tp_p)[:, None]
+        fsl = np.searchsorted(cd, sl_p)[None, :]
+        win = (ftp < len(fh)) & (ftp <= fsl)
+        los = (fsl < len(fh)) & (fsl < ftp)
+        long_pnl[i]  = (win * (tp_arr - SPREAD) - los * sl_arr).astype(np.float32)
+
+        # SHORT（同様の処理を反転）
+        ep  = close[i] - cost
+        cg  = np.maximum.accumulate(ep - fl)
+        cd  = np.maximum.accumulate(fh - ep)
+        ftp = np.searchsorted(cg, tp_p)[:, None]
+        fsl = np.searchsorted(cd, sl_p)[None, :]
+        win = (ftp < len(fh)) & (ftp <= fsl)
+        los = (fsl < len(fh)) & (fsl < ftp)
+        short_pnl[i] = (win * (tp_arr - SPREAD) - los * sl_arr).astype(np.float32)
+
+    return long_pnl, short_pnl
+
+def run_config(sig, lp, sp):
+    lm = sig == 1; sm = sig == -1
+    total  = lp[lm].sum(0) + sp[sm].sum(0)   # (N_TP, N_SL)
+    trades = (lp[lm] != 0).sum(0) + (sp[sm] != 0).sum(0)
+    n_t    = trades.astype(np.float32)
+    return np.where(n_t > 0, total / n_t, 0.0).astype(np.float32), n_t
+
+# ── 総当り実行 ──────────────────────────────────────────────────────
+for period in range(5, 31):
+    for os_lvl in range(20, 41):
+        for ob_lvl in range(60, 81):
+            sig = rsi_signal(close, period, os_lvl, ob_lvl)
+            exp_mat, trades_mat = run_config(sig, lp, sp)
+            # 結果を records に追加…
+```
+</ValidationCode>
+
+## 検証結果
+
+検証結果は驚くべき結果となった。
+
+### 期待値
+
+以下は期待値の分布を示したヒストグラムだ。
+
+![RSIを検証したヒストグラム](/blog/rsi-backtest-25year-results/expectancy_distribution.png)
+
+**4,586,400件のうち、64.3%が期待値マイナス。プラスは35.7%だ。**
+ボリンジャーバンド逆張りよりはマシに見えるが、待ってほしい。
+このプラスが「本物かどうか」は、次の2つのテストで徹底的に暴く。
+
+### TP×SLの期待値ヒートマップ
+
+![RSIを検証した期待値ヒートマップ](/blog/rsi-backtest-25year-results/expectancy_heatmap.png)
+
+こちらは利確（TP）と損切り（SL）の組み合わせと期待値の関係をヒートマップで表したものだ。
+全体的に青〜紫の死のエリアが広がる中、右上エリアにかすかに緑色の輝きが見える。
+「TP大・SL大」の組み合わせ、つまり**損小利大の極端な設定でのみ、期待値がプラスに浮上している**のだ。
+
+しかし、ここで騙されてはいけない。
+
+**TPが大きいということは、利確まで待つ時間が長くなる。その間にスプレッドのコストが積み上がり続けるのだ。**
+
+### ドローダウンの可視化
+
+ドローダウンは検証において最も重視すべき要素の一つだ。
+<InlineLink href="/ja/blog/fx-backtest-holy-grail-myth">聖杯幻想</InlineLink>を抱えたまま高DDに耐えようとしても、人間の心理的限界が先に来る。
+では、以下のドローダウンヒートマップを見てほしい。
+
+![RSIを検証したDDヒートマップ](/blog/rsi-backtest-25year-results/maxdd_heatmap.png)
+
+- **黄色〜赤のエリア：** DDが極めて大きい「デッドゾーン」
+- **青いエリア：** DDが低く抑えられている「安全地帯」
+
+期待値ヒートマップと重ね合わせると、あの「緑の輝き」エリアは同時に**DDも巨大**なことがわかる。
+高い期待値と低いDDが同時に実現している場所は、ほとんど存在しない。
+
+**「利益（期待値）は最大化され、かつリスク（ドローダウン）は最小化されている」**
+
+そんな夢の場所を私は求めて4,586,400件を計算し尽くした。
+わずかに可能性を感じる設定を、私はさらに残酷な25年間の耐久テストへと放り込んだ。
+
+## 優秀な条件だけで25年分を検証
+
+先程の5年検証で期待値がプラスだった条件を厳選し、25年分のデータで本当に機能するかを検証する。
+
+### 優秀な条件の定義
+
+以下のフィルタリングロジックでエリート設定を選別した。
+
+**取引回数フィルタ**
+```python
+df = df[df["trades"] >= 200]
+```
+5年間で200トレード以上の設定だけを採用。
+取引数が少ない「たまたま勝った」カーブフィッティング個体を除外し、統計的な信頼性を担保する。
+
+**スコア計算**
+
+```python
+score = 期待値 - 0.30 × (SL / 取引数)
+```
+
+期待値を主軸とし、DDが大きい戦略を減点するスコアで順位付けした。
+
+そしてスコア上位10件がこちらだ。
+
+![RSIの優秀条件TOP10](/blog/rsi-backtest-25year-results/EURUSD_rsi_candidates_table.png)
+
+期待値14pips超えの設定も存在する。
+これだけ見ると「RSIは使えるのでは？」と思ってしまうだろう。
+私もそう思った。震える手で、この設定群を25年間の耐久テストへ投入した。
+
+## 優秀条件での検証結果
+
+解説するよりも、まずは結果のグラフを見てもらおう。
+
+![RSIの優秀条件だけで回した25年耐久テスト結果](/blog/rsi-backtest-25year-results/EURUSD_rsi_25y_endurance.png)
+
+**全滅だ。**
+
+最も「優秀」だったRSI27 OS29/OB79 TP75/SL100ですら、25年間で**-4,930pips**。
+全10条件のどれ一つとして、25年の壁を越えることができなかった。
+
+### なぜ優秀だった条件がマイナスになるのか？
+
+このグラフは<InlineLink href="/ja/blog/fx-backtest-holy-grail-myth">トレードと検証の本質</InlineLink>を露呈させているといっても過言ではないだろう。
+
+### スプレッドによる損失の累積
+
+0.7pipsのスプレッドは小さく見える。しかし12,000トレードを超えると、往復コストの累積は数千pipsに達する。
+特に今回の上位条件のような「期間27・閾値が微妙な数値」の設定は、非常に頻繁にエントリーシグナルを発生させる。
+コストが積み上がれば、いくら期待値がプラスでもやがてマイナスに反転するのだ。
+
+### たまたま勝てていた
+
+5年間という、一見十分な期間に思えるが、25年というスパンで見れば一部でしかなかった。
+しかし、私はこう考えることが生産的だと思っている。
+**「RSI逆張りは2020年〜2025年の特定の相場環境において優位性があった」​**と。
+全期間では機能しなくとも、特定の市場構造・ボラティリティ環境・曜日・時間帯においては、RSIのエッジが存在する可能性は十分ある。
+それが検証の本質的な目的だ。
+
+### 基本設定（RSI14, OS30, OB70）の25年間の現実
+
+最後に確認しよう。最もポピュラーな設定はどうなったか。
+
+![RSI(14,30,70) TP20/SL20 の25年間損益推移](/blog/rsi-backtest-25year-results/rsi_basic_equity_curve.png)
+
+**RSI(14, 30, 70) TP20/SL20 で25年間: -14,287pips。**
+12,074回エントリーして、全体としてはほぼ一貫してマイナスに収束し続けた。
+「RSIの売られすぎ・買われすぎで機械的にトレードすれば儲かる」という神話が、ここに完全に否定された。
+
+## まとめ
+
+今回の検証でわかったことをまとめていこう。
+
+- RSI逆張りは4,586,400件の検証のうち**64.3%が期待値マイナス**に収束する
+
+- 教科書通りのRSI(14, 30, 70)は25年間で**-14,287pips**という壊滅的な結果
+
+- 5年間で期待値プラスだった「優秀設定」ですら25年耐久で**全滅**
+
+- スプレッドの累積コストが長期では致命的になる
+
+以上のことがわかった。
+しかし、重要なのはここからだ。
+
+### RSIは使えないインジケータではない
+
+今回の検証において、5年間という期間で期待値がプラスの条件を発見することができた。
+35.7%の設定は期待値プラスだ。この事実はRSIが完全に無意味ではないことを示している。
+<InlineLink href="/ja/blog/fx-rsi-not-working">RSIが機能しないと感じている</InlineLink>多くのトレーダーは、単に「RSI単体をロボットのように使い続けている」だけなのではないだろうか。
+
+### RSIの優位性があるタイミングを把握する
+
+今回の記事で最も大切なのはここだ。
+すなわち、**『検証とはエッジ（優位性）を見つけるためにある』**
+今回RSI逆張りの優位性があるタイミングを大雑把にだが把握することができた。
+これを
+
+- 曜日・時間帯でフィルタリングする
+- トレンドの方向性と組み合わせる（トレンドフォローとの併用）
+- プライスアクションでフィルタリング
+- 時間足を長くする
+
+など、数えだしたらキリがないが、その優位性を抽出することが<InlineLink href="/ja/blog/fx-backtest-holy-grail-myth">検証の本質</InlineLink>である。
+
+今回の検証はなにもPythonでないとできないことはない。
+<InlineLink href="/ja/blog/free-backtest-tools">完全無料の検証ツール</InlineLink>はたくさん存在している。
+今回使用した検証ツールの<InlineLink href="/">Delver</InlineLink>はこういった総当りの検証と相性が素晴らしいが、自分のトレード思想に合致した検証ツールを選ぶのがベストなので、比較して検証することをオススメする。
+
+## オープンソース・リサーチ
+
+検証の透明性と再現性を担保するため、今回の膨大なバックテストに使用したPythonスクリプトを公開している。データ処理のロジックから統計計算のプロセスに至るまで、そのすべてをGitHubで確認することが可能だ。
+
+👉 [Trade Verification RSI Research](https://github.com/ryujiro730/trade-verification/tree/main/scripts/strategy_space/rsi)
