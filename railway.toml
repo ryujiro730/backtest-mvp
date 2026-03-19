@@ -1,13 +1,11 @@
-# railway.toml — root service config (api)
-# Worker と frontend は railway up --service <name> でサービスごとにデプロイ
+# railway.toml — shared base config
+# Dockerfile and startCommand are configured per-service in Railway UI
+# API service:    Dockerfile = infra/Dockerfile.api   | Start = uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 1
+# Worker service: Dockerfile = infra/Dockerfile.worker | Start = celery -A worker.tasks worker -l info --concurrency=4
 
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "infra/Dockerfile.api"
 
 [deploy]
-startCommand = "sh -c 'uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 1'"
-healthcheckPath = "/health"
-healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
