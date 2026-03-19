@@ -126,15 +126,15 @@ export default function PageClient({ locale }: { locale: string }) {
             {/* 成績サンプルバー */}
             <div className="grid grid-cols-3 rounded-b-xl overflow-hidden border border-t-0 border-slate-200/80">
               <div className="bg-slate-900 py-3 text-center">
-                <div className="text-emerald-400 font-bold text-xl tabular-nums">58%</div>
+                <div className="text-emerald-400 font-bold text-xl tabular-nums">51.2%</div>
                 <div className="text-slate-400 text-xs mt-0.5">勝率</div>
               </div>
               <div className="bg-slate-900 py-3 text-center border-x border-slate-700/50">
-                <div className="text-emerald-400 font-bold text-xl tabular-nums">1.35</div>
+                <div className="text-emerald-400 font-bold text-xl tabular-nums">1.02</div>
                 <div className="text-slate-400 text-xs mt-0.5">PF</div>
               </div>
               <div className="bg-slate-900 py-3 text-center">
-                <div className="text-red-400 font-bold text-xl tabular-nums">-12.8%</div>
+                <div className="text-red-400 font-bold text-xl tabular-nums">-36.0%</div>
                 <div className="text-slate-400 text-xs mt-0.5">最大DD</div>
               </div>
             </div>
