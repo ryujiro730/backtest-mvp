@@ -42,4 +42,4 @@ RUN mkdir -p /delver/data/strategies /delver/results
 
 ENV PYTHONPATH=/delver
 
-CMD celery -A worker.tasks worker -l info
+CMD ["celery", "-A", "worker.tasks", "worker", "-l", "info", "--concurrency=4"]
