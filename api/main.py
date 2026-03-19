@@ -310,7 +310,7 @@ def _load_parquet_cached(dataset_hash: str, path: str):
     if dataset_hash not in _df_cache:
         logging.info("Parquet cache miss: loading %s", dataset_hash)
         _df_cache[dataset_hash] = pd.read_parquet(path)
-    return _df_cache[dataset_hash].copy()
+    return _df_cache[dataset_hash]
 
 
 def _chart_data_from_parquet(pair: str, timeframe: str, limit: int, before: int | None = None) -> List[Dict[str, Any]]:
@@ -363,8 +363,8 @@ def _chart_data_from_parquet(pair: str, timeframe: str, limit: int, before: int 
 @app.get("/api/chart-data")
 def api_chart_data(pair: str = "EURUSD", timeframe: str = "H1", limit: int = 10000, before: int | None = None):
     """チャート表示用。before なし＝直近 limit 本。before=Unix秒 あり＝その時刻より前の limit 本（スクロール用）。"""
-    if limit <= 0 or limit > 500:
-        raise HTTPException(status_code=422, detail="limit must be 1..500")
+    if limit <= 0 or limit > 2000:
+        raise HTTPException(status_code=422, detail="limit must be 1..2000")
     try:
         return _chart_data_from_parquet(pair, timeframe, limit, before)
     except HTTPException:

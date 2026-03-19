@@ -3,8 +3,8 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import type { CandlestickBar } from "./ChartArea";
 
-const INITIAL_LIMIT = 500;
-const LOAD_MORE_LIMIT = 500;
+const INITIAL_LIMIT = 2000;
+const LOAD_MORE_LIMIT = 2000;
 
 type ApiBar = CandlestickBar;
 
