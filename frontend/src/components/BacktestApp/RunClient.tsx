@@ -9,7 +9,7 @@ import { NumberField } from "@/components/forms/NumberField";
 import { Section } from "@/components/forms/Section";
 import { Field } from "@/components/forms/Field";
 import { EquityChart } from "@/components/charts/EquityChart";
-import { useCatalog } from "@/features/run/hooks/useCatalog";
+import { useCatalog, groupPairs } from "@/features/run/hooks/useCatalog";
 import type { Direction, EntryType,EquityPoint } from "@/features/run/types";
 import ShareButton from '@/components/share/ShareButton';
 import { executeRun, genIdemKey, pollReport } from "@/lib/backtest";
@@ -566,13 +566,23 @@ return (
           onChange={(e) => setPair(e.target.value)}
           disabled={!hasCatalog}
         >
-          {hasCatalog
-            ? catalog.pairs.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))
-            : <option>—</option>}
+          {hasCatalog ? (() => {
+            const { crypto, fx } = groupPairs(catalog.pairs);
+            return (
+              <>
+                {fx.length > 0 && (
+                  <optgroup label="FX">
+                    {fx.map((p) => <option key={p} value={p}>{p}</option>)}
+                  </optgroup>
+                )}
+                {crypto.length > 0 && (
+                  <optgroup label="Crypto">
+                    {crypto.map((p) => <option key={p} value={p}>{p}</option>)}
+                  </optgroup>
+                )}
+              </>
+            );
+          })() : <option>—</option>}
         </select>
       </Field>
 

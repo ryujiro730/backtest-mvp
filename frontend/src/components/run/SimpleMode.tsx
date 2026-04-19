@@ -12,28 +12,28 @@ import { v4 as uuidv4 } from "uuid";
 const PRESET_CONFIG: {
   key: PresetKey;
   make: () => any;
-  icon: string;
+  index: string;
   gradient: string;
   btnClass: string;
 }[] = [
   {
     key: "goldenCross",
     make: makeGoldenCross,
-    icon: "📈",
+    index: "01",
     gradient: "from-blue-600 to-blue-500",
     btnClass: "bg-blue-600 hover:bg-blue-700 active:bg-blue-800",
   },
   {
     key: "rsiContrarian",
     make: makeRsiContrarian,
-    icon: "🔄",
+    index: "02",
     gradient: "from-violet-600 to-violet-500",
     btnClass: "bg-violet-600 hover:bg-violet-700 active:bg-violet-800",
   },
   {
     key: "breakout",
     make: makeBreakout,
-    icon: "🚀",
+    index: "03",
     gradient: "from-orange-500 to-amber-500",
     btnClass: "bg-orange-500 hover:bg-orange-600 active:bg-orange-700",
   },
@@ -131,7 +131,7 @@ export function SimpleMode({
 
       {/* プリセットカード */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {PRESET_CONFIG.map(({ key, make, icon, gradient, btnClass }) => {
+        {PRESET_CONFIG.map(({ key, make, index, gradient, btnClass }) => {
           return (
             <div
               key={key}
@@ -139,8 +139,8 @@ export function SimpleMode({
             >
               {/* カードヘッダー */}
               <div className={`bg-gradient-to-r ${gradient} px-4 py-3 text-white`}>
-                <div className="flex items-center gap-2.5">
-                  <span className="text-2xl">{icon}</span>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs font-semibold opacity-60 tracking-widest">{index}</span>
                   <div>
                     <div className="font-bold text-base leading-tight">
                       {t(`${key}.name`)}

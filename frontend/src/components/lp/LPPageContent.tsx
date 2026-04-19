@@ -6,14 +6,14 @@ export { getSoftwareAppJsonLd };
 export const LP_META = {
   ja: {
     title:
-      "【完全無料】FXバックテスト検証ツール | ブラウザで条件を入力して即座にトレード実行 Delver",
+      "【完全無料】FX・仮想通貨バックテスト検証ツール | ブラウザで条件を入力して即座にトレード実行 Delver",
     description:
-      "FXの過去検証がブラウザで今すぐ無料で始められます。検証のやり方は条件を入力するだけ。MT4不要、ゴールド(XAUUSD)対応。バルサラの破産確率も自動算出。効率的な検証で聖杯探しを卒業しましょう。",
+      "FX・仮想通貨（BTC・ETH）の過去検証がブラウザで今すぐ無料で始められます。検証のやり方は条件を入力するだけ。MT4不要、ゴールド(XAUUSD)対応。バルサラの破産確率も自動算出。効率的な検証で聖杯探しを卒業しましょう。",
   },
   en: {
-    title: "Free FX Backtest Tool | Browser-Based Verification Delver",
+    title: "Free FX & Crypto Backtest Tool | Browser-Based Verification Delver",
     description:
-      "Run FX backtests in your browser for free. No MT4, no sign-up. Gold (XAUUSD) supported. Balsara risk of ruin and expectancy calculated automatically.",
+      "Run FX and crypto (BTC, ETH) backtests in your browser for free. No MT4, no sign-up. Gold (XAUUSD) supported. Balsara risk of ruin and expectancy calculated automatically.",
   },
 } as const;
 

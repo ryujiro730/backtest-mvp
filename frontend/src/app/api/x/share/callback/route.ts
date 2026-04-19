@@ -39,7 +39,7 @@ export async function GET(req: Request) {
   // --- ツイート
   const resultId = flow.resultId ?? 'unknown';
   const text =
-    `このバックテスト結果を共有中📈 https://delvertrade.com/app/results/${resultId} #fx #backtest`;
+    `このバックテスト結果をDelverで検証した。 https://delvertrade.com/app/results/${resultId} #fx #backtest`;
 
   const tweetRes = await fetch('https://api.x.com/2/tweets', {
     method: 'POST',

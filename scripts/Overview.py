@@ -1,6 +1,11 @@
 import pandas as pd
 
-df = pd.read_parquet("/home/tsujiryujiro/dev/delver/data/EURUSD_M5.parquet")
+##df = pd.read_csv("/home/tj/dev/delver/scripts/binance_data/ADAUSDT/1m/all_1m.csv")
+df = pd.read_parquet("/home/tj/dev/delver/data/BTCUSDT_M1.parquet")
+##df.to_parquet(
+##    "/home/tj/dev/delver/scripts/binance_data/ADAUSDT/1m/all_1m.parquet",
+##    index=False
+## )
 # 基本情報
 print("=== Data Overview ===")
 print(df.info())

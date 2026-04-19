@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState } from 'react';
 export default function ShareButton({
   url,
   title = 'Delver — FXバックテスト',
-  text = 'このバックテスト結果すごい。Delverで作った📈',
+  text = 'このバックテスト結果をDelverで検証した。',
 }: { url: string; title?: string; text?: string }) {
   const [copied, setCopied] = useState(false);
 

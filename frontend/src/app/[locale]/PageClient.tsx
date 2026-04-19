@@ -87,7 +87,7 @@ export default function PageClient({ locale }: { locale: string }) {
             <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">
               <span>Beta</span>
               <span className="h-1 w-1 rounded-full bg-emerald-500" />
-              <span>FX Backtest</span>
+              <span>FX · Crypto Backtest</span>
             </div>
 
             <h1 className="text-[clamp(24px,5vw,48px)] font-bold tracking-tight text-slate-900 leading-tight">

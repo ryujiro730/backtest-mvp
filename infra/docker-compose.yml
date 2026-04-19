@@ -33,7 +33,7 @@ services:
       POSTGRES_URL: postgresql://fx:fxpass@postgres:5432/fxdb
       REDIS_URL: redis://redis:6379/0
       DATASET_HASH_DEFAULT: 676f732694a3c0a1
-    ports: ["8000:8000"]
+    ports: ["8002:8000"]
     networks: [appnet]
     restart: unless-stopped
     depends_on:

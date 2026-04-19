@@ -38,3 +38,10 @@ export function useCatalog() {
   return { catalog, catalogError, hasCatalog };
 }
 
+/** ペアを暗号資産と為替に分類して返す */
+export function groupPairs(pairs: string[]): { crypto: string[]; fx: string[] } {
+  const crypto = pairs.filter((p) => p.endsWith("USDT") || p.endsWith("USDC") || p.endsWith("BTC") || p.endsWith("ETH"));
+  const fx = pairs.filter((p) => !crypto.includes(p));
+  return { crypto, fx };
+}
+

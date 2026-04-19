@@ -5,13 +5,16 @@ import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import { Coins, Clock } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useCatalog } from "@/features/run/hooks/useCatalog";
+import { useCatalog, groupPairs } from "@/features/run/hooks/useCatalog";
 import { useRuleStore } from "@/rules/store";
 
 export function ExecutionCondition() {
@@ -54,11 +57,26 @@ export function ExecutionCondition() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {catalog.pairs.map((p) => (
-                <SelectItem key={p} value={p}>
-                  {p}
-                </SelectItem>
-              ))}
+              {(() => {
+                const { crypto, fx } = groupPairs(catalog.pairs);
+                return (
+                  <>
+                    {fx.length > 0 && (
+                      <SelectGroup>
+                        <SelectLabel>FX</SelectLabel>
+                        {fx.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                      </SelectGroup>
+                    )}
+                    {fx.length > 0 && crypto.length > 0 && <SelectSeparator />}
+                    {crypto.length > 0 && (
+                      <SelectGroup>
+                        <SelectLabel>Crypto</SelectLabel>
+                        {crypto.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                      </SelectGroup>
+                    )}
+                  </>
+                );
+              })()}
             </SelectContent>
           </Select>
         </div>

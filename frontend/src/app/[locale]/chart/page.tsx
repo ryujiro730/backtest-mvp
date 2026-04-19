@@ -27,7 +27,10 @@ import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -61,7 +64,7 @@ import {
   aggregatedBars,
   TIMEFRAME_PERIOD_SEC,
 } from "@/components/chart/aggregateTimeframe";
-import { useCatalog } from "@/features/run/hooks/useCatalog";
+import { useCatalog, groupPairs } from "@/features/run/hooks/useCatalog";
 import {
   UNIQUE_INDICATOR_TYPES,
   computeIndicator,
@@ -240,6 +243,11 @@ function ChartPageInner() {
     const fromIdx = Math.max(0, barsFromApi.length - M1_REPLAY_MAX_BARS);
     const prefixBars = barsFromApi.slice(0, fromIdx);
     const m1Aggregated = aggregatedBars(m1Bars, Math.min(replayHeadM1, m1Range.to), timeframe);
+    // 時間足切り替え直後、prefixBars(旧時間足)とm1Aggregated(新時間足境界)が
+    // 逆順になるケースをガード。逆順になるなら barsFromApi にフォールバック。
+    const prefixLastTime = prefixBars[prefixBars.length - 1]?.time ?? -Infinity;
+    const aggFirstTime   = m1Aggregated[0]?.time ?? Infinity;
+    if (aggFirstTime <= prefixLastTime) return barsFromApi;
     return [...prefixBars, ...m1Aggregated];
   }, [useM1Replay, barsFromApi, m1Bars, replayHeadM1, timeframe, m1Range]);
 
@@ -830,11 +838,30 @@ function ChartPageInner() {
                 <SelectValue placeholder={hasCatalog ? t("symbolPlaceholder") : t("symbolLoading")} />
               </SelectTrigger>
               <SelectContent>
-                {(catalog.pairs.length > 0 ? catalog.pairs : ["EURUSD"]).map((p: string) => (
-                  <SelectItem key={p} value={p} className="font-mono">
-                    {p}
-                  </SelectItem>
-                ))}
+                {(() => {
+                  const { crypto, fx } = groupPairs(catalog.pairs.length > 0 ? catalog.pairs : ["EURUSD"]);
+                  return (
+                    <>
+                      {fx.length > 0 && (
+                        <SelectGroup>
+                          <SelectLabel>FX</SelectLabel>
+                          {fx.map((p) => (
+                            <SelectItem key={p} value={p} className="font-mono">{p}</SelectItem>
+                          ))}
+                        </SelectGroup>
+                      )}
+                      {fx.length > 0 && crypto.length > 0 && <SelectSeparator />}
+                      {crypto.length > 0 && (
+                        <SelectGroup>
+                          <SelectLabel>Crypto</SelectLabel>
+                          {crypto.map((p) => (
+                            <SelectItem key={p} value={p} className="font-mono">{p}</SelectItem>
+                          ))}
+                        </SelectGroup>
+                      )}
+                    </>
+                  );
+                })()}
               </SelectContent>
             </Select>
           </div>

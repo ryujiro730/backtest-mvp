@@ -4,6 +4,7 @@ import UserAvatarButton from '@/components/account/UserAvatarButton';
 import { RunPanel } from '@/components/run/RunPanel';
 import NoticeCard from '@/components/NoticeCard';
 import { Link } from '@/i18n/routing';
+import { Scissors } from 'lucide-react';
 
 
 export default async function Page() {
@@ -29,7 +30,7 @@ export default async function Page() {
             href="/chart"
             className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition sm:px-3"
           >
-            <span>✂️</span>
+            <Scissors className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">手動裁量検証モード</span>
           </Link>
 
