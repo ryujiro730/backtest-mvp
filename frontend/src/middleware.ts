@@ -12,7 +12,8 @@ const CRAWLER_UA =
 const intlMiddleware = createMiddleware(routing);
 
 // ログインが必要なパス（ロケールプレフィックス /ja /en を除いた部分で判定）
-const PROTECTED_PATHS = ['/settings'];
+// ログイン必須パス（課金チェックはページ側で行う）
+const PROTECTED_PATHS = ['/settings', '/app', '/chart'];
 
 function isProtected(pathname: string): boolean {
   const m = pathname.match(/^\/[a-z]{2}(\/.*)?$/);

@@ -1,27 +1,29 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase/client'; // ← 既存のsingletonをそのまま使う
+import { supabase } from '@/lib/supabase/client';
 
 export default function GoogleAuthButton({ label = 'Continue with Google' }: { label?: string }) {
   const { locale } = useParams<{ locale: 'ja' | 'en' }>();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
 
   const handleGoogle = async () => {
     setLoading(true);
-    const redirectTo =
-      typeof window !== 'undefined'
-        ? `${window.location.origin}/${locale}/auth/callback`
-        : undefined;
+    // ?next= パラメータをコールバックURLに引き継ぐ
+    const next = searchParams.get('next');
+    const callbackBase = `${window.location.origin}/${locale}/auth/callback`;
+    const redirectTo = next
+      ? `${callbackBase}?next=${encodeURIComponent(next)}`
+      : callbackBase;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo,
-        flowType: 'pkce',              // ← これで必ず ?code=...（PKCE）になる
         queryParams: {
-          access_type: 'offline',      // refresh_token を確実に取りに行く
+          access_type: 'offline',
           prompt: 'consent',
         },
       },

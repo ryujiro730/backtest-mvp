@@ -1,7 +1,7 @@
 ---
 slug: "tradingview-replay-reproducibility-limit"
-title: "TradingViewのリプレイ機能における再現性の限界｜検証した気になる最大の罠"
-description: "TradingViewのリプレイ機能は検証に使えるのか？未来を知った脳のバイアス、スプレッド差による未約定、判断ログが残らない構造的欠陥などから、再現性が成立しない理由を実例ベースで解説する。"
+title: "TradingView Bar Replayの限界｜データ期間・TP/SL精度・ログ保存の問題点"
+description: "TradingViewのBar Replayを検証に使う場合の限界を整理する。有料プランのデータ期間制限・足単位のTP/SL精度・セッション間のログ保存問題を実例ベースで解説する。"
 category: "analysis"
 publishedAt: "2026-01-30"
 readTimeMinutes: 9
@@ -223,7 +223,14 @@ TradingViewのリプレイ機能は、
 この問いに即答できないなら、  
 その検証結果は信用するべきではありません。
 
-TradingViewは最高の『練習場』ですが、勝てる手法を確立するための『試験場』ではありません。**あなたの手法に本当の優位性（エッジ）があるのか、<InlineLink href="/">Delver</InlineLink>の冷徹なデータで白黒つけませんか？**
+TradingViewは最高の『練習場』ですが、勝てる手法を確立するための『試験場』ではありません。
+
+<BlogCta
+  title="チャートで手法の再現性を確認する"
+  description="Delverのチャート検証モードでは、過去のローソク足を1本ずつ進めながらエントリー・決済を記録できます。TradingViewリプレイとの決定的な違いは、すべてのトレードログが永続保存される点です。"
+  href="/chart"
+  buttonLabel="チャート検証を試す（無料）"
+/>
 
 「自分のスタイルに最適な検証ツールをじっくり選びたい方は、こちらの比較記事も参考にしてください。」
 <NextLink href="/blog/fx-backtest-tools-comparison"

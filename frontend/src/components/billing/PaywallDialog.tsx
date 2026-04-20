@@ -12,38 +12,34 @@ const supabase = createClient(
 );
 
 type BillingPeriod = 'monthly' | 'yearly';
-type PlanId = 'free' | 'starter' | 'pro';
+type PlanId = 'pro';
 
-/* ===== 日本語文言（旧 i18n の中身） ===== */
+/* ===== 日本語文言 ===== */
 
 const TEXT = {
   title: 'サブスクリプションを購入',
   close: '閉じる',
-  subtitle: '高速バックテストと無制限実行をアンロック。',
+  subtitle: '25年分のFXデータで、手法の本当の実力をデータで確認してください。',
   signin: '続行するにはログインしてください',
   contact: 'エンタープライズ・チームプラン受付中 ↗',
   yearly: '年払い',
   monthly: '月払い',
-  yearlyBadge: '–20% 年払い',
+  yearlyBadge: '–17% 年払い',
   footerLeft: 'サブスクに関するお問い合わせ:',
   footerRight: '決済は Stripe により安全に処理されます',
   cta: {
     current: '現在のプラン',
-    upgrade: 'アップグレード',
+    upgrade: '始める',
     processing: '処理中…',
   },
 };
 
 const PLAN_NAMES: Record<PlanId, string> = {
-  free: '無料プラン',
-  starter: 'スターター',
-  pro: 'プロ',
+  pro: 'Pro',
 };
 
 const PLAN_FEATURES: Record<PlanId, string[]> = {
-  free: ['月あたりの実行回数に制限あり', '基本機能のみ'],
-  starter: ['1日あたり30回まで実行可能', '優先サポート'],
-  pro: ['実行回数 無制限', '高度な指標', '優先サポート'],
+  pro: ['バックテスト 無制限', 'チャート検証 無制限', '全通貨ペア対応', '25年分データ', '優先サポート'],
 };
 
 /* ===== プラン定義（価格・見た目） ===== */
@@ -55,23 +51,9 @@ const PLANS: Array<{
   gradient: string;
 }> = [
   {
-    id: 'free',
-    priceMonthly: 0,
-    priceYearly: 0,
-    gradient:
-      'radial-gradient(80% 120% at 100% 0%, #0a0a0a 0%, #0a0a0a 40%, #111827 100%)',
-  },
-  {
-    id: 'starter',
-    priceMonthly: 20,
-    priceYearly: 192,
-    gradient:
-      'radial-gradient(120% 150% at 0% 0%, #2563eb 0%, #06b6d4 45%, #2563eb80 100%)',
-  },
-  {
     id: 'pro',
-    priceMonthly: 35,
-    priceYearly: 336,
+    priceMonthly: 5000,
+    priceYearly: 50000,
     gradient:
       'radial-gradient(120% 150% at 0% 0%, #9333ea 0%, #ec4899 45%, #9333ea80 100%)',
   },
@@ -123,7 +105,7 @@ export default function PaywallDialog({
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
-          plan: plan === 'free' ? 'starter' : plan,
+          plan,
           period,
         }),
       });
@@ -253,7 +235,7 @@ function PlanCard({
   busy: boolean;
 }) {
   const priceLabel = useMemo(
-    () => (price === 0 ? '$0' : `$${price}`),
+    () => (price === 0 ? '¥0' : `¥${price.toLocaleString()}`),
     [price]
   );
 

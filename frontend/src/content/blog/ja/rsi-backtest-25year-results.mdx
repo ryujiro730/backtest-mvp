@@ -1,7 +1,7 @@
 ---
 slug: "rsi-backtest-25year-results"
-title: "【25年分検証】RSIは本当に勝てないのか？1万通りの設定で総当り検証した結果"
-description: "RSIで一生食える設定は存在するか？25年分のEURUSD M15データで1万通りを総当り検証した結果を公開。期待値がプラスの「エリート設定」ですら25年耐久テストで全滅。統計が証明した、RSI逆張りの残酷な真実とは。"
+title: "RSI逆張りの25年検証｜1万通りの設定で分かった機能する条件と機能しない条件"
+description: "RSI逆張りに有効なパラメータは存在するのか。25年分のEURUSD M15データで1万通りの設定を検証し、期待値がプラスになる条件とそうでない条件を整理する。"
 category: "analysis"
 publishedAt: "2026-03-19"
 readTimeMinutes: 13
@@ -361,6 +361,13 @@ score = 期待値 - 0.30 × (SL / 取引数)
 今回の検証はなにもPythonでないとできないことはない。
 <InlineLink href="/ja/blog/free-backtest-tools">完全無料の検証ツール</InlineLink>はたくさん存在している。
 今回使用した検証ツールの<InlineLink href="/">Delver</InlineLink>はこういった総当りの検証と相性が素晴らしいが、自分のトレード思想に合致した検証ツールを選ぶのがベストなので、比較して検証することをオススメする。
+
+<BlogCta
+  title="自分のRSI設定をDelverで走らせる"
+  description="期間・閾値・TP/SL・通貨ペアを変えながら、25年分のデータで実際に試してみてください。「この設定なら機能するのでは」という仮説を、感覚ではなく数値で検証できます。"
+  href="/#try"
+  buttonLabel="無料でバックテストを始める"
+/>
 
 ## オープンソース・リサーチ
 

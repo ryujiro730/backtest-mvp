@@ -1,7 +1,7 @@
 ---
 slug: "bollinger-bands-10000-backtest-results"
-title: "【破産確定】ボリンジャーバンドは意味がない？:1万通りの設定で25年分総当り検証してみた結果"
-description: "ボリバン逆張りで一生食える設定は存在するか？25年分のデータで1万通りを総当り検証した結果を公開。期待値が高い『エリート設定』ですら25年耐久テストでマイナス5万pipsへ沈没。統計が証明した、ボリンジャーバンド逆張りの残酷な真実とは。"
+title: "ボリンジャーバンド逆張りの25年検証｜1万通りの設定で機能する条件と機能しない条件"
+description: "ボリンジャーバンド逆張りに有効なパラメータは存在するのか。25年分のFXデータで1万通りの設定を検証し、期待値がプラスになる条件とそうでない条件を整理する。"
 category: "analysis"
 publishedAt: "2026-02-2"
 readTimeMinutes: 12
@@ -306,6 +306,12 @@ dd_per_trade = df["max_dd"] / df["trades"]
 <InlineLink href="free-backtest-tools">完全無料の検証ツール</InlineLink>はたくさん存在している。
 今回使用した検証ツールの<InlineLink href="/">Delver</InlineLink>はこういった総当りの検証と相性が素晴らしいが、自分の<InlineLink href="fx-backtest-tools-comparison">トレード思想に合致した検証ツールを選ぶ</InlineLink>のがベストなので、比較して検証することをオススメする。
 
+<BlogCta
+  title="自分のボリバン設定をDelverで走らせる"
+  description="期間・σ・TP/SL・通貨ペアを変えながら、25年分のデータで検証できます。「この組み合わせなら機能するのでは」という仮説を、感覚ではなく数値で確認してみてください。"
+  href="/#try"
+  buttonLabel="無料でバックテストを始める"
+/>
 
 ## オープンソース・リサーチ
 検証の透明性と再現性を担保するため、今回の膨大なバックテストに使用したPythonスクリプトを公開している。データ処理のロジックから統計計算のプロセスに至るまで、そのすべてをGitHubで確認することが可能だ。

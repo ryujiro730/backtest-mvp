@@ -1,14 +1,26 @@
 // src/app/[locale]/app/page.tsx
 import { getEntitlement } from '@/lib/entitlement';
+import { redirect } from 'next/navigation';
 import UserAvatarButton from '@/components/account/UserAvatarButton';
 import { RunPanel } from '@/components/run/RunPanel';
 import NoticeCard from '@/components/NoticeCard';
 import { Link } from '@/i18n/routing';
 import { Scissors } from 'lucide-react';
+import PaywallPage from '@/components/billing/PaywallPage';
 
+type Props = { params: Promise<{ locale: string }> };
 
-export default async function Page() {
-  const { premium, used, limit } = await getEntitlement();
+export default async function Page({ params }: Props) {
+  const { locale } = await params;
+  const { user, premium, used, limit } = await getEntitlement();
+
+  if (!user) {
+    redirect(`/${locale}/login?next=/${locale}/app`);
+  }
+
+  if (!premium) {
+    return <PaywallPage returnPath={`/${locale}/app`} />;
+  }
 
   return (
     <>

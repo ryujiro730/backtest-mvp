@@ -123,6 +123,9 @@ return (
           <Link href="/tools/expected-value" className={ruinBtnCls}>
             {t('expectedValue')}
           </Link>
+          <Link href="/chart" className={ruinBtnCls}>
+            {t('chart')}
+          </Link>
           <LanguageSwitcher/>
         </nav>
 
@@ -151,6 +154,7 @@ return (
                   <MobileLink href="/#try" className="text-indigo-600 border-slate-200 font-medium">{t('backtest')}</MobileLink>
                   <MobileLink href="/tools/risk-of-ruin" className="text-slate-700 border-slate-200">{t('ruin')}</MobileLink>
                   <MobileLink href="/tools/expected-value" className="text-slate-700 border-slate-200">{t('expectedValue')}</MobileLink>
+                  <MobileLink href="/chart" className="text-slate-700 border-slate-200">{t('chart')}</MobileLink>
                 </nav>
 
                 <div className="mt-auto text-xs text-slate-400 text-center uppercase tracking-widest">

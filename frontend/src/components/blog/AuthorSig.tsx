@@ -6,8 +6,7 @@ import { Github, Twitter } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
-// 画像を猫画像に統一
-const PERSON_IMAGE = "https://tsujiryujiro.com/AuthorSig/cat.JPG";
+const PERSON_IMAGE = "https://tsujiryujiro.com/AuthorSig/ryujiro.jpg";
 // SNSリンク先が本名アカウントなら、ここも変更するかコメントアウトを推奨
 const GITHUB_URL = "https://github.com/ryujiro730"; 
 const X_URL = "https://x.com/_teejey";
@@ -20,8 +19,8 @@ export default function AuthorSig() {
     const data = {
       "@context": "https://schema.org",
       "@type": "Person",
-      name: "David Miller",
-      alternateName: "David",
+      name: "辻 龍次朗",
+      alternateName: "Ryujiro Tsuji",
       image: PERSON_IMAGE,
       sameAs: [...SAME_AS],
       description: t("description"),
@@ -47,8 +46,7 @@ export default function AuthorSig() {
         <div className="relative group">
           <div className="h-16 w-16 rounded-full border border-slate-200 overflow-hidden transition-all group-hover:border-emerald-500">
             <Image
-              // ここを ryujiro.jpg から cat.JPG へ変更
-              src="/AuthorSig/cat.JPG"
+              src="/AuthorSig/ryujiro.jpg"
               alt={t("imageAlt")}
               width={64}
               height={64}

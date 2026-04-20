@@ -9,6 +9,7 @@
     "backtest": "バックテストツール",
     "ruin": "バルサラの破産確率",
     "expectedValue": "期待値判定ツール",
+    "chart": "チャート検証",
     "menu": "メニュー"
   },
   "Community": {
@@ -718,11 +719,11 @@
     }
   },
   "AuthorSig": {
-    "label": "Article Author",
-    "nameJa": "David Miller",
-    "nameEn": "David Miller",
-    "imageAlt": "David Miller",
-    "description": "Delver 創業者。25年分の市場データを活用したバックテスト・エンジンの開発を行っています。トレードにおける直感や曖昧さを排除し、客観的なデータに基づいて期待値を検証するための仕組み作りが専門です。"
+    "label": "この記事を書いた人",
+    "nameJa": "辻　龍次朗",
+    "nameEn": "Ryujiro Tsuji",
+    "imageAlt": "辻 龍次朗",
+    "description": "FXで100万円を溶かし、仮想通貨で数百万を稼いだ実体験を持つトレーダー。その経験から「感覚ではなくデータで手法を評価する」という考えに至り、25年分の相場データを使ったバックテストインフラ Delver を一人で開発・運営。前職ではインターネット営業でトップ実績を持ち、人間心理と意思決定の構造を深く研究。「勝てない理由を数値で証明する」ための仕組みを作り続けている。"
   },
   "Explanation": {
     "title": "Delverの使い方（3ステップ）",

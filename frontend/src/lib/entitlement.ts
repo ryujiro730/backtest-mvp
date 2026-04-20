@@ -1,13 +1,13 @@
 // src/lib/entitlement.ts
-// src/lib/entitlement.ts
 import 'server-only';
 import { supabaseServerRO } from '@/lib/supabase-ssr';
 import { getActor } from '@/lib/actor';
 
 const FREE_LIMIT = 3;
+const ACTIVE_STATUSES = ['active', 'trialing'];
 
-// Subscriptions の「有効」とみなす状態
-const ACTIVE_STATUSES = ['active', 'trialing']; // 必要に応じて 'past_due' を含めてもOK
+// 開発・デモ用: NEXT_PUBLIC_FREE_MODE=1 のときはペイウォールをスキップ
+const FREE_MODE = process.env.NEXT_PUBLIC_FREE_MODE === '1';
 
 export async function getEntitlement() {
   const supabase = await supabaseServerRO();
@@ -65,15 +65,19 @@ export async function getEntitlement() {
   }
 
   // --- 3) free limit / exceeded を決定 ---
-  const limit = premium ? undefined : FREE_LIMIT;
-  const exceeded = premium ? false : used >= FREE_LIMIT;
+  // FREE_MODE=1 のときは全ユーザーを premium として扱う（開発・デモ用）
+  const effectivePremium = FREE_MODE ? true : premium;
+
+  const limit = effectivePremium ? undefined : FREE_LIMIT;
+  const exceeded = effectivePremium ? false : used >= FREE_LIMIT;
 
   return {
     user: user ?? null,
-    premium,
+    premium: effectivePremium,
     used,
     limit,
     exceeded,
     anon_id,
+    freeMode: FREE_MODE,
   };
 }
