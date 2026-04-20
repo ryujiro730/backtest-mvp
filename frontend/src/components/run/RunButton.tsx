@@ -10,15 +10,18 @@ import { useTranslations } from "next-intl";
 export function RunButton({
   running,
   onRunStarted,
+  onBeforeRun,
 }: {
   running: boolean;
   onRunStarted: (runId: string) => void;
+  onBeforeRun?: () => boolean;
 }) {
   const rule = useRuleStore((s) => s.rule);
   const t = useTranslations("RunButton");
 
   const onClick = async () => {
     if (running) return;
+    if (onBeforeRun && !onBeforeRun()) return;
 
     const payload = buildPayload(rule);
     if (!payload.entry || payload.entry.length === 0) {

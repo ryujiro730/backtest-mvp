@@ -77,6 +77,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import type { CandlestickBar } from "@/components/chart/ChartArea";
 import type { TradeRaw } from "@/lib/performance/transform";
+import { supabase } from "@/lib/supabase/client";
+import PaywallDialog from "@/components/billing/PaywallDialog";
 
 const TIMEFRAMES = [
   { label: "1m", value: "M1" },
@@ -376,6 +378,41 @@ function ChartPageInner() {
     }
   }, [indicatorSettingsInstanceId, indicatorInstances]);
 
+  const [chartEntryCount, setChartEntryCount] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    return parseInt(localStorage.getItem("chart_entry_count") ?? "0", 10);
+  });
+  const [chartPaywallOpen, setChartPaywallOpen] = useState(false);
+  const isPremiumRef = useRef(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) return;
+      const { data: sub } = await supabase
+        .from("subscriptions")
+        .select("id")
+        .eq("user_id", data.user.id)
+        .in("status", ["active", "trialing"])
+        .maybeSingle();
+      if (sub) { isPremiumRef.current = true; }
+    });
+  }, []);
+
+  // refから読むのでuseCallbackの依存配列に含めなくてよい
+  const incrementEntryCount = useCallback((): boolean => {
+    if (isPremiumRef.current) return true;
+    const current = parseInt(localStorage.getItem("chart_entry_count") ?? "0", 10);
+    if (current >= 10) {
+      setChartPaywallOpen(true);
+      return false;
+    }
+    const next = current + 1;
+    localStorage.setItem("chart_entry_count", String(next));
+    setChartEntryCount(next);
+    return true;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [entryOpen, setEntryOpen] = useState(false);
   const [entrySide, setEntrySide] = useState<"Long" | "Short">("Long");
   const [entryQty, setEntryQty] = useState("1");
@@ -647,6 +684,7 @@ function ChartPageInner() {
 
   const handleAddPosition = useCallback(() => {
     if (!currentBar) return;
+    if (!incrementEntryCount()) return;
     const qty = Math.max(0.01, parseFloat(entryQty) || 0.01);
     const parseNum = (s: string) => {
       const v = parseFloat(s);
@@ -678,6 +716,7 @@ function ChartPageInner() {
   const handleQuickEntry = useCallback(
     (side: "Long" | "Short") => {
       if (!currentBar || currentPrice <= 0) return;
+      if (!incrementEntryCount()) return;
       const qty = Math.max(0.01, parseFloat(quickEntryQty) || 1);
       setPositions((prev) => [
         ...prev,
@@ -811,6 +850,12 @@ function ChartPageInner() {
       tabIndex={-1}
       className="flex h-screen w-full flex-col overflow-hidden bg-background outline-none"
     >
+      <PaywallDialog
+        open={chartPaywallOpen}
+        onOpenChange={setChartPaywallOpen}
+        used={chartEntryCount}
+        limit={CHART_ENTRY_LIMIT}
+      />
       <header className="flex shrink-0 flex-col gap-2 border-b px-3 py-2 sm:gap-0 sm:px-4">
         <div className="flex min-w-0 items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">

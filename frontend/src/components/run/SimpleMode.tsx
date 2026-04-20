@@ -46,10 +46,12 @@ const PRESET_CONFIG: {
 export function SimpleMode({
   runningKey,
   onRunStarted,
+  onBeforeRun,
   showTitle = true,
 }: {
   runningKey: PresetKey | null;
   onRunStarted: (runId: string, key: PresetKey) => void;
+  onBeforeRun?: () => boolean;
   showTitle?: boolean;
 }) {
   const update = useRuleStore((s) => s.update);
@@ -57,6 +59,7 @@ export function SimpleMode({
 
   const runPreset = async (key: PresetKey, make: () => any) => {
     if (runningKey !== null) return;
+    if (onBeforeRun && !onBeforeRun()) return;
 
     const preset = make();
     // ストアを更新（詳細モードに切り替えたとき反映されるよう）

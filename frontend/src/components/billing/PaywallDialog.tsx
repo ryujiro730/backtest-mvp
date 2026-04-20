@@ -4,12 +4,7 @@ import { useRouter } from '@/i18n/routing';
 import { useMemo, useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import LoginInline from '@/components/auth/LoginInline';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { supabase } from '@/lib/supabase/client';
 
 type BillingPeriod = 'monthly' | 'yearly';
 type PlanId = 'pro';

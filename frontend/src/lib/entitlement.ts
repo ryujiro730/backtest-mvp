@@ -3,7 +3,7 @@ import 'server-only';
 import { supabaseServerRO } from '@/lib/supabase-ssr';
 import { getActor } from '@/lib/actor';
 
-const FREE_LIMIT = 3;
+const FREE_LIMIT = 2;
 const ACTIVE_STATUSES = ['active', 'trialing'];
 
 // 開発・デモ用: NEXT_PUBLIC_FREE_MODE=1 のときはペイウォールをスキップ

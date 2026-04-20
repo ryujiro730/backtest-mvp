@@ -13,7 +13,7 @@ const intlMiddleware = createMiddleware(routing);
 
 // ログインが必要なパス（ロケールプレフィックス /ja /en を除いた部分で判定）
 // ログイン必須パス（課金チェックはページ側で行う）
-const PROTECTED_PATHS = ['/settings', '/app', '/chart'];
+const PROTECTED_PATHS = ['/settings'];
 
 function isProtected(pathname: string): boolean {
   const m = pathname.match(/^\/[a-z]{2}(\/.*)?$/);

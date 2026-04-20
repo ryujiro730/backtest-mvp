@@ -1,33 +1,22 @@
 // src/app/[locale]/app/page.tsx
 import { getEntitlement } from '@/lib/entitlement';
-import { redirect } from 'next/navigation';
 import UserAvatarButton from '@/components/account/UserAvatarButton';
 import { RunPanel } from '@/components/run/RunPanel';
 import NoticeCard from '@/components/NoticeCard';
 import { Link } from '@/i18n/routing';
 import { Scissors } from 'lucide-react';
-import PaywallPage from '@/components/billing/PaywallPage';
 
 type Props = { params: Promise<{ locale: string }> };
 
 export default async function Page({ params }: Props) {
-  const { locale } = await params;
-  const { user, premium, used, limit } = await getEntitlement();
-
-  if (!user) {
-    redirect(`/${locale}/login?next=/${locale}/app`);
-  }
-
-  if (!premium) {
-    return <PaywallPage returnPath={`/${locale}/app`} />;
-  }
+  await params; // locale is not needed here
+  const { used, premium } = await getEntitlement();
 
   return (
     <>
       {/* ヘッダー */}
       <div className="border-b border-slate-200 bg-white px-4 py-3 shadow-sm sm:px-6 sm:py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
-          {/* ロゴ → LP へ */}
           <Link href="/" className="shrink-0 group">
             <div className="text-[10px] font-semibold text-emerald-600 tracking-widest uppercase group-hover:text-emerald-700 transition">
               Delver
@@ -37,7 +26,6 @@ export default async function Page({ params }: Props) {
             </div>
           </Link>
 
-          {/* チャート検証モードへのリンク */}
           <Link
             href="/chart"
             className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition sm:px-3"
@@ -53,7 +41,7 @@ export default async function Page({ params }: Props) {
       <main className="max-w-5xl mx-auto px-4 py-8">
         <div className="space-y-6">
           <NoticeCard />
-          <RunPanel />
+          <RunPanel used={used} premium={premium} />
         </div>
       </main>
     </>
