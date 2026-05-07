@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack && next-sitemap --config next-sitemap.config.js",
+    "build": "next build --turbopack --no-lint && next-sitemap --config next-sitemap.config.js",
     "start": "next start",
     "lint": "eslint",
     "postbuild": "next-sitemap"

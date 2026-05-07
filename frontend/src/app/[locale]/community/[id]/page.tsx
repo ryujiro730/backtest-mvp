@@ -1,8 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import {
-  getCommunityPostById,
-  getRepliesByPostId,
+  getPost,
+  getReplies,
 } from "@/lib/community";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -12,7 +12,7 @@ type Props = { params: Promise<{ locale: string; id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const post = await getCommunityPostById(id);
+  const post = await getPost(id);
   if (!post) return { title: "Not Found" };
   return {
     title: `${post.title} | Community`,
@@ -24,8 +24,8 @@ export default async function CommunityPostPage({ params }: Props) {
   const { locale, id } = await params;
   const t = await getTranslations({ locale, namespace: "Community" });
   const [post, replies] = await Promise.all([
-    getCommunityPostById(id),
-    getRepliesByPostId(id),
+    getPost(id),
+    getReplies(id),
   ]);
 
   if (!post) notFound();

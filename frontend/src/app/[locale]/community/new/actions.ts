@@ -1,6 +1,6 @@
 "use server";
 
-import { createCommunityPost } from "@/lib/community";
+import { createPost } from "@/lib/community";
 import { redirect } from "next/navigation";
 
 export async function submitPost(formData: FormData) {
@@ -9,7 +9,7 @@ export async function submitPost(formData: FormData) {
   const body = (formData.get("body") as string) ?? "";
   const author_display = (formData.get("author_display") as string) ?? null;
 
-  const result = await createCommunityPost({
+  const result = await createPost({
     title,
     body,
     locale,
