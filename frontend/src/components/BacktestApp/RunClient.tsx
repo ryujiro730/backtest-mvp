@@ -1,10 +1,8 @@
 // frontend/src/app/app/RunClient.tsx
 'use client';
 
+const PaywallDialog: React.FC<any> = () => null;
 import React, { useEffect, useMemo, useState } from "react";
-import mixpanel from "mixpanel-browser";
-//import PaywallDialog from "@/components/billing/PaywallDialog";
-const PaywallDialog: React.FC<any> = () => null; // ← 何も描画しないダミー
 import { NumberField } from "@/components/forms/NumberField";
 import { Section } from "@/components/forms/Section";
 import { Field } from "@/components/forms/Field";
@@ -41,12 +39,6 @@ export default function RunClient({ used, limit }: { used: number; limit: number
   const [direction, setDirection] = useState<Direction>("long"); // <- これを必ず定義
 
 
-
-  // Analytics
-  useEffect(() => {
-    mixpanel.init("564958c137c3bab43e6332b7aab074e5", { debug: true });
-    mixpanel.track("Page Viewed", { page: "App" });
-  }, []);
 
   // Catalog
   const { catalog, catalogError, hasCatalog } = useCatalog();

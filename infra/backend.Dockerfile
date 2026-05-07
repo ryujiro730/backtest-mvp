@@ -1,36 +1,33 @@
-# ---- Rust + engine-rs ビルド用 ----
+# ---- Stage 1: Rust engine build ----
 FROM python:3.11-slim AS rust-builder
-WORKDIR /app
+WORKDIR /build
 
-# ビルドに必要なパッケージ + Rust 導入
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libffi-dev \
-    curl \
+    build-essential libffi-dev curl \
     && rm -rf /var/lib/apt/lists/* \
-    && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable \
-    && . /root/.cargo/env && rustc --version
+    && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
 
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 RUN pip install --no-cache-dir maturin
 
-COPY engine-rs /app/engine-rs
-RUN cd /app/engine-rs && maturin build --release
+COPY engine-rs /build/engine-rs
+RUN cd /build/engine-rs && maturin build --release
 
-# ---- 本番イメージ ----
+# ---- Stage 2: Runtime image ----
 FROM python:3.11-slim
 
-WORKDIR /app
+WORKDIR /delver
 
-# engine_rs の wheel をインストール（Rust 拡張）
-COPY --from=rust-builder /app/engine-rs/target/wheels/*.whl /tmp/wheels/
+COPY --from=rust-builder /build/engine-rs/target/wheels/*.whl /tmp/wheels/
 RUN pip install --no-cache-dir /tmp/wheels/*.whl && rm -rf /tmp/wheels
 
-COPY requirements.txt /app/requirements.txt
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt /delver/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY infra/DataPicker.py /app/infra/DataPicker.py
-COPY infra/format_and_resample.py /app/infra/format_and_resample.py
-
-CMD ["python", "infra/DataPicker.py"]
+COPY api /delver/api
+COPY worker /delver/worker

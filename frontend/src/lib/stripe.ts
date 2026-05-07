@@ -1,6 +1,0 @@
-import Stripe from 'stripe';
-import { getStripeKey } from './env';
-
-export function getStripe() {
-  return new Stripe(getStripeKey(), { apiVersion: '2025-08-27.basil' });
-}

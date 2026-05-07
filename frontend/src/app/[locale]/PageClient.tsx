@@ -9,7 +9,6 @@ import Newsletter from '../(public)/components/Newsletter';
 import PricingCtaClient from './PricingCtaClient';
 import Header from '@/components/layout/Header';
 import Image from "next/image";
-import { flags } from '@/lib/flags';
 import { SimpleMode } from '@/components/run/SimpleMode';
 import NoticeCard from '@/components/NoticeCard';
 import { ChartVerificationCtaLink } from '@/components/ChartVerificationCta';
@@ -370,38 +369,6 @@ export default function PageClient({ locale }: { locale: string }) {
         </div>
       </section>
 
-      {!flags.freeMode && (
-        <section id="pricing" className="section border-t border-slate-200/60 bg-slate-50/50">
-          <div className="container mx-auto max-w-6xl px-4 sm:px-6">
-            <h2 className="h2">{t('Pricing.title')}</h2>
-            <div className="mt-10 grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-              <div className="card">
-                <div className="text-sm font-medium text-slate-500">{t('Pricing.free.title')}</div>
-                <div className="mt-2 font-mono text-2xl font-semibold text-slate-900">{t('Pricing.free.price')}/{t('Pricing.month')}</div>
-                <ul className="mt-4 space-y-2 text-sm text-slate-600">
-                  {(t.raw('Pricing.free.features') as string[]).map((f, i) => <li key={i}>{f}</li>)}
-                </ul>
-              </div>
-              <div className="card ring-1 ring-indigo-500/30">
-                <div className="text-sm font-medium text-slate-500">{t('Pricing.starter.title')}</div>
-                <div className="mt-2 font-mono text-2xl font-semibold text-slate-900">{t('Pricing.starter.price')}/{t('Pricing.month')}</div>
-                <ul className="mt-4 space-y-2 text-sm text-slate-600">
-                  {(t.raw('Pricing.starter.features') as string[]).map((f, i) => <li key={i}>{f}</li>)}
-                </ul>
-                <PricingCtaClient />
-              </div>
-              <div className="card">
-                <div className="text-sm font-medium text-slate-500">{t('Pricing.pro.title')}</div>
-                <div className="mt-2 font-mono text-2xl font-semibold text-slate-900">{t('Pricing.pro.price')}/{t('Pricing.month')}</div>
-                <ul className="mt-4 space-y-2 text-sm text-slate-600">
-                  {(t.raw('Pricing.pro.features') as string[]).map((f, i) => <li key={i}>{f}</li>)}
-                </ul>
-                <PricingCtaClient />
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* ===== Footer ===== */}
       <footer className="section pt-10 border-t border-slate-200/60 bg-white">

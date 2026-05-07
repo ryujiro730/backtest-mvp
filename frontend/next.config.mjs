@@ -7,12 +7,13 @@ const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   reactStrictMode: true,
   transpilePackages: ['next-mdx-remote'],
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
   images: {
-    domains: ['api.delvertrade.com', 'cdn.delvertrade.com'],
+    unoptimized: true,
   },
   async redirects() {
     return [

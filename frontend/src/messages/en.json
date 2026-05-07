@@ -731,10 +731,10 @@
   },
     "AuthorSig": {
     "label": "About the Author",
-    "nameJa": "辻　龍次朗",
-    "nameEn": "Ryujiro Tsuji",
-    "imageAlt": "Ryujiro Tsuji",
-    "description": "Trader and developer who lost ¥1M in FX and later made millions in crypto — then built the infrastructure to understand why. After a career as a top-performing internet sales professional with a deep focus on human psychology and decision-making, he built Delver from scratch: a backtesting engine running 25 years of market data. He runs it independently as a commercial SaaS, with one goal: replace gut feeling with verifiable data."
+    "nameJa": "Delver Team",
+    "nameEn": "Delver Team",
+    "imageAlt": "Delver Team",
+    "description": "Traders and developers with real FX and crypto experience who believe in evaluating strategies with data, not intuition. Built Delver from scratch — a backtesting engine powered by 25 years of market data — with one goal: replace gut feeling with verifiable evidence."
   },
   "Explanation": {
     "title": "How to Use Delver (3 Steps)",

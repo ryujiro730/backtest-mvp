@@ -4,7 +4,6 @@ import { Link } from '@/i18n/routing'; // 👈 ここ重要！
 import { useTranslations } from 'next-intl';
 import { Menu } from 'lucide-react'; // アイコン追加
 import HeaderAuthButtons from '@/components/button/HeaderAuthButtons';
-import { flags } from '@/lib/flags'; // ← タイポ修正
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'; // 既存のUIコンポーネント
 import LanguageSwitcher from "./LanguageSwitcher";
 
@@ -103,11 +102,6 @@ return (
             {t('community')}
           </Link>
 
-          {!flags.freeMode && (
-            <Link href="/#pricing" className={navLinkCls}>
-              {t('pricing')}
-            </Link>
-          )}
 
           <Link href="/#try" aria-label="Trading Simulator" className={backtestBtnCls}>
             <span className="pointer-events-none absolute inset-0 -translate-x-full bg-[linear-gradient(110deg,transparent,rgba(220,38,38,0.18),transparent)] transition-transform duration-700 group-hover:translate-x-full" />
@@ -150,7 +144,6 @@ return (
                 <nav className="flex flex-col">
                   <MobileLink href="/blog" className="text-slate-700 border-slate-200">{t('blog')}</MobileLink>
                   <MobileLink href="/community" className="text-slate-700 border-slate-200">{t('community')}</MobileLink>
-                  {!flags.freeMode && <MobileLink href="/#pricing" className="text-slate-700 border-slate-200">{t('pricing')}</MobileLink>}
                   <MobileLink href="/#try" className="text-indigo-600 border-slate-200 font-medium">{t('backtest')}</MobileLink>
                   <MobileLink href="/tools/risk-of-ruin" className="text-slate-700 border-slate-200">{t('ruin')}</MobileLink>
                   <MobileLink href="/tools/expected-value" className="text-slate-700 border-slate-200">{t('expectedValue')}</MobileLink>

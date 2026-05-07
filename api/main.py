@@ -14,11 +14,7 @@ from typing import Any, Dict, List
 from dotenv import load_dotenv
 load_dotenv()
 
-import boto3
-from botocore.config import Config
-from botocore.exceptions import ClientError, EndpointConnectionError
-
-logger = logging.getLogger("uvicorn.error")  # ← import の後に置く
+logger = logging.getLogger("uvicorn.error")
 
 from celery import Celery
 import psycopg
@@ -95,7 +91,7 @@ app = FastAPI(lifespan=lifespan)
 from fastapi.middleware.gzip import GZipMiddleware
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-BASE = "/delver/data"
+BASE = os.getenv("DATA_DIR", "/delver/data/parquet")
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -164,12 +160,7 @@ celery = Celery(
 # ---------- CORS ----------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://delvertrade.com",
-        "https://www.delvertrade.com",
-        "http://localhost:3000",           # ローカル開発で使うなら残す
-    ],
-    allow_origin_regex=r"^https://.*\.vercel\.app$",  # 必要なら
+    allow_origins=["http://localhost:3000", "http://localhost:3001"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],  # Content-Type/Authorization などまとめて許可
@@ -197,29 +188,7 @@ def _thin_equity(
     return points[::step]
 
 def _list_parquet_names() -> List[str]:
-    """List parquet filenames from S3/R2 (if configured) or local disk."""
-    S3_BUCKET = os.getenv("PARQUET_BUCKET")
-    if S3_BUCKET:
-        try:
-            import boto3
-            from botocore.config import Config as BotoConfig
-            kwargs: dict = {}
-            endpoint = os.getenv("AWS_ENDPOINT_URL")
-            if endpoint:
-                kwargs["endpoint_url"] = endpoint
-            s3 = boto3.client("s3", config=BotoConfig(signature_version="s3v4"), **kwargs)
-            names = []
-            paginator = s3.get_paginator("list_objects_v2")
-            for page in paginator.paginate(Bucket=S3_BUCKET, Prefix=os.getenv("PARQUET_PREFIX", "")):
-                for obj in page.get("Contents", []):
-                    key = obj["Key"].split("/")[-1]
-                    if key.endswith(".parquet"):
-                        names.append(key)
-            return names
-        except Exception as e:
-            logging.warning("R2 catalog listing failed: %s", e)
-
-    # Local disk fallback
+    """List parquet filenames from local disk."""
     if not os.path.isdir(BASE):
         return []
     try:
@@ -252,8 +221,7 @@ def _resolve_dataset_hash(pair: str, timeframe: str) -> str:
     for it in cat["items"]:
         if it["pair"] == pair and it["timeframe"] == timeframe:
             h = it["dataset_hash"]
-            # When using R2, parquet files are downloaded on-demand by the worker
-            if os.getenv("PARQUET_BUCKET") or os.path.exists(f"{BASE}/{h}.parquet"):
+            if os.path.exists(f"{BASE}/{h}.parquet"):
                 return h
             raise HTTPException(status_code=500, detail="dataset_file_missing")
 
@@ -276,30 +244,11 @@ def api_catalog():
 
 
 def _ensure_parquet_api(dataset_hash: str) -> str:
-    """Return local path to parquet, downloading from R2 if needed."""
+    """Return local path to parquet file."""
     path = f"{BASE}/{dataset_hash}.parquet"
     if os.path.exists(path):
         return path
-    S3_BUCKET = os.getenv("PARQUET_BUCKET")
-    if not S3_BUCKET:
-        raise HTTPException(status_code=404, detail="parquet_not_found")
-    try:
-        import boto3
-        from botocore.config import Config as BotoConfig
-        kwargs: dict = {}
-        endpoint = os.getenv("AWS_ENDPOINT_URL")
-        if endpoint:
-            kwargs["endpoint_url"] = endpoint
-        s3 = boto3.client("s3", config=BotoConfig(signature_version="s3v4"), **kwargs)
-        prefix = os.getenv("PARQUET_PREFIX", "")
-        key = f"{prefix}{dataset_hash}.parquet"
-        os.makedirs(BASE, exist_ok=True)
-        logging.info("Downloading parquet from R2: %s → %s", key, path)
-        s3.download_file(S3_BUCKET, key, path)
-        return path
-    except Exception as e:
-        logging.error("R2 parquet download failed: %s", e)
-        raise HTTPException(status_code=404, detail="parquet_not_found")
+    raise HTTPException(status_code=404, detail="parquet_not_found")
 
 
 _df_cache: Dict[str, Any] = {}
@@ -393,10 +342,10 @@ async def api_run(request: Request, idem_key: str = Header(..., alias="Idempoten
         dataset_hash = _resolve_dataset_hash(pair, timeframe)
 
         sid = _strategy_sid(payload)
-        # Save strategy JSON to filesystem (local dev / volume mount) — best effort
         try:
-            os.makedirs(f"{BASE}/strategies", exist_ok=True)
-            with open(f"{BASE}/strategies/{sid}.json", "w") as f:
+            strat_dir = "/delver/data/strategies"
+            os.makedirs(strat_dir, exist_ok=True)
+            with open(f"{strat_dir}/{sid}.json", "w") as f:
                 json.dump(payload, f)
         except Exception as _fs_err:
             logging.debug("RUN strategy filesystem save skipped: %s", _fs_err)

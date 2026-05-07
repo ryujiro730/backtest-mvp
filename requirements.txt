@@ -33,13 +33,8 @@ watchfiles==1.1.0
 wcwidth==0.2.13
 websockets==15.0.1
 
-yfinance
 pandas
 pyarrow
-boto3
 psycopg[binary]
 requests
-tqdm
-stripe
 python-dotenv
-duka

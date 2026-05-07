@@ -1,0 +1,93 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: delver
+      POSTGRES_PASSWORD: delverpass
+      POSTGRES_DB: delverdb
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./infra/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks: [appnet]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U delver -d delverdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    networks: [appnet]
+
+  api:
+    build:
+      context: .
+      dockerfile: ./infra/backend.Dockerfile
+    working_dir: /delver
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 2
+    env_file: .env
+    environment:
+      POSTGRES_URL: postgresql://delver:delverpass@postgres:5432/delverdb
+      REDIS_URL: redis://redis:6379/0
+      DATA_DIR: /delver/data/parquet
+    volumes:
+      - ./data:/delver/data
+    ports:
+      - "8000:8000"
+    networks: [appnet]
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; urllib.request.urlopen('http://localhost:8000/health',timeout=2); sys.exit(0)\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  worker:
+    build:
+      context: .
+      dockerfile: ./infra/backend.Dockerfile
+    working_dir: /delver
+    command: celery -A worker.tasks worker -l info --concurrency=2
+    env_file: .env
+    environment:
+      POSTGRES_URL: postgresql://delver:delverpass@postgres:5432/delverdb
+      REDIS_URL: redis://redis:6379/0
+      DATA_DIR: /delver/data/parquet
+    volumes:
+      - ./data:/delver/data
+    networks: [appnet]
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ./infra/Dockerfile.frontend
+    environment:
+      FASTAPI_BASE_URL: http://api:8000
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+    networks: [appnet]
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pg_data:
+
+networks:
+  appnet: {}

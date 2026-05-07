@@ -77,8 +77,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import type { CandlestickBar } from "@/components/chart/ChartArea";
 import type { TradeRaw } from "@/lib/performance/transform";
-import { supabase } from "@/lib/supabase/client";
-import PaywallDialog from "@/components/billing/PaywallDialog";
+
+const PaywallDialog: React.FC<any> = () => null;
 
 const TIMEFRAMES = [
   { label: "1m", value: "M1" },
@@ -385,18 +385,8 @@ function ChartPageInner() {
   const [chartPaywallOpen, setChartPaywallOpen] = useState(false);
   const isPremiumRef = useRef(false);
 
-  useEffect(() => {
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) return;
-      const { data: sub } = await supabase
-        .from("subscriptions")
-        .select("id")
-        .eq("user_id", data.user.id)
-        .in("status", ["active", "trialing"])
-        .maybeSingle();
-      if (sub) { isPremiumRef.current = true; }
-    });
-  }, []);
+  // standalone: no paywall
+  useEffect(() => { isPremiumRef.current = true; }, []);
 
   // refから読むのでuseCallbackの依存配列に含めなくてよい
   const incrementEntryCount = useCallback((): boolean => {
