@@ -7,7 +7,7 @@ const COOKIE = 'anon_id';
 
 const intlMiddleware = createMiddleware(routing);
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (pathname.match(/\.(png|jpg|jpeg|gif|webp|svg|ico)$/)) {
