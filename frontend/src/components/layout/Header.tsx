@@ -103,13 +103,6 @@ return (
           </Link>
 
 
-          <Link href="/#try" aria-label="Trading Simulator" className={backtestBtnCls}>
-            <span className="pointer-events-none absolute inset-0 -translate-x-full bg-[linear-gradient(110deg,transparent,rgba(220,38,38,0.18),transparent)] transition-transform duration-700 group-hover:translate-x-full" />
-            <span className="relative tracking-wide">
-              {t('backtest')}
-            </span>
-          </Link>
-
           <Link href="/tools/risk-of-ruin" className={ruinBtnCls}>
             {t('ruin')}
           </Link>
@@ -144,7 +137,6 @@ return (
                 <nav className="flex flex-col">
                   <MobileLink href="/blog" className="text-slate-700 border-slate-200">{t('blog')}</MobileLink>
                   <MobileLink href="/community" className="text-slate-700 border-slate-200">{t('community')}</MobileLink>
-                  <MobileLink href="/#try" className="text-indigo-600 border-slate-200 font-medium">{t('backtest')}</MobileLink>
                   <MobileLink href="/tools/risk-of-ruin" className="text-slate-700 border-slate-200">{t('ruin')}</MobileLink>
                   <MobileLink href="/tools/expected-value" className="text-slate-700 border-slate-200">{t('expectedValue')}</MobileLink>
                   <MobileLink href="/chart" className="text-slate-700 border-slate-200">{t('chart')}</MobileLink>

@@ -1,17 +1,11 @@
 // app/[locale]/PageClient.tsx  ← Client Component
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Link, useRouter } from '@/i18n/routing';
-import type { PresetKey } from '@/lib/strategy/presets';
+import { Link } from '@/i18n/routing';
 import Newsletter from '../(public)/components/Newsletter';
-import PricingCtaClient from './PricingCtaClient';
 import Header from '@/components/layout/Header';
 import Image from "next/image";
-import { SimpleMode } from '@/components/run/SimpleMode';
-import NoticeCard from '@/components/NoticeCard';
-import { ChartVerificationCtaLink } from '@/components/ChartVerificationCta';
 import BetaSignupCard from '@/components/BetaSignupCard';
 import Explanation from '@/components/explanation';
 
@@ -26,54 +20,6 @@ function Check({ children }: { children: React.ReactNode }) {
 
 export default function PageClient({ locale }: { locale: string }) {
   const t = useTranslations('LP');
-  const router = useRouter();
-
-  const [runId, setRunId] = useState<string | null>(null);
-  const [uiRunning, setUiRunning] = useState(false);
-  const [runningKey, setRunningKey] = useState<PresetKey | null>(null);
-  const pollingRef = useRef(false);
-
-  useEffect(() => {
-    if (!runId) return;
-    if (pollingRef.current) return;
-    pollingRef.current = true;
-
-    let alive = true;
-
-    const tick = async () => {
-      if (!alive) return;
-      try {
-        const res = await fetch(`/api/reports/${runId}/summary`, { cache: 'no-store' });
-        if (!alive) return;
-
-        if (res.status === 202 || res.status === 404) { setTimeout(tick, 1500); return; }
-        if (!res.ok) { setTimeout(tick, 1500); return; }
-
-        const body = await res.json().catch(() => null);
-        if (!alive) return;
-        if (body?.status && body.status !== 'done') { setTimeout(tick, 1500); return; }
-
-        setUiRunning(false);
-        setRunningKey(null);
-        router.push("/performance" as any);
-      } catch {
-        setTimeout(tick, 1500);
-      }
-    };
-
-    tick();
-
-    return () => {
-      alive = false;
-      pollingRef.current = false;
-    };
-  }, [runId, router]);
-
-  const handleRunStarted = (id: string, key: PresetKey) => {
-    setUiRunning(true);
-    setRunningKey(key);
-    setRunId(id);
-  };
 
   return (
     <main className="relative isolate pt-14">
@@ -99,7 +45,7 @@ export default function PageClient({ locale }: { locale: string }) {
 
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
               <a
-                href="#try"
+                href="#signup"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 font-semibold text-white shadow-sm transition-colors hover:bg-emerald-500 active:scale-[.98] w-full sm:w-auto"
               >
                 {t('Hero.cta')}
@@ -144,64 +90,27 @@ export default function PageClient({ locale }: { locale: string }) {
         </div>
       </section>
 
-      {/* ===== ワンクリック体験セクション（Tool） ===== */}
+      {/* ===== 早期登録CTA ===== */}
       <section
-        id="try"
-        className="py-12 md:py-16 border-b border-slate-200/60 bg-slate-50/50"
+        id="signup"
+        className="py-16 md:py-24 border-b border-slate-200/60 bg-slate-50/50"
       >
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
-              {t('TrySection.title')}
-            </h2>
-            <p className="mt-2 text-slate-600">{t('TrySection.subtitle')}</p>
+        <div className="max-w-lg mx-auto px-4 sm:px-6 text-center space-y-6">
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+            早期登録キャンペーン中
           </div>
-
-          <div className="mb-6">
-            <NoticeCard />
-          </div>
-
-          <SimpleMode runningKey={runningKey} onRunStarted={handleRunStarted} showTitle={false} />
-
-          <div className="mt-5 flex flex-col items-center gap-4">
-            <Link
-              href="/app"
-              className="text-sm text-slate-500 hover:text-slate-800 underline underline-offset-2 transition-colors"
-            >
-              {t('TrySection.advancedLink')}
-            </Link>
-            <div className="w-full max-w-sm">
-              <BetaSignupCard />
-            </div>
-          </div>
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+            早期アクセスに登録する
+          </h2>
+          <p className="text-slate-600">
+            リリース時に真っ先にお知らせします。登録は無料です。
+          </p>
+          <BetaSignupCard />
         </div>
       </section>
 
-      {/* ===== 手動裁量検証モード ===== */}
-      <section className="py-12 md:py-16 border-b border-slate-200/60 bg-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-8 md:px-10 md:py-10 flex flex-col md:flex-row items-center gap-6 md:gap-10">
-            <div className="flex-1 space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-xs font-semibold text-amber-800">
-                MT4・MT5不要 · インストール不要 · 完全無料
-              </div>
-              <h2 className="text-xl md:text-2xl font-bold text-slate-900 leading-snug">
-                {t('ManualVerify.sectionTitle')}
-              </h2>
-              <p className="text-slate-600 text-sm md:text-base leading-relaxed">
-                {t('ManualVerify.sectionDesc')}
-              </p>
-            </div>
-            <div className="shrink-0">
-              <ChartVerificationCtaLink href={`/${locale}/chart`} variant="manual">
-                {t('ManualVerify.cta')}
-              </ChartVerificationCtaLink>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* ===== SEO copy ===== */}
+{/* ===== SEO copy ===== */}
       <section className="py-10 md:py-14 border-b border-slate-200/60 bg-white" aria-label="About Delver">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-12">
           <h2 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight mb-4">
@@ -368,7 +277,6 @@ export default function PageClient({ locale }: { locale: string }) {
           </div>
         </div>
       </section>
-
 
       {/* ===== Footer ===== */}
       <footer className="section pt-10 border-t border-slate-200/60 bg-white">
