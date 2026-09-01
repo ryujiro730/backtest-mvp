@@ -8,6 +8,7 @@ import { Link } from "@/i18n/routing";
 import { BlogCta } from "@/components/blog/BlogCta";
 import RelatedPosts from "@/components/blog/RelatedPosts";
 import AuthorSig from "@/components/blog/AuthorSig";
+import { MatchkoiBanner } from "@/components/blog/MatchkoiBanner";
 import {
   getAllPostsMeta,
   getPostBySlug,
@@ -110,7 +111,9 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   return (
     <main className="blog-root min-h-screen">
-      <div className="mx-auto max-w-3xl px-4 pb-16 pt-10 lg:pt-16">
+      <div className="mx-auto max-w-3xl px-4 pb-16 pt-10 lg:pt-16 lg:max-w-5xl">
+        <div className="lg:grid lg:grid-cols-[1fr_256px] lg:gap-10 lg:items-start">
+        <div>
 
         {/* Breadcrumb */}
         <nav className="mb-4 text-xs text-slate-400">
@@ -167,6 +170,9 @@ export default async function BlogPostPage({ params }: PageProps) {
           />
         )}
 
+        {/* マチコイ インライン広告（記事本文前） */}
+        <MatchkoiBanner variant="inline" />
+
         {/* Body */}
         <article className="prose prose-neutral max-w-none mt-8 dark:prose-invert">
           {content}
@@ -187,6 +193,9 @@ export default async function BlogPostPage({ params }: PageProps) {
           ) : <span />}
         </div>
 
+        {/* マチコイ 記事末尾広告 */}
+        <MatchkoiBanner variant="end" />
+
         <AuthorSig />
         <RelatedPosts currentSlug={slug} locale={locale} />
 
@@ -196,6 +205,15 @@ export default async function BlogPostPage({ params }: PageProps) {
           buttonLabel={t("cta.button")}
           href="/app"
         />
+        </div>
+
+        {/* サイドバー広告（PC のみ） */}
+        <aside className="hidden lg:block">
+          <div className="sticky top-24">
+            <MatchkoiBanner variant="sidebar" />
+          </div>
+        </aside>
+        </div>
       </div>
     </main>
   );

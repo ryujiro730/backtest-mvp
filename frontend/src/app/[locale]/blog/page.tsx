@@ -3,6 +3,7 @@ import { Link } from "@/i18n/routing";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { getAllPostsMeta } from "@/lib/blog/mdx";
+import { MatchkoiBanner } from "@/components/blog/MatchkoiBanner";
 
 /* =========================
    Metadata（locale対応）
@@ -125,7 +126,7 @@ const href =
           )}
 
           <div className="grid gap-6 sm:grid-cols-2">
-            {filteredPosts.map((post) => (
+            {filteredPosts.slice(0, 3).map((post) => (
               <Link
                 key={post.sourcePath}
                 href={`/blog/${post.slug}`}
@@ -159,6 +160,31 @@ const href =
                   <span className="mt-3 inline-block text-xs font-semibold text-emerald-600">
                     {t("readMore")} →
                   </span>
+                </article>
+              </Link>
+            ))}
+            {filteredPosts.length > 0 && <MatchkoiBanner variant="list" />}
+            {filteredPosts.slice(3).map((post) => (
+              <Link
+                key={post.sourcePath + '-rest'}
+                href={`/blog/${post.slug}`}
+                className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+              >
+                <article className="p-5">
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium tracking-wide text-slate-500">
+                    <span>{post.category}</span>
+                    <span>・</span>
+                    <time dateTime={post.publishedAt}>
+                      {new Date(post.publishedAt).toLocaleDateString(t("dateLocale"))}
+                    </time>
+                    <span>・</span>
+                    <span>{t("readTime", { minutes: post.readTimeMinutes })}</span>
+                  </div>
+                  <h2 className="mt-2 text-base font-semibold leading-snug text-slate-900 sm:text-lg">
+                    <span className="line-clamp-2 group-hover:text-emerald-600">{post.title}</span>
+                  </h2>
+                  <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-slate-600">{post.description}</p>
+                  <span className="mt-3 inline-block text-xs font-semibold text-emerald-600">{t("readMore")} →</span>
                 </article>
               </Link>
             ))}
