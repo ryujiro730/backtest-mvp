@@ -1,16 +1,13 @@
 //! テクニカル指標の計算（ta クレート使用）。Rayon で並列化可能。
 
-use ta::indicators::{ExponentialMovingAverage, RelativeStrengthIndex};
+use fin_primitives::signals::batch_f64;
+use ta::indicators::ExponentialMovingAverage;
 use ta::Next;
 
 /// close から RSI(period) を計算。先頭 (period+1) は NaN 扱いで 0.0 を詰める。
 pub fn compute_rsi(close: &[f64], period: u32) -> Vec<f64> {
     let period = period.max(1) as usize;
-    let mut out = vec![0.0; close.len()];
-    let mut rsi = RelativeStrengthIndex::new(period).unwrap_or_default();
-    for (i, &c) in close.iter().enumerate() {
-        out[i] = rsi.next(c);
-    }
+    let mut out = batch_f64::rsi(close, period);
     // warmup 区間は 0 のまま（エントリー条件で使わない）
     for i in 0..(period + 1).min(out.len()) {
         out[i] = 0.0;
@@ -64,6 +61,18 @@ mod tests {
         let close: Vec<f64> = (0..100).map(|i| 100.0 + i as f64 * 0.1).collect();
         let r = compute_rsi(&close, 14);
         assert_eq!(r.len(), close.len());
+    }
+
+    #[test]
+    fn test_rsi_wilder_reference() {
+        // Wilder's RSI(14) worked example; TA-Lib RSI gives 66.25 at index 15.
+        let close = [
+            44.34, 44.09, 44.15, 43.61, 44.33, 44.83, 45.10, 45.42, 45.84, 46.08, 45.89, 46.03,
+            45.61, 46.28, 46.28, 46.00,
+        ];
+        let r = compute_rsi(&close, 14);
+        assert_eq!(r[14], 0.0); // warmup is still zeroed
+        assert!((r[15] - 66.25).abs() < 0.01, "got {}", r[15]);
     }
 
     #[test]
